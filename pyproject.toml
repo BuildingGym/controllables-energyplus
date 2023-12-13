@@ -1,0 +1,33 @@
+[build-system]
+requires = [
+    "setuptools>=49", 
+    "setuptools_scm>=6"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.setuptools]
+name = "energyplus-ooep"
+
+[tool.setuptools.setup]
+description = "EnergyPlus Python API, Object-Oriented"
+python_requires = ">=3.9"
+install_requires = [
+    'energyplus-core',
+    'packaging',
+    'pandas',
+]
+
+[tool.setuptools.packages.find]
+where = ["packages"] 
+
+[tool.setuptools.extras_require]
+dev = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["./tests"]
