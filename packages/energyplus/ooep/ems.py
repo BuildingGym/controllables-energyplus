@@ -10,6 +10,8 @@ import functools
 import dataclasses
 
 import packaging
+import packaging.version
+
 import pandas as pd
 
 from . import utils
@@ -505,7 +507,7 @@ class BaseEnvironment(abc.ABC):
 class Environment(BaseEnvironment):
     def __init__(self, ep_api: 'pyenergyplus.api.EnergyPlusAPI' = None):
         if ep_api is None:
-            from energyplus_core import pyenergyplus as ep
+            from energyplus.core import pyenergyplus as ep
             #ep = utils.energyplus.importer.import_package(
             #    submodules=['.api']
             #)

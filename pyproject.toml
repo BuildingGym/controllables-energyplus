@@ -1,32 +1,32 @@
 [build-system]
 requires = [
-    "setuptools>=49", 
-    "setuptools_scm>=6"
+    "setuptools", 
+    "setuptools_scm",
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools_scm]
-
-[tool.setuptools]
+[project]
 name = "energyplus-ooep"
-
-[tool.setuptools.setup]
+dynamic = ["version"]
 description = "EnergyPlus Python API, Object-Oriented"
-python_requires = ">=3.9"
-install_requires = [
+requires-python = ">=3.8"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+dependencies = [
     'energyplus-core',
     'packaging',
     'pandas',
 ]
 
-[tool.setuptools.packages.find]
-where = ["packages"] 
-
-[tool.setuptools.extras_require]
-dev = []
-
 [project.optional-dependencies]
 test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["packages"]
+namespaces = true
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
