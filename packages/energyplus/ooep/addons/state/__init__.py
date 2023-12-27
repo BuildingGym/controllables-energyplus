@@ -4,7 +4,7 @@ import typing
 import threading
 
 from ... import ems
-from . import callback_queue
+from . import callback_queues
 
 
 class BaseStateMachine:
@@ -14,7 +14,7 @@ class BaseStateMachine:
             state_machine: 'BaseStateMachine',
             event_specs: ems.Environment.Event.Specs
         ):
-            self._callback = callback_queue.CloseableCallbackQueue()
+            self._callback = callback_queues.CloseableCallbackQueue()
             self._state_machine = state_machine
             self._event_specs = event_specs
         
