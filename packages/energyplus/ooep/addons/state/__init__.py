@@ -18,6 +18,22 @@ class BaseStateMachine:
             self._state_machine = state_machine
             self._event_specs = event_specs
         
+        @property
+        def _env(self):
+            return self._state_machine._env
+
+        def subscribe(self):
+            return self._env.event_listener.subscribe(
+                self._event_specs,
+                self._callback,
+            )
+        
+        def unsubscribe(self):
+            return self._env.event_listener.unsubscribe(
+                self._event_specs,
+                self._callback,
+            )
+
         @contextlib.contextmanager
         def __state_context__(self):
             self._state_machine._env.event_listener.subscribe(
@@ -38,8 +54,10 @@ class BaseStateMachine:
         self._step_funcs: typing.List[self.StepFunction] = []
 
     def step_function(self, event_specs):
-        f = self.StepFunction(self, event_specs)
-        self._step_funcs.append(f)
+        self._step_funcs.append(
+            f := self.StepFunction(self, event_specs)
+        )
+        f.subscribe()
         return f
 
     def run_blocking(self, *args, **kwargs):
