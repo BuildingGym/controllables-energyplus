@@ -12,36 +12,62 @@ class BaseStateMachine:
         def __init__(
             self, 
             state_machine: 'BaseStateMachine',
-            event_specs: ems.Environment.Event.Specs
+            event_specs: ems.Environment.Event.Specs,
+            callback_filter: typing.Callable[..., bool] = None,
         ):
-            self._callback = callback_queues.CloseableCallbackQueue()
             self._state_machine = state_machine
             self._event_specs = event_specs
-        
+            
+            class ConditionalFunction:
+                def __init__(
+                    self, 
+                    base: typing.Callable,
+                    condition: typing.Callable[..., bool] = None,
+                    default_result: typing.Any = None,
+                ):
+                    self._base = base
+                    self._condition = condition
+                    self._default_result = default_result
+
+                def __call__(
+                    self, 
+                    *args: typing.Any, 
+                    **kwds: typing.Any,
+                ) -> typing.Any | None:
+                    if self._condition is not None:
+                        if not self._condition(*args, **kwds):
+                            return self._default_result
+                    return self._base(*args, **kwds)
+
+            self._callback = ConditionalFunction(
+                callback_queues.CloseableCallbackQueue(),
+                condition=callback_filter,
+            )
+
         @property
         def _env(self):
             return self._state_machine._env
 
         def subscribe(self):
+            self._callback.open()
             return self._env.event_listener.subscribe(
                 self._event_specs,
                 self._callback,
             )
         
         def unsubscribe(self):
-            return self._env.event_listener.unsubscribe(
+            res = self._env.event_listener.unsubscribe(
                 self._event_specs,
                 self._callback,
             )
+            self._callback.close()
+            return res
 
         @contextlib.contextmanager
         def __state_context__(self):
-            self._state_machine._env.event_listener.subscribe(
-                self._event_specs,
-                self._callback,
-            )
+            self.subscribe()
             yield
-            self._callback.close()
+            self.unsubscribe()
 
         def __call__(self, func: typing.Callable | None = None):
             return self._callback.call(func)

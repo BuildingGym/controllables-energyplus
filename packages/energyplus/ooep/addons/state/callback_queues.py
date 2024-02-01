@@ -43,6 +43,9 @@ class CloseableCallbackQueue(CallbackQueue):
             raise self.Closed()
         return super().call(func)
     
+    def open(self):
+        self.closed = False
+
     def close(self):
         self.closed = True
         # NOTE ref https://stackoverflow.com/a/18873213
