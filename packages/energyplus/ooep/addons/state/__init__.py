@@ -67,6 +67,10 @@ class BaseStateMachine:
             return self._env(*args, **kwargs)
 
 class StateMachine(BaseStateMachine):
+    @property
+    def env(self):
+        return self._env
+
     def run(self, *args, **kwargs):
         thr = threading.Thread(
             target=self.run_blocking, 

@@ -101,19 +101,25 @@ class BaseEnvironment(abc.ABC):
                 d[title].append(row)
 
             colnames = {
-                '**ACTUATORS**': ['type', 'component_type', 'control_type', 'actuator_key'],
-                '**INTERNAL_VARIABLES**': ['type', 'variable_type', 'variable_key'],
+                '**ACTUATORS**': ['type', 'component_type', 'control_type', 'actuator_key', 'unit'],
+                '**INTERNAL_VARIABLES**': ['type', 'variable_type', 'variable_key', 'unit'],
                 '**PLUGIN_GLOBAL_VARIABLES**': ['type', 'var_name'],
                 '**TRENDS**': ['type', 'trend_var_name'],
-                '**METERS**': ['type', 'meter_name'],
-                '**VARIABLES**': ['type', 'variable_name', 'variable_key']
+                '**METERS**': ['type', 'meter_name', 'unit'],
+                '**VARIABLES**': ['type', 'variable_name', 'variable_key', 'unit']
             }
 
+            # NOTE backward compat: new columns can be added
+            def _make_dataframe(data, columns, **kwargs):
+                df = pd.DataFrame(data, **kwargs)
+                df.columns = columns[:len(df.columns)]
+                return df
+
             return {
-                title: pd.DataFrame(
+                title: _make_dataframe(
                     d.get(title, []),
-                    columns=colnames[title]
-                ) for title in colnames
+                    columns=colnames[title],
+                ) for title in colnames.keys()
             }
 
     @property
@@ -124,8 +130,8 @@ class BaseEnvironment(abc.ABC):
         # datas
         actuators: pd.DataFrame
         internal_variables: pd.DataFrame
-        # plugin_variables: pd.DataFrame
-        # plugin_trends: pd.DataFrame
+        #plugin_variables: pd.DataFrame
+        #plugin_trends: pd.DataFrame
         meters: pd.DataFrame
         variables: pd.DataFrame
         # events
@@ -513,7 +519,11 @@ class Environment(BaseEnvironment):
             #)
             ep_api = ep.api.EnergyPlusAPI()
 
-        return super().__init__(ep_api)
+        super().__init__(ep_api)
+        super().__enter__()
+    
+    def __del__(self):
+        return super().__exit__()
 
     def __call__(self, *args, verbose: bool = False):
         self._console_output(enabled=verbose)
