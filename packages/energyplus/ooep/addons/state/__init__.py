@@ -13,7 +13,7 @@ class BaseStateMachine:
             self, 
             state_machine: 'BaseStateMachine',
             event_specs: ems.Environment.Event.Specs,
-            callback_filter: typing.Callable[..., bool] = None,
+            condition: typing.Callable[..., bool] = None,
         ):
             self._state_machine = state_machine
             self._event_specs = event_specs
@@ -32,16 +32,16 @@ class BaseStateMachine:
                 def __call__(
                     self, 
                     *args: typing.Any, 
-                    **kwds: typing.Any,
+                    **kwargs: typing.Any,
                 ) -> typing.Any | None:
                     if self._condition is not None:
-                        if not self._condition(*args, **kwds):
+                        if not self._condition(*args, **kwargs):
                             return self._default_result
-                    return self._base(*args, **kwds)
+                    return self._base(*args, **kwargs)
 
             self._callback = ConditionalFunction(
                 callback_queues.CloseableCallbackQueue(),
-                condition=callback_filter,
+                condition=condition,
             )
 
         @property
@@ -49,7 +49,7 @@ class BaseStateMachine:
             return self._state_machine._env
 
         def subscribe(self):
-            self._callback.open()
+            self._callback._base.open()
             return self._env.event_listener.subscribe(
                 self._event_specs,
                 self._callback,
@@ -60,7 +60,7 @@ class BaseStateMachine:
                 self._event_specs,
                 self._callback,
             )
-            self._callback.close()
+            self._callback._base.close()
             return res
 
         @contextlib.contextmanager
@@ -70,7 +70,7 @@ class BaseStateMachine:
             self.unsubscribe()
 
         def __call__(self, func: typing.Callable | None = None):
-            return self._callback.call(func)
+            return self._callback._base.call(func)
 
     def __init__(
         self, 
@@ -79,9 +79,13 @@ class BaseStateMachine:
         self._env = env
         self._step_funcs: typing.List[self.StepFunction] = []
 
-    def step_function(self, event_specs):
+    def step_function(self, event_specs, condition=None):
         self._step_funcs.append(
-            f := self.StepFunction(self, event_specs)
+            f := self.StepFunction(
+                self, 
+                event_specs=event_specs, 
+                condition=condition,
+            )
         )
         f.subscribe()
         return f
@@ -98,11 +102,17 @@ class StateMachine(BaseStateMachine):
         return self._env
 
     def run(self, *args, **kwargs):
-        thr = threading.Thread(
+        self._thread = threading.Thread(
             target=self.run_blocking, 
             args=args, kwargs=kwargs,
         )
-        thr.start()
+        self._thread.start()
+
+    @property
+    def running(self):
+        if not hasattr(self, '_thread'):
+            return False
+        return self._thread.is_alive()
 
 
 __all__ = [
