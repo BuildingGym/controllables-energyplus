@@ -7,8 +7,16 @@ from ... import ems
 from . import callback_queues
 
 
+class Terminated(Exception):
+    pass
+
 class BaseStateMachine:
+    Terminated = Terminated
+    
     class StepFunction:
+        class Terminated(Terminated):
+            pass
+        
         def __init__(
             self, 
             state_machine: 'BaseStateMachine',
@@ -70,7 +78,9 @@ class BaseStateMachine:
             self.unsubscribe()
 
         def __call__(self, func: typing.Callable | None = None):
-            return self._callback._base.call(func)
+            try: return self._callback._base.call(func)
+            except self._callback._base.Closed:
+                raise self.Terminated()
 
     def __init__(
         self, 
@@ -116,6 +126,7 @@ class StateMachine(BaseStateMachine):
 
 
 __all__ = [
+    Terminated,
     BaseStateMachine,
     StateMachine,
 ]
