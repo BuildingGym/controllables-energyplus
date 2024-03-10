@@ -106,6 +106,9 @@ class BaseStateMachine:
                 stack.enter_context(f.__state_context__())
             return self._env(*args, **kwargs)
 
+    def stop(self):
+        self._env.stop()
+
 class StateMachine(BaseStateMachine):
     @property
     def env(self):
