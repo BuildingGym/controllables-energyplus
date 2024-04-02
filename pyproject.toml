@@ -13,13 +13,12 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = {file = "LICENSE.txt"}
 dependencies = [
-    'energyplus-core',
-    'packaging',
-    'pandas',
+    'energyplus-core'
 ]
 
 [project.optional-dependencies]
 test = ["pytest"]
+docs = ["jupyter-book"]
 
 [tool.setuptools.packages.find]
 where = ["packages"]

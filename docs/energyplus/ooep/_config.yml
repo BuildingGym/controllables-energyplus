@@ -1,0 +1,8 @@
+title: Documentation
+author: EnergyPlus Contributors
+execute:
+  execute_notebooks: force
+
+# Add a bibtex file so that we can create citations
+bibtex_bibfiles:
+  - references.bib
