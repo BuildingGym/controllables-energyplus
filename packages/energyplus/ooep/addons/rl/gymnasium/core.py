@@ -37,7 +37,7 @@ class BaseThinEnv(
 
         def __call__(
             self, 
-            space: _spaces_.VariableSpace[BaseVariable.Specs],
+            space: _spaces_.VariableSpace[BaseVariable.Ref],
         ):
             # TODO !!!!!!!!!!!
             self._simulator.variables.on(space.binding)
@@ -70,7 +70,7 @@ class BaseThinEnv(
 
         def __call__(
             self, 
-            space: _spaces_.VariableSpace[BaseControlVariable.Specs], 
+            space: _spaces_.VariableSpace[BaseControlVariable.Ref], 
             value: _typing_.Any,
         ):
             # TODO 
@@ -98,7 +98,7 @@ class BaseThinEnv(
     
         def __call__(
             self, 
-            space: _spaces_.VariableSpace[BaseVariable.Specs],
+            space: _spaces_.VariableSpace[BaseVariable.Ref],
         ):
             # TODO
             import numpy as _numpy_

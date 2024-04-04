@@ -38,7 +38,7 @@ class Engine:
                 self.api.state_manager.reset_state(self.state)
 
             def __del__(self):
-                self.api.state_manager.delete_state(self.state)     
+                self.api.state_manager.delete_state(self.state)
 
         return Core()
 

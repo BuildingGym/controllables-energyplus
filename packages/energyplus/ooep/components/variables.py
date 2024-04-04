@@ -2,45 +2,50 @@ import abc as _abc_
 import typing as _typing_
 import functools as _functools_
 import dataclasses as _dataclasses_
+import itertools as _itertools_
 
 from . import base as _base_
 
-from .. import exceptions as _exceptions_
+from .. import (
+    exceptions as _exceptions_,
+    utils as _utils_,
+)
 
 
 class BaseVariable(_base_.Component, _abc_.ABC):
-    class Specs(_abc_.ABC):
-        # TODO NOTE this constructs an object according to `Specs`
+    class Ref(_abc_.ABC):
+        # TODO NOTE this constructs an object according to the reference `Ref`
         @_abc_.abstractmethod
         def __build__(self) -> 'BaseVariable':
             raise NotImplementedError
 
-    def __init__(self, specs: Specs):
+    def __init__(self, ref: Ref):
         super().__init__()
-        self._specs = specs
+        self._ref = ref
 
     @property
-    def specs(self):
-        return self._specs
+    def ref(self):
+        return self._ref
 
-    @_abc_.abstractproperty
+    @property
+    @_abc_.abstractmethod
     def value(self):
         raise NotImplementedError
 
 class BaseControlVariable(BaseVariable, _abc_.ABC):
-    @_abc_.abstractmethod
     @BaseVariable.value.setter
+    @_abc_.abstractmethod
     def value(self, o: _typing_.Any):
         raise NotImplementedError
 
 # TODO 
 class BaseVariableManager(_base_.Component, _abc_.ABC):
     @_abc_.abstractmethod
-    def on(self, specs: BaseVariable.Specs) -> _typing_.Self:
+    def on(self, ref: BaseVariable.Ref) -> _typing_.Self:
         raise NotImplementedError
 
     @_abc_.abstractmethod
-    def __getitem__(self, specs: BaseVariable.Specs) -> BaseVariable:
+    def __getitem__(self, ref: BaseVariable.Ref) -> BaseVariable:
         raise NotImplementedError
 
 
@@ -49,23 +54,23 @@ class Actuator(
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
-    class Specs(BaseControlVariable.Specs):
+    class Ref(BaseControlVariable.Ref):
         type: str
         control_type: str
         key: str
 
         def __build__(self): 
-            return Actuator(specs=self)
+            return Actuator(ref=self)
 
-    specs: Specs
+    ref: Ref
 
     @property
     def _core_handle(self):
         res = self._engine._core.api.exchange.get_actuator_handle(
             self._engine._core.state,
-            component_type=self.specs.type,
-            control_type=self.specs.control_type,
-            actuator_key=self.specs.key,
+            component_type=self.ref.type,
+            control_type=self.ref.control_type,
+            actuator_key=self.ref.key,
         )
         if res == -1:
             raise _exceptions_.TemporaryUnavailableError() 
@@ -98,21 +103,21 @@ class InternalVariable(
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
-    class Specs(BaseVariable.Specs):
+    class Ref(BaseVariable.Ref):
         type: str
         key: str
 
         def __build__(self):
-            return InternalVariable(specs=self)
+            return InternalVariable(ref=self)
 
-    specs: Specs
+    ref: Ref
 
     @property
     def _core_handle(self):
         res = self._engine._core.api.exchange.get_internal_variable_handle(
             self._engine._core.state,
-            variable_name=self.specs.type,
-            variable_key=self.specs.key
+            variable_name=self.ref.type,
+            variable_key=self.ref.key
         )
         if res == -1:
             raise _exceptions_.TemporaryUnavailableError()
@@ -131,19 +136,19 @@ class OutputMeter(
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
-    class Specs(BaseVariable.Specs):
+    class Ref(BaseVariable.Ref):
         type: str
 
         def __build__(self):
             return OutputMeter(self)
         
-    specs: Specs
+    ref: Ref
 
     @property
     def _core_handle(self):
         res = self._engine._core.api.exchange.get_meter_handle(
             self._engine._core.state,
-            meter_name=self.specs.type,
+            meter_name=self.ref.type,
         )
         if res == -1:
             raise _exceptions_.TemporaryUnavailableError()
@@ -162,14 +167,14 @@ class OutputVariable(
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
-    class Specs(BaseVariable.Specs):
+    class Ref(BaseVariable.Ref):
         type: str
         key: str
 
         def __build__(self):
-            return OutputVariable(specs=self)
+            return OutputVariable(ref=self)
 
-    specs: Specs
+    ref: Ref
 
     def __attach__(self, engine):
         super().__attach__(engine=engine)
@@ -177,8 +182,8 @@ class OutputVariable(
             'run:pre', 
             lambda _: self._engine._core.api.exchange.request_variable(
                 self._engine._core.state,
-                variable_name=self.specs.type,
-                variable_key=self.specs.key,
+                variable_name=self.ref.type,
+                variable_key=self.ref.key,
             )
         )
         return self
@@ -187,8 +192,8 @@ class OutputVariable(
     def _core_handle(self):
         res = self._engine._core.api.exchange.get_variable_handle(
             self._engine._core.state,
-            variable_name=self.specs.type,
-            variable_key=self.specs.key,
+            variable_name=self.ref.type,
+            variable_key=self.ref.key,
         )
         if res == -1:
             raise _exceptions_.TemporaryUnavailableError()
@@ -196,6 +201,7 @@ class OutputVariable(
 
     @property
     def value(self):
+        # TODO energyplus error flag!!!!!!!!!!!!!!!!!!!!!!
         return self._engine._core.api.exchange.get_variable_value(
             self._engine._core.state,
             variable_handle=self._core_handle,
@@ -206,21 +212,22 @@ class OutputVariable(
 
 import datetime as _datetime_
 
-class Clock(
+class WallClock(
     BaseVariable,
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
-    class Specs(BaseVariable.Specs):
+    class Ref(BaseVariable.Ref):
         def __build__(self):
-            return Clock(specs=self)
+            return WallClock(ref=self)
 
-    specs: Specs
+    ref: Ref
 
     @property
     def value(self):
         api = self._engine._core.api.exchange
         state = self._engine._core.state
+        # TODO err flag temp unavailable!!!!!!!!!!!
         return _datetime_.datetime(
             # NOTE see https://github.com/NREL/EnergyPlus/issues/10210
             # TODO .calendar_year v .year
@@ -229,45 +236,41 @@ class Clock(
             day=api.day_of_month(state),
             hour=api.hour(state),
             # TODO NOTE energyplus api returns 0?-60: datetime requires range(60)
-            minute=api.minutes(state) % _datetime_.datetime.max.minute
+            minute=api.minutes(state) % _datetime_.datetime.max.minute,
         )
-
-
-import itertools as _itertools_
-
-
-
-from .. import utils as _utils_
 
 
 class VariableManager(BaseVariableManager, _base_.Component):
     @_functools_.cached_property
     def _variable_data(self) -> _typing_.Mapping[
-        BaseVariable.Specs, 
+        BaseVariable.Ref, 
         BaseVariable,
     ]:
         return dict()
 
-    def on(self, specs):
-        if specs in self._variable_data:
+    def on(self, ref):
+        if ref in self._variable_data:
             return self
-        self._variable_data[specs] = (
-            specs.__build__()
+        self._variable_data[ref] = (
+            ref.__build__()
                 .__attach__(self._engine)
         )
         return self
     
-    def __contains__(self, specs):
-        return self._variable_data.__contains__(specs)
+    # TODO 
+    def off(self, ref):
+        raise NotImplementedError
 
-    def __getitem__(self, specs):
-        # TODO exception: variable not enabled??
-        if not self.__contains__(specs):
+    def __contains__(self, ref):
+        return self._variable_data.__contains__(ref)
+
+    def __getitem__(self, ref):
+        if not self.__contains__(ref):
             raise _exceptions_.TemporaryUnavailableError()
-        return self._variable_data.__getitem__(specs)
+        return self._variable_data.__getitem__(ref)
     
-    def ondefault(self, specs):
-        return self.on(specs=specs)[specs]
+    def ondefault(self, ref):
+        return self.on(ref=ref)[ref]
     
     # TODO
     # TODO additional features: ipytree, dataframe view??? thru plugin system
@@ -277,22 +280,22 @@ class VariableManager(BaseVariableManager, _base_.Component):
     def keys(self) -> KeysView:
         return self.KeysView(
             iterable=_itertools_.chain(
-                (Clock.Specs(), ),
+                (WallClock.Ref(), ),
                 (
                     {
-                        'Actuator': lambda: Actuator.Specs(
+                        'Actuator': lambda: Actuator.Ref(
                             type=datapoint.name,
                             key=datapoint.key,
                             control_type=datapoint.type,
                         ),
-                        'InternalVariable': lambda: InternalVariable.Specs(
+                        'InternalVariable': lambda: InternalVariable.Ref(
                             type=datapoint.name,
                             key=datapoint.key,
                         ),
-                        'OutputMeter': lambda: OutputMeter.Specs(
+                        'OutputMeter': lambda: OutputMeter.Ref(
                             type=datapoint.name,
                         ),
-                        'OutputVariable': lambda: OutputVariable.Specs(
+                        'OutputVariable': lambda: OutputVariable.Ref(
                             type=datapoint.name,
                             key=datapoint.key,
                         ),
@@ -315,6 +318,7 @@ __all__ = [
     InternalVariable,
     OutputMeter,
     OutputVariable,
+    WallClock,
     VariableManager,
 ]
 

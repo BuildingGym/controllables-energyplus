@@ -7,32 +7,32 @@ import functools as _functools_
 
 from .. import utils
 
-BaseEventSpecs = _typing_.Hashable
+BaseEventRef = _typing_.Hashable
 
 class BaseEvent(_typing_.Protocol):
-    specs: BaseEventSpecs
+    ref: BaseEventRef
 
 BaseEventHandler = _typing_.Callable[[BaseEvent], _typing_.Any]
 
 class BaseEventManager(_abc_.ABC):
     @_functools_.cached_property
-    def _handlers(self) -> _typing_.Mapping[BaseEventSpecs, utils.containers.CallableSet]:
+    def _handlers(self) -> _typing_.Mapping[BaseEventRef, utils.containers.CallableSet]:
         return _collections_.defaultdict(utils.containers.CallableSet)
 
     def on(
         self,
-        specs: BaseEventSpecs,
+        ref: BaseEventRef,
         *handlers: BaseEventHandler,
     ):
-        self._handlers[specs].update(handlers)
+        self._handlers[ref].update(handlers)
         return self
 
     def off(
         self,
-        specs: BaseEventSpecs,
+        ref: BaseEventRef,
         *handlers: BaseEventHandler,
     ):
-        self._handlers[specs].difference_update(handlers)
+        self._handlers[ref].difference_update(handlers)
         return self
     
     def trigger(
@@ -40,11 +40,11 @@ class BaseEventManager(_abc_.ABC):
         event: BaseEvent,
         *args, **kwargs,
     ):
-        return self._handlers[event.specs](event, *args, **kwargs)
+        return self._handlers[event.ref](event, *args, **kwargs)
 
 
 __all__ = [
-    BaseEventSpecs,
+    BaseEventRef,
     BaseEventHandler,
     BaseEvent,
     BaseEventManager,

@@ -43,7 +43,7 @@ class GroupableIterator:
         self._iter = iterable
 
     def __iter__(self):
-        return self._iter
+        return self._iter.__iter__()
     
     def list(self):
         return list(self._iter)

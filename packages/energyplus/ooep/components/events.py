@@ -8,26 +8,26 @@ from .. import utils as _utils_
 
 # TODO component???
 class Event(_utils_.events.BaseEvent):
-    Specs: _typing_.Type[_utils_.events.BaseEventSpecs] = str
+    Ref: _typing_.Type[_utils_.events.BaseEventRef] = str
 
-    def __init__(self, specs: str):
+    def __init__(self, ref: str):
         super().__init__()
-        self._specs = specs
+        self._ref = ref
 
     @property
-    def specs(self) -> str: 
-        return self._specs
+    def ref(self) -> str: 
+        return self._ref
 
     # TODO __attach__???
 
 class MessageEvent(Event):
-    def __init__(self, specs: str, message: str):
-        super().__init__(specs=specs)
+    def __init__(self, ref: str, message: str):
+        super().__init__(ref=ref)
         self.message = message
 
 class ProgressEvent(Event):
-    def __init__(self, specs: str, progress: float):
-        super().__init__(specs=specs)
+    def __init__(self, ref: str, progress: float):
+        super().__init__(ref=ref)
         # TODO NOTE perct
         self.progress = progress
 
@@ -52,26 +52,26 @@ class EventManager(
         state = self._engine._core.state
         return {
             # TODO
-            'message': lambda specs: 
+            'message': lambda ref: 
                 api.callback_message(
                     state, lambda s: trigger(
-                        MessageEvent(specs=specs, message=bytes.decode(s))
+                        MessageEvent(ref=ref, message=bytes.decode(s))
                     )
                 ),
-            'progress': lambda specs: 
+            'progress': lambda ref: 
                 api.callback_progress(
                     state, lambda n: trigger(
-                        ProgressEvent(specs=specs, progress=(n / 100))
+                        ProgressEvent(ref=ref, progress=(n / 100))
                     )
                 ),
             # TODO
             **{
-                specs: lambda specs, __callback_setter=callback_setter: 
+                ref: lambda ref, __callback_setter=callback_setter: 
                     __callback_setter(
                         # TODO use the env
-                        state, lambda _: trigger(StateEvent(specs=specs))
+                        state, lambda _: trigger(StateEvent(ref=ref))
                     )
-                for specs, callback_setter in {
+                for ref, callback_setter in {
                     'after_component_get_input': api.callback_after_component_get_input,
                     'after_new_environment_warmup_complete': api.callback_after_new_environment_warmup_complete,
                     'after_predictor_after_hvac_managers': api.callback_after_predictor_after_hvac_managers,
@@ -94,12 +94,12 @@ class EventManager(
             },
         }
 
-    def on(self, specs: Event.Specs, *handlers):
-        super().on(specs, *handlers)
+    def on(self, ref: Event.Ref, *handlers):
+        super().on(ref, *handlers)
 
         def setup(__event=...):
-            nonlocal self, specs
-            self._ep_callback_setters[specs](specs)
+            nonlocal self, ref
+            self._ep_callback_setters[ref](ref)
 
         setup()
         self._engine._workflows.on('run:pre', setup)
@@ -107,13 +107,13 @@ class EventManager(
         return self
 
     # TODO
-    def off(self, specs, *handlers):
+    def off(self, ref, *handlers):
         raise NotImplementedError
-        super().off(specs, *handlers)
+        super().off(ref, *handlers)
         return self
 
     # TODO rich format
-    def available_keys(self) -> _typing_.Iterable[Event.Specs]:
+    def available_keys(self) -> _typing_.Iterable[Event.Ref]:
         return self._ep_callback_setters.keys()
     
     # TODO sync

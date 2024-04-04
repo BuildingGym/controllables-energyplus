@@ -7,10 +7,8 @@ from .. import (
 )
 
 @_dataclasses_.dataclass
-class Workflow(_utils_.events.BaseEvent):
-    Specs: _typing_.ClassVar = str
-    
-    specs: str
+class Workflow(_utils_.events.BaseEvent):    
+    ref: str
     # TODO
     engine: '_engines_.simulators.Simulator'
 

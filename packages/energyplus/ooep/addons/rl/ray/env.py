@@ -31,7 +31,7 @@ class SimulatorEnv(
         observation_space: _internal_gym_.VariableSpace
         # TODO not just obs?? StepContext??
         reward_function: _typing_.Callable[[_internal_gym_.core.ObsType], float]
-        event_keys: _typing_.Iterable[_components_.events.Event.Specs]
+        event_refs: _typing_.Iterable[_components_.events.Event.Ref]
         # TODO
         #simulator: _engines_.simulators.Simulator
         simulator_factory: _typing_.Callable[[], _engines_.simulators.Simulator]
@@ -42,20 +42,10 @@ class SimulatorEnv(
             observation_space=config['observation_space'], 
         )
         self.reward_function = config['reward_function']
-        self.event_keys = list(config['event_keys'])
+        self.event_refs = list(config['event_refs'])
 
         # TODO !!!!!!!!!!!!!!!!!
         self.__attach__(engine=config['simulator_factory']())
-
-    '''
-    @property
-    def action_space(self):
-        return super(_rayrl_.ExternalEnv, self).action_space
-    
-    @property
-    def observation_space(self):
-        return super(_rayrl_.ExternalEnv, self).observation_space
-    '''
 
     '''
     # TODO ensure async engine???
@@ -114,14 +104,14 @@ class SimulatorEnv(
             self._engine._workflows \
                 .on('run:pre', _start) \
                 .on('run:post', end)
-            for event_key in self.event_keys:
-                self._engine._events.on(event_key, step)
+            for event_ref in self.event_refs:
+                self._engine._events.on(event_ref, step)
 
         def teardown(__event):
             nonlocal self, _start, end, step
             # TODO
-            for event_key in self.event_keys:
-                self._engine._events.off(event_key, step)            
+            for event_ref in self.event_refs:
+                self._engine._events.off(event_ref, step)            
             self._engine._workflows \
                 .off('run:post', end) \
                 .off('run:pre', _start)

@@ -8,6 +8,7 @@ from .components.variables import (
     InternalVariable,
     OutputMeter,
     OutputVariable,
+    WallClock,
 )
 from .datas import (
     Weather,
@@ -24,6 +25,7 @@ __all__ = [
     InternalVariable,
     OutputMeter,
     OutputVariable,
+    WallClock,
     Weather,
     Model,
     Report,
