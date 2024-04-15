@@ -1,3 +1,9 @@
+r"""
+Events
+
+Scope: Events that can occur in a system, simulated or real-world.
+"""
+
 from __future__ import annotations
 
 import typing as _typing_
@@ -8,31 +14,39 @@ from .. import utils as _utils_
 
 # TODO component???
 class Event(_utils_.events.BaseEvent):
-    Ref: _typing_.Type[_utils_.events.BaseEventRef] = str
+    Ref = _utils_.events.BaseEventRef
 
-    def __init__(self, ref: str):
+    class Spec(_typing_.NamedTuple):
+        ref: Event.Ref
+        include_warmup: bool = False
+
+    def __init__(self, spec: Spec):
         super().__init__()
-        self._ref = ref
+        self.spec = spec
 
     @property
-    def ref(self) -> str: 
-        return self._ref
+    def ref(self): 
+        return self.spec.ref
 
     # TODO __attach__???
 
 class MessageEvent(Event):
-    def __init__(self, ref: str, message: str):
-        super().__init__(ref=ref)
+    Ref = str
+
+    def __init__(self, spec, message: str):
+        super().__init__(spec=spec)
         self.message = message
 
 class ProgressEvent(Event):
-    def __init__(self, ref: str, progress: float):
-        super().__init__(ref=ref)
+    Ref = str
+
+    def __init__(self, spec, progress: float):
+        super().__init__(spec=spec)
         # TODO NOTE perct
         self.progress = progress
 
 class StateEvent(Event):
-    pass
+    Ref = str
 
 # TODO typing
 class EventManager(
@@ -40,7 +54,7 @@ class EventManager(
     _base_.Component,
 ):
     @property
-    def _ep_callback_setters(self):
+    def _core_callback_setters(self):
         # TODO NOTE energyplus currently does not take ret values??
         def trigger(*args, **kwargs):
             try: self.trigger(*args, **kwargs)
@@ -50,26 +64,27 @@ class EventManager(
 
         api = self._engine._core.api.runtime
         state = self._engine._core.state
+
         return {
             # TODO
-            'message': lambda ref: 
+            'message': lambda spec: 
                 api.callback_message(
                     state, lambda s: trigger(
-                        MessageEvent(ref=ref, message=bytes.decode(s))
+                        MessageEvent(spec=spec, message=bytes.decode(s))
                     )
                 ),
-            'progress': lambda ref: 
+            'progress': lambda spec: 
                 api.callback_progress(
                     state, lambda n: trigger(
-                        ProgressEvent(ref=ref, progress=(n / 100))
+                        ProgressEvent(spec=spec, progress=(n / 100))
                     )
                 ),
             # TODO
             **{
-                ref: lambda ref, __callback_setter=callback_setter: 
-                    __callback_setter(
+                ref: lambda spec, callback_setter=callback_setter: 
+                    callback_setter(
                         # TODO use the env
-                        state, lambda _: trigger(StateEvent(ref=ref))
+                        state, lambda _: trigger(StateEvent(spec=spec))
                     )
                 for ref, callback_setter in {
                     'after_component_get_input': api.callback_after_component_get_input,
@@ -94,16 +109,30 @@ class EventManager(
             },
         }
 
-    def on(self, ref: Event.Ref, *handlers):
-        super().on(ref, *handlers)
+    def on(self, spec_or_ref: Event.Spec | Event.Ref, *handlers):
+        spec = (
+            Event.Spec(spec_or_ref)
+            if not isinstance(spec_or_ref, Event.Spec) else
+            spec_or_ref
+        )
+
+        super().on(spec.ref, *handlers)
 
         def setup(__event=...):
-            nonlocal self, ref
-            self._ep_callback_setters[ref](ref)
+            nonlocal self, spec
+            self._core_callback_setters[spec.ref](spec)
 
         setup()
         self._engine._workflows.on('run:pre', setup)
 
+        return self
+
+    # TODO
+    def trigger(self, event: Event, *args, **kwargs):
+        if not event.spec.include_warmup:
+            if self._engine._core.api.exchange.warmup_flag(self._engine._core.state):
+                return self
+        super().trigger(event, *args, **kwargs)
         return self
 
     # TODO
@@ -113,8 +142,8 @@ class EventManager(
         return self
 
     # TODO rich format
-    def available_keys(self) -> _typing_.Iterable[Event.Ref]:
-        return self._ep_callback_setters.keys()
+    def keys(self) -> _typing_.Iterable[Event.Ref]:
+        return self._core_callback_setters.keys()
     
     # TODO sync
     def __attach__(self, engine):
@@ -125,8 +154,8 @@ class EventManager(
 
 
 __all__ = [
-    MessageEvent,
-    ProgressEvent,
-    StateEvent,
-    EventManager,
+    'MessageEvent',
+    'ProgressEvent',
+    'StateEvent',
+    'EventManager',
 ]

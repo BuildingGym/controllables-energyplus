@@ -6,12 +6,15 @@ _typing_.Mapping[_KT, _VT]
 _typing_.Iterable[tuple[_KT, _VT]]
 
 
-import IPython as _ipython_
-import IPython.core.formatters
 
-import html as _html_
 
 def render(o: object):
+    # TODO optional dep!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    import IPython as _ipython_
+    import IPython.core.formatters
+
+    import html as _html_
+
     formatted, _ = _ipython_.core.formatters.format_display_data(
         o, include=(
             'text/plain', 

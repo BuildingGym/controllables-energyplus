@@ -1,8 +1,15 @@
+r"""
+Variables.
+
+Scope: Management of variables inside a system, simulated or real-world.
+"""
+
 import abc as _abc_
 import typing as _typing_
 import functools as _functools_
 import dataclasses as _dataclasses_
 import itertools as _itertools_
+import contextlib as _contextlib_
 
 from . import base as _base_
 
@@ -13,10 +20,12 @@ from .. import (
 
 
 class BaseVariable(_base_.Component, _abc_.ABC):
+    r"""Variable base class."""
+
     class Ref(_abc_.ABC):
-        # TODO NOTE this constructs an object according to the reference `Ref`
         @_abc_.abstractmethod
         def __build__(self) -> 'BaseVariable':
+            r"""Reconstructs an object from the current reference."""
             raise NotImplementedError
 
     def __init__(self, ref: Ref):
@@ -24,37 +33,112 @@ class BaseVariable(_base_.Component, _abc_.ABC):
         self._ref = ref
 
     @property
-    def ref(self):
+    def ref(self) -> Ref:
+        r"""Get the reference to the current variable."""
         return self._ref
 
     @property
     @_abc_.abstractmethod
     def value(self):
+        r"""Get the value of the current variable."""
         raise NotImplementedError
 
-class BaseControlVariable(BaseVariable, _abc_.ABC):
+class BaseMutableVariable(BaseVariable, _abc_.ABC):
+    r"""Control variable base class."""
+
     @BaseVariable.value.setter
     @_abc_.abstractmethod
     def value(self, o: _typing_.Any):
+        r"""Set the value of the current variable."""
         raise NotImplementedError
 
 # TODO 
 class BaseVariableManager(_base_.Component, _abc_.ABC):
+    r"""Variable manager base class.
+
+    """
+
     @_abc_.abstractmethod
     def on(self, ref: BaseVariable.Ref) -> _typing_.Self:
+        r"""Turn on a variable so it can be accessed.
+
+        :param ref: Reference to the variable to be enabled.
+        :return: Current variable manager instance.
+        """
         raise NotImplementedError
 
     @_abc_.abstractmethod
     def __getitem__(self, ref: BaseVariable.Ref) -> BaseVariable:
+        r"""Access a variable from its reference.
+
+        :param ref: Reference to the variable to be accessed.
+        :return: Variable associated with reference `ref`.
+        """
         raise NotImplementedError
 
 
-class Actuator(
-    BaseControlVariable,
+class CoreExceptionableMixin(_base_.Component):
+    @_contextlib_.contextmanager
+    def _ensure_exception(self):
+        try:
+            yield
+        finally:
+            api = self._engine._core.api
+            state = self._engine._core.state
+            if api.exchange.api_error_flag(state):
+                api.exchange.reset_api_error_flag(state)
+                raise _exceptions_.TemporaryUnavailableError(
+                    'Core API data exchange error.'
+                )
+
+
+import datetime as _datetime_
+
+class WallClock(
+    BaseVariable,
     _base_.Component,
 ):
+    r"""Wall clock variable class."""
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(BaseControlVariable.Ref):
+    class Ref(BaseVariable.Ref):
+        def __build__(self):
+            return WallClock(ref=self)
+
+    ref: Ref
+
+    @property
+    def value(self):
+        api = self._engine._core.api.exchange
+        state = self._engine._core.state
+        # TODO err flag temp unavailable!!!!!!!!!!!
+        try:
+            return _datetime_.datetime(
+                # NOTE see https://github.com/NREL/EnergyPlus/issues/10210
+                # TODO .calendar_year v .year
+                year=api.calendar_year(state),
+                month=api.month(state),
+                day=api.day_of_month(state),
+                hour=api.hour(state),
+                # TODO NOTE energyplus api returns 0?-60: datetime requires range(60)
+                minute=api.minutes(state) % _datetime_.datetime.max.minute,
+            )
+        except ValueError:
+            # TODO better handling!!!!!!!!!!!!!
+            raise _exceptions_.TemporaryUnavailableError()
+
+
+
+class Actuator(
+    BaseMutableVariable,
+    CoreExceptionableMixin,
+    _base_.Component,
+):
+    r"""Actuator variable class."""
+
+    @_dataclasses_.dataclass(frozen=True)
+    class Ref(BaseMutableVariable.Ref):
+        r"""Reference to an actuator."""
+
         type: str
         control_type: str
         key: str
@@ -78,10 +162,11 @@ class Actuator(
 
     @property
     def value(self):
-        return self._engine._core.api.exchange.get_actuator_value(
-            self._engine._core.state,
-            actuator_handle=self._core_handle,
-        )
+        with self._ensure_exception():
+            return self._engine._core.api.exchange.get_actuator_value(
+                self._engine._core.state,
+                actuator_handle=self._core_handle,
+            )
 
     @value.setter
     def value(self, n: float):
@@ -100,6 +185,7 @@ class Actuator(
 
 class InternalVariable(
     BaseVariable,
+    CoreExceptionableMixin,
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
@@ -125,14 +211,16 @@ class InternalVariable(
 
     @property
     def value(self):
-        return self._engine._core.api.exchange.get_internal_variable_value(
-            self._engine._core.state,
-            variable_handle=self._core_handle
-        )
+        with self._ensure_exception():
+            return self._engine._core.api.exchange.get_internal_variable_value(
+                self._engine._core.state,
+                variable_handle=self._core_handle
+            )
 
 
 class OutputMeter(
     BaseVariable,
+    CoreExceptionableMixin,
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
@@ -156,14 +244,16 @@ class OutputMeter(
 
     @property
     def value(self):
-        return self._engine._core.api.exchange.get_meter_value(
-            self._engine._core.state,
-            meter_handle=self._core_handle,
-        )
+        with self._ensure_exception():
+            return self._engine._core.api.exchange.get_meter_value(
+                self._engine._core.state,
+                meter_handle=self._core_handle,
+            )
 
 
 class OutputVariable(
     BaseVariable,
+    CoreExceptionableMixin,
     _base_.Component,
 ):
     @_dataclasses_.dataclass(frozen=True)
@@ -201,56 +291,31 @@ class OutputVariable(
 
     @property
     def value(self):
-        # TODO energyplus error flag!!!!!!!!!!!!!!!!!!!!!!
-        return self._engine._core.api.exchange.get_variable_value(
-            self._engine._core.state,
-            variable_handle=self._core_handle,
-        )
-
-
-
-
-import datetime as _datetime_
-
-class WallClock(
-    BaseVariable,
-    _base_.Component,
-):
-    @_dataclasses_.dataclass(frozen=True)
-    class Ref(BaseVariable.Ref):
-        def __build__(self):
-            return WallClock(ref=self)
-
-    ref: Ref
-
-    @property
-    def value(self):
-        api = self._engine._core.api.exchange
-        state = self._engine._core.state
-        # TODO err flag temp unavailable!!!!!!!!!!!
-        return _datetime_.datetime(
-            # NOTE see https://github.com/NREL/EnergyPlus/issues/10210
-            # TODO .calendar_year v .year
-            year=api.calendar_year(state),
-            month=api.month(state),
-            day=api.day_of_month(state),
-            hour=api.hour(state),
-            # TODO NOTE energyplus api returns 0?-60: datetime requires range(60)
-            minute=api.minutes(state) % _datetime_.datetime.max.minute,
-        )
+        with self._ensure_exception():
+            return self._engine._core.api.exchange.get_variable_value(
+                self._engine._core.state,
+                variable_handle=self._core_handle,
+            )
 
 
 class VariableManager(BaseVariableManager, _base_.Component):
     @_functools_.cached_property
-    def _variable_data(self) -> _typing_.Mapping[
-        BaseVariable.Ref, 
-        BaseVariable,
-    ]:
-        return dict()
+    def _variable_data(self):
+        return dict[BaseVariable.Ref, BaseVariable]()
 
     def on(self, ref):
         if ref in self._variable_data:
             return self
+        
+        # TODO depr __build__??? !!!!!!!!!!!
+        constructors = {
+            WallClock.Ref: WallClock,
+            Actuator.Ref: Actuator,
+            InternalVariable.Ref: InternalVariable,
+            OutputMeter.Ref: OutputMeter,
+            OutputVariable.Ref: OutputVariable,
+        }
+
         self._variable_data[ref] = (
             ref.__build__()
                 .__attach__(self._engine)
@@ -266,18 +331,19 @@ class VariableManager(BaseVariableManager, _base_.Component):
 
     def __getitem__(self, ref):
         if not self.__contains__(ref):
-            raise _exceptions_.TemporaryUnavailableError()
+            raise _exceptions_.TemporaryUnavailableError(
+                f'{ref} not exists or not turned on.'
+            )
         return self._variable_data.__getitem__(ref)
     
-    def ondefault(self, ref):
+    def getdefault(self, ref):
         return self.on(ref=ref)[ref]
     
-    # TODO
-    # TODO additional features: ipytree, dataframe view??? thru plugin system
     class KeysView(_utils_.mappings.GroupableIterator):
         pass
     
-    def keys(self) -> KeysView:
+    def keys(self, all: bool = True) -> KeysView:
+        # TODO ??
         return self.KeysView(
             iterable=_itertools_.chain(
                 (WallClock.Ref(), ),
@@ -308,17 +374,17 @@ class VariableManager(BaseVariableManager, _base_.Component):
                     )
                 )
             ),
-        )
+        ) if all else self.KeysView(self._variable_data.keys())
         
 
 __all__ = [
-    BaseVariable,
-    BaseVariableManager,
-    Actuator,
-    InternalVariable,
-    OutputMeter,
-    OutputVariable,
-    WallClock,
-    VariableManager,
+    'BaseVariable',
+    'BaseVariableManager',
+    'WallClock',
+    'Actuator',
+    'InternalVariable',
+    'OutputMeter',
+    'OutputVariable',
+    'VariableManager',
 ]
 

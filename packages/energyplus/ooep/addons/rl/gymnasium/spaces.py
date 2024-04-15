@@ -7,11 +7,15 @@ try:
 except ImportError as e:
     raise _base_.OptionalImportError(['gymnasium']) from e
 
-from .... import utils as _utils_
+from . import utils as _utils_
 
 
 # TODO more types
-class SpaceStructureMapper(_utils_.mappings.StructureMapper):
+class SpaceStructureMapper(_utils_.StructureMapper):
+    r"""
+    TODO doc
+    """
+  
     _struct_types = {
         dict: (dict, _gymnasium_.spaces.Dict, ),
         **{
@@ -26,22 +30,57 @@ class VariableSpace(
     _gymnasium_.spaces.Space, 
     _typing_.Generic[T],
 ):
+    r"""
+    A Gymnasium space that can have a variable bound to it.
+    
+    This allows for the association of additional metadata or identifiers 
+    with the space, which can be useful in environments where spaces 
+    need to carry extra information or context.
+
+    .. seealso::
+        * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
+    """
+    
     def bind(self, var: T) -> _typing_.Self:
+        r"""
+        Bind a variable to the current space.
+
+        :param var: Variable to be associated with the current space.
+        :return: The current space.
+        """
         self._binding = var
         return self
     
     # TODO err
     @property
     def binding(self) -> T:
+        r"""Variable bound to the current space."""
         return self._binding
 
 class VariableBox(
     _gymnasium_.spaces.Box, 
     _typing_.Generic[T], VariableSpace[T],
 ):
+    r"""
+    A Gymnasium Box space that can have a variable bound to it.
+    
+    This allows for the association of additional metadata or identifiers 
+    with the space, which can be useful in environments where spaces 
+    need to carry extra information or context.
+
+    Example usage:
+
+    .. code-block:: python
+
+        # TODO
+
+    .. seealso::
+        * `gymnasium.spaces.Box <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Box>`_
+    """
+
     pass
 
 __all__ = [
-    VariableSpace,
-    VariableBox,
+    'VariableSpace',
+    'VariableBox',
 ]

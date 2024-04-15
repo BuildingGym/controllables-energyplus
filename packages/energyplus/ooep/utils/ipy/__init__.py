@@ -3,5 +3,5 @@ from . import (
 )
 
 __all__ = [
-    html,
+    'html',
 ]

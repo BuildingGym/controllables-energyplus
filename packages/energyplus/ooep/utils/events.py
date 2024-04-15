@@ -5,7 +5,7 @@ import typing as _typing_
 import collections as _collections_
 import functools as _functools_
 
-from .. import utils
+from .containers import CallableSet
 
 BaseEventRef = _typing_.Hashable
 
@@ -16,8 +16,8 @@ BaseEventHandler = _typing_.Callable[[BaseEvent], _typing_.Any]
 
 class BaseEventManager(_abc_.ABC):
     @_functools_.cached_property
-    def _handlers(self) -> _typing_.Mapping[BaseEventRef, utils.containers.CallableSet]:
-        return _collections_.defaultdict(utils.containers.CallableSet)
+    def _handlers(self) -> _typing_.Mapping[BaseEventRef, CallableSet]:
+        return _collections_.defaultdict(CallableSet)
 
     def on(
         self,
@@ -44,8 +44,8 @@ class BaseEventManager(_abc_.ABC):
 
 
 __all__ = [
-    BaseEventRef,
-    BaseEventHandler,
-    BaseEvent,
-    BaseEventManager,
+    'BaseEventRef',
+    'BaseEventHandler',
+    'BaseEvent',
+    'BaseEventManager',
 ]

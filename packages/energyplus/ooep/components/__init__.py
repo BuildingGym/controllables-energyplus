@@ -6,8 +6,8 @@ from . import (
 )
 
 __all__ = [
-    base,
-    events,
-    variables,
-    views,
+    'base',
+    'events',
+    'variables',
+    'views',
 ]

@@ -16,17 +16,15 @@ class WorkflowManager(
     _utils_.events.BaseEventManager, 
 ):
     # TODO
-    def available_keys(self):
+    def keys(self):
         return [
             'run:pre', 
             'run:post',
             'stop:pre', 
             'stop:post',
-            'reset:pre', 
-            'reset:post',
         ]
     
 __all__ = [
-    Workflow,
-    WorkflowManager,
+    'Workflow',
+    'WorkflowManager',
 ]

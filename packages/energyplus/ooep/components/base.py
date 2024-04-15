@@ -1,3 +1,9 @@
+r"""
+Base
+
+Scope: Basis for a component in a system, simulated or real-world.
+"""
+
 import abc as _abc_
 import typing as _typing_
 
@@ -7,10 +13,14 @@ from .. import engines as _engines_
 class Component(_abc_.ABC):
     _engine: '_engines_.base.Engine'
 
-    def __attach__(self, engine: '_engines_.base.Engine') -> _typing_.Self:
+    def __attach__(self, engine: '_engines_.base.Engine') -> _typing_.Self:       
         if getattr(self, '_engine', None) is not None:
+            if engine == self._engine:
+                return self            
             raise ValueError('Component already has Engine attached.')
+        
         setattr(self, '_engine', engine)
+
         return self
     
     '''
@@ -22,6 +32,12 @@ class Component(_abc_.ABC):
         return self
     '''
 
+
+class ComponentManager(_abc_.ABC):
+    pass
+
+
 __all__ = [
-    Component,
+    'Component',
+    'ComponentManager',
 ]

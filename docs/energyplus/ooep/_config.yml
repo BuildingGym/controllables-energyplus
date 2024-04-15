@@ -1,8 +1,26 @@
 title: Documentation
 author: EnergyPlus Contributors
 execute:
-  execute_notebooks: force
+  execute_notebooks: 'auto'
 
 # Add a bibtex file so that we can create citations
-bibtex_bibfiles:
-  - references.bib
+#bibtex_bibfiles:
+#  - 'references.bib'
+
+sphinx:
+  extra_extensions:
+  - 'sphinxcontrib.mermaid'
+  - 'sphinx.ext.autodoc'
+  #- 'sphinx.ext.napoleon'
+  - 'sphinx.ext.viewcode'
+  - 'sphinx.ext.autosummary'
+  config:
+    add_module_names: False
+    autosummary_generate: True
+    autodoc_default_options:
+      members: true
+      #undoc-members: true
+      #private-members: true
+      special-members: true
+      #inherited-members: true
+      show-inheritance: true

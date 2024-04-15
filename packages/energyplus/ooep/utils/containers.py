@@ -38,7 +38,7 @@ class DefaultSet(_builtins_.set):
 
 
 __all__ = [
-    OrderedSetDict,
-    CallableSet,
-    DefaultSet,
+    'OrderedSetDict',
+    'CallableSet',
+    'DefaultSet',
 ]

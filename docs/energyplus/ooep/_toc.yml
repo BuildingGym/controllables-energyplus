@@ -1,4 +1,16 @@
 format: jb-book
-root: content/intro
-chapters:
-- file: content/TODO
+root: content/root
+parts:
+- caption: 📚 Tutorials
+  chapters:
+  - file: content/tutorials/0_starter
+  - file: content/tutorials/1_control
+- caption: 💡 Examples
+  chapters:
+  - file: content/examples/0_basic
+- caption: 📇 References
+  chapters:
+  - file: content/references/architecture/root
+    sections:
+    - file: content/references/architecture/component
+  - file: content/references/api/root

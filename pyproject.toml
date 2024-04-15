@@ -18,7 +18,10 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest"]
-docs = ["jupyter-book"]
+docs = [
+    "jupyter-book", 
+    "sphinxcontrib-mermaid",
+]
 
 [tool.setuptools.packages.find]
 where = ["packages"]

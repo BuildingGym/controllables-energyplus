@@ -1,4 +1,9 @@
+r"""
+EnergyPlus, Object Oriented
+"""
+
 from .components.events import (
+    Event,
     MessageEvent,
     ProgressEvent,
     StateEvent,
@@ -16,18 +21,21 @@ from .datas import (
     Report,
 )
 from .engines.simulators import Simulator
+from .exceptions import TemporaryUnavailableError
 
 __all__ = [
-    MessageEvent,
-    ProgressEvent,
-    StateEvent,
-    Actuator,
-    InternalVariable,
-    OutputMeter,
-    OutputVariable,
-    WallClock,
-    Weather,
-    Model,
-    Report,
-    Simulator,
+    'Event',
+    'MessageEvent',
+    'ProgressEvent',
+    'StateEvent',
+    'Actuator',
+    'InternalVariable',
+    'OutputMeter',
+    'OutputVariable',
+    'WallClock',
+    'Weather',
+    'Model',
+    'Report',
+    'Simulator',
+    'TemporaryUnavailableError',
 ]

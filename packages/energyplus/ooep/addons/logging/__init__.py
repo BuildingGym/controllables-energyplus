@@ -1,4 +1,7 @@
 from .. import base as _base_
+from ... import (
+    components as _components_,
+)
 
 
 class LogProvider(_base_.Addon):
@@ -7,9 +10,13 @@ class LogProvider(_base_.Addon):
     def __init__(self, logger_ref: _logging_.Logger | str | None = None):
         super().__init__()
         self._logger_ref = logger_ref
+        # TODO
+        self._events = _components_.events.EventManager()
 
     def __attach__(self, engine):
         super().__attach__(engine=engine)
+
+        self._events.__attach__(engine=self._engine)
 
         def setup():
             nonlocal self
@@ -23,7 +30,7 @@ class LogProvider(_base_.Addon):
                         str(engine)
                 )
             )
-            self._engine._events \
+            self._events \
                 .on('message', lambda event, logger=logger: 
                     logger.info(event.message))
 
@@ -33,5 +40,5 @@ class LogProvider(_base_.Addon):
 
 
 __all__ = [
-    LogProvider,
+    'LogProvider',
 ]

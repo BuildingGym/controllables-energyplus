@@ -3,11 +3,18 @@ from . import (
     spaces,
 )
 
-BaseThinEnv = core.BaseThinEnv
-VariableSpace = spaces.VariableSpace
+from .core import (
+    BaseThinEnv,
+    ThinEnv,
+)
+from .spaces import (
+    VariableSpace,
+)
 
 __all__ = [
-    BaseThinEnv,
-    VariableSpace,
-    spaces,
+    'core',
+    'spaces',    
+    'BaseThinEnv',
+    'ThinEnv',
+    'VariableSpace',
 ]

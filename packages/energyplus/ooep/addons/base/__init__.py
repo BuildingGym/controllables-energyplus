@@ -22,6 +22,6 @@ class Addon(_components_.base.Component):
 
 
 __all__ = [
-    OptionalImportError,
-    Addon,
+    'OptionalImportError',
+    'Addon',
 ]

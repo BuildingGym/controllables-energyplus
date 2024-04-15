@@ -8,15 +8,18 @@ import typing as _typing_
 import functools as _functools_
 import tempfile as _tempfile_
 
-import energyplus.core as _energyplus_core_
+import os as _os_
+import pathlib as _pathlib_
 
 from .. import (
+    _core as _core_,
     components as _components_,
     datas as _datas_,
     workflows as _workflows_,
 )
 
 
+# TODO mv Enviornment??
 # TODO subsimulation/namespacing
 # TODO AddonManager?
 class Engine:
@@ -26,54 +29,61 @@ class Engine:
 
     @_functools_.cached_property
     def _core(self):
-        class Core:
-            def __init__(self):
-                self.api = (
-                    _energyplus_core_.pyenergyplus
-                        .api.EnergyPlusAPI()
-                )
-                self.state = self.api.state_manager.new_state()
-
-            def reset(self):
-                self.api.state_manager.reset_state(self.state)
-
-            def __del__(self):
-                self.api.state_manager.delete_state(self.state)
-
-        return Core()
+        return _core_.Core()
 
     class InputSpecs(_typing_.NamedTuple):
-        model: _datas_.Model
-        weather: _datas_.Weather
+        model: _datas_.Model | _os_.PathLike
+        weather: _datas_.Weather | _os_.PathLike | None = None
 
     class OutputSpecs(_typing_.NamedTuple):
-        report: _datas_.Report | None = None
+        report: _datas_.Report | _os_.PathLike | None = None
 
     class RuntimeOptions(_typing_.NamedTuple):
         design_day: bool = False
 
+    # TODO status!
     def run(
         self, 
         input: InputSpecs, 
         output: OutputSpecs = OutputSpecs(),
         options: RuntimeOptions = RuntimeOptions(),
     ):
-        self._workflows.trigger(_workflows_.Workflow('run:pre', self))
+        # TODO NOTE required by energyplus
+        self._core.reset()
+
         self._core.api.runtime \
             .set_console_output_status(
                 self._core.state,
                 print_output=False,
             )
+        
+        self._workflows.trigger(_workflows_.Workflow('run:pre', self))
         self._core.api.runtime \
             .run_energyplus(
                 self._core.state,
                 command_line_args=[
-                    str(input.model.path),
-                    '--weather', str(input.weather.path),
-                    '--output-directory', str(
-                        (output.report if output.report is not None else 
-                        _datas_.Report().open(_tempfile_.TemporaryDirectory().name)).path
+                    str(
+                        input.model.dumpf(
+                            _tempfile_.NamedTemporaryFile(suffix='.epJSON').name,
+                            format='json',
+                        ) 
+                        if isinstance(input.model, _datas_.Model) else
+                        _pathlib_.Path(input.model)
                     ),
+                    *(['--weather', str(
+                        input.weather.path
+                        if isinstance(input.weather, _datas_.Weather) else
+                        input.weather
+                    )] if input.weather is not None else []),
+                    '--output-directory', str((
+                        output.report.path
+                        if isinstance(output.report, _datas_.Report) else 
+                        output.report
+                        if output.report is not None else 
+                        _tempfile_.TemporaryDirectory(
+                            prefix='.energyplus_output_',
+                        ).name
+                    )),
                     *(['--design-day'] if options.design_day else []),
                 ],
             )
@@ -82,7 +92,6 @@ class Engine:
     # TODO stop on err!!!!!!!!!!!!!!!!!!!!!!!!!!
     def run_forever(self, *args, **kwargs):
         while True:
-            self.reset()
             self.run(*args, **kwargs)
 
     def stop(self):
@@ -91,11 +100,6 @@ class Engine:
             .stop_simulation(self._core.state)
         self._workflows.trigger(_workflows_.Workflow('stop:post', self))
 
-    def reset(self):
-        self._workflows.trigger(_workflows_.Workflow('reset:pre', self))
-        self._core.reset()
-        self._workflows.trigger(_workflows_.Workflow('reset:post', self))
-    
     # TODO
     def add(self, *components: '_components_.base.Component'):
         for component in components:
@@ -113,5 +117,5 @@ class EngineFactory:
 
 
 __all__ = [
-    Engine,
+    'Engine',
 ]
