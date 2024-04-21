@@ -9,6 +9,7 @@ from .core import (
 )
 from .spaces import (
     VariableSpace,
+    VariableBox,
 )
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     'BaseThinEnv',
     'ThinEnv',
     'VariableSpace',
+    'VariableBox',
 ]

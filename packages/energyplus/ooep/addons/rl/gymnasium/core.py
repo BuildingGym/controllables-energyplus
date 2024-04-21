@@ -38,11 +38,14 @@ class VariableSpaceView(_base_.Addon):
     def __init__(self, space: _spaces_.VariableSpace[BaseVariable.Ref]):
         super().__init__()
         self._space = space
-        self._variables = _components_.variables.VariableManager()
+        # TODO
+        #self._variables = _components_.variables.VariableManager()
 
     def __attach__(self, engine: Engine):
         super().__attach__(engine)
-        self._variables.__attach__(engine=engine)
+        # TODO
+        self._variables = self._engine.variables
+        #self._variables.__attach__(engine=engine)
         return self
 
     def on(self):

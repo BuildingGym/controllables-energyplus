@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .. import base as _base_
 from ... import (
     components as _components_,
@@ -11,12 +13,14 @@ class LogProvider(_base_.Addon):
         super().__init__()
         self._logger_ref = logger_ref
         # TODO
-        self._events = _components_.events.EventManager()
+        #self._events = _components_.events.EventManager()
 
     def __attach__(self, engine):
         super().__attach__(engine=engine)
 
-        self._events.__attach__(engine=self._engine)
+        # TODO
+        #self._events.__attach__(engine=self._engine)
+        self._events = self._engine.events
 
         def setup():
             nonlocal self

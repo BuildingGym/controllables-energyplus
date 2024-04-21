@@ -15,11 +15,14 @@ class ProgressProvider(_base_.Addon):
         super().__init__()
         self._progbar_ref = progbar_ref
         # TODO
-        self._events = _components_.events.EventManager()
+        #self._events = _components_.events.EventManager()
 
     def __attach__(self, engine):
         super().__attach__(engine=engine)
-        self._events.__attach__(engine=self._engine)
+
+        # TODO
+        #self._events.__attach__(engine=self._engine)
+        self._events = self._engine.events
         
         def setup():
             nonlocal self            

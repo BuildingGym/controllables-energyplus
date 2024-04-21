@@ -1,7 +1,7 @@
 r"""
 Variables.
 
-Scope: Management of variables inside a system, simulated or real-world.
+Scope: Variable management inside an enviornment.
 """
 
 import abc as _abc_
@@ -300,11 +300,11 @@ class OutputVariable(
 
 class VariableManager(BaseVariableManager, _base_.Component):
     @_functools_.cached_property
-    def _variable_data(self):
+    def _data(self):
         return dict[BaseVariable.Ref, BaseVariable]()
 
     def on(self, ref):
-        if ref in self._variable_data:
+        if ref in self._data:
             return self
         
         # TODO depr __build__??? !!!!!!!!!!!
@@ -316,25 +316,25 @@ class VariableManager(BaseVariableManager, _base_.Component):
             OutputVariable.Ref: OutputVariable,
         }
 
-        self._variable_data[ref] = (
+        self._data[ref] = (
             ref.__build__()
                 .__attach__(self._engine)
         )
         return self
     
-    # TODO 
     def off(self, ref):
+        # TODO 
         raise NotImplementedError
 
     def __contains__(self, ref):
-        return self._variable_data.__contains__(ref)
+        return self._data.__contains__(ref)
 
     def __getitem__(self, ref):
         if not self.__contains__(ref):
             raise _exceptions_.TemporaryUnavailableError(
-                f'{ref} not exists or not turned on.'
+                f'{ref} not available or not turned on.'
             )
-        return self._variable_data.__getitem__(ref)
+        return self._data.__getitem__(ref)
     
     def getdefault(self, ref):
         return self.on(ref=ref)[ref]
@@ -374,7 +374,7 @@ class VariableManager(BaseVariableManager, _base_.Component):
                     )
                 )
             ),
-        ) if all else self.KeysView(self._variable_data.keys())
+        ) if all else self.KeysView(self._data.keys())
         
 
 __all__ = [

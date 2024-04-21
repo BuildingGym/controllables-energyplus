@@ -3,6 +3,7 @@ from .gymnasium import (
     BaseThinEnv,
     ThinEnv,
     VariableSpace,
+    VariableBox,
 )
 from .ray import (
     SimulatorEnv,
@@ -13,5 +14,6 @@ __all__ = [
     'BaseThinEnv',
     'ThinEnv',
     'VariableSpace',
+    'VariableBox',
     'SimulatorEnv',
 ]

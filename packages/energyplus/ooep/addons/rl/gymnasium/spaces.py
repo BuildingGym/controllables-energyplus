@@ -43,10 +43,10 @@ class VariableSpace(
     
     def bind(self, var: T) -> _typing_.Self:
         r"""
-        Bind a variable to the current space.
+        Bind a variable to this space.
 
         :param var: Variable to be associated with the current space.
-        :return: The current space.
+        :return: This space itself.
         """
         self._binding = var
         return self
@@ -54,7 +54,7 @@ class VariableSpace(
     # TODO err
     @property
     def binding(self) -> T:
-        r"""Variable bound to the current space."""
+        r"""Variable bound to this space."""
         return self._binding
 
 class VariableBox(
@@ -80,7 +80,16 @@ class VariableBox(
 
     pass
 
+class VariableDiscrete(
+    _gymnasium_.spaces.Discrete, 
+    _typing_.Generic[T], VariableSpace[T],
+):
+    # TODO
+    pass
+
+
 __all__ = [
     'VariableSpace',
     'VariableBox',
+    'VariableDiscrete',
 ]

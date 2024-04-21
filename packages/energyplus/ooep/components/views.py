@@ -6,13 +6,14 @@ Scope: Alternative, non-default views of a system, simulated or real-world.
 
 import asyncio as _asyncio_
 
+from . import base as _base_
+
 from .. import (
     utils as _utils_,
-    components as _components_,
 )
 
 
-class AwaitableView(_components_.base.Component):
+class AwaitableView(_base_.Component):
     def run(self, *args, **kwargs):
         return _asyncio_.create_task(
             _utils_.awaitables.asyncify()

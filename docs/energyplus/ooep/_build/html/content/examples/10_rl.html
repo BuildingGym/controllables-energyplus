@@ -1,0 +1,1037 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Reinforcement Learning &#8212; Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=384b581d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/examples/10_rl';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+
+<a class="navbar-brand logo" href="../root.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../root.html">
+                    Introduction
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">📚 Tutorials</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/0_starter.html">Get Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/1_control.html">Control</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">💡 Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="0_basic.html">TODO</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">📇 References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../references/architecture/root.html">🏛️ Architecture</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../references/architecture/component.html">⚙️ Component System</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../references/api/root.html">🔌 API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.html">energyplus.ooep</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.html">energyplus.ooep.addons</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.base.html">energyplus.ooep.addons.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.logging.html">energyplus.ooep.addons.logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.plotting.html">energyplus.ooep.addons.plotting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.progress.html">energyplus.ooep.addons.progress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.rl.html">energyplus.ooep.addons.rl</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.html">energyplus.ooep.components</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.base.html">energyplus.ooep.components.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.environment.html">energyplus.ooep.components.environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.events.html">energyplus.ooep.components.events</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.variables.html">energyplus.ooep.components.variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.views.html">energyplus.ooep.components.views</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.datas.html">energyplus.ooep.datas</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.html">energyplus.ooep.engines</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.base.html">energyplus.ooep.engines.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.simulators.html">energyplus.ooep.engines.simulators</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.exceptions.html">energyplus.ooep.exceptions</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.html">energyplus.ooep.utils</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.awaitables.html">energyplus.ooep.utils.awaitables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.containers.html">energyplus.ooep.utils.containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.events.html">energyplus.ooep.utils.events</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.ipy.html">energyplus.ooep.utils.ipy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.mappings.html">energyplus.ooep.utils.mappings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.workflows.html">energyplus.ooep.workflows</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/content/examples/10_rl.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Reinforcement Learning</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#%pip install --extra-index-url https://test.pypi.org/simple ../../EnergyPlus-OOEP/</span>
+<span class="c1">#%pip install git+https://github.com/NTU-CCA-HVAC-OPTIM-a842a748/EnergyPlus-Datasets.git</span>
+<span class="c1">#%pip install ipywidgets tqdm gymnasium torch ray[rllib]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<section class="tex2jax_ignore mathjax_ignore" id="reinforcement-learning">
+<h1>Reinforcement Learning<a class="headerlink" href="#reinforcement-learning" title="Link to this heading">#</a></h1>
+<p>TODO description</p>
+<p>Kickstart the simulation.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#import logging as _logging_</span>
+<span class="c1">#_logging_.basicConfig(level=&#39;INFO&#39;)</span>
+<span class="c1">#from energyplus.ooep.addons.logging import LogProvider</span>
+
+<span class="kn">from</span> <span class="nn">energyplus.ooep.addons.progress</span> <span class="kn">import</span> <span class="n">ProgressProvider</span>
+
+<span class="kn">from</span> <span class="nn">energyplus.ooep</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Simulator</span><span class="p">,</span>
+    <span class="n">Model</span><span class="p">,</span>
+    <span class="n">Weather</span><span class="p">,</span>
+    <span class="n">Report</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">energyplus.dataset.basic</span> <span class="kn">import</span> <span class="n">dataset</span> <span class="k">as</span> <span class="n">_epds_</span>
+
+<span class="n">simulator</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">()</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+    <span class="n">ProgressProvider</span><span class="p">(),</span>
+    <span class="c1">#LogProvider(),</span>
+<span class="p">)</span>
+
+<span class="n">simulator</span><span class="o">.</span><span class="n">awaitable</span><span class="o">.</span><span class="n">run_forever</span><span class="p">(</span>
+    <span class="nb">input</span><span class="o">=</span><span class="n">Simulator</span><span class="o">.</span><span class="n">InputSpecs</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">_epds_</span><span class="o">.</span><span class="n">models</span> <span class="o">/</span> <span class="s1">&#39;ASHRAE901_OfficeLarge_STD2019_Denver_Chiller205_Detailed.idf&#39;</span>
+        <span class="p">),</span>
+        <span class="n">weather</span><span class="o">=</span><span class="p">(</span><span class="n">_epds_</span><span class="o">.</span><span class="n">weathers</span> <span class="o">/</span> <span class="s1">&#39;USA_FL_Tampa.Intl.AP.722110_TMY3.epw&#39;</span><span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">Simulator</span><span class="o">.</span><span class="n">OutputSpecs</span><span class="p">(</span>
+        <span class="c1">#report=(&#39;/tmp/ooep-report-9e1287d2-8e75-4cf5-bbc5-f76580b56a69&#39;),</span>
+    <span class="p">),</span>
+    <span class="n">options</span><span class="o">=</span><span class="n">Simulator</span><span class="o">.</span><span class="n">RuntimeOptions</span><span class="p">(</span>
+        <span class="c1">#design_day=True,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "4b8740a47ae64c8a8c51a5003c7bee42", "version_major": 2, "version_minor": 0}</script><div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Task pending name=&#39;Task-5&#39; coro=&lt;Engine.run_forever() running at /home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/awaitables.py:68&gt;&gt;
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc0b4529260&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+Exception ignored on calling ctypes callback function: &lt;function EventManager._core_callback_setters.&lt;locals&gt;.&lt;dictcomp&gt;.&lt;lambda&gt;.&lt;locals&gt;.&lt;lambda&gt; at 0x7fc03a9a5760&gt;
+Traceback (most recent call last):
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 87, in &lt;lambda&gt;
+    state, lambda _: trigger(StateEvent(spec=spec))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 63, in trigger
+    raise e
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 60, in trigger
+    try: self.trigger(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/components/events.py&quot;, line 135, in trigger
+    super().trigger(event, *args, **kwargs)
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/events.py&quot;, line 43, in trigger
+    return self._handlers[event.ref](event, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 26, in __call__
+    return _collections_.OrderedDict({
+                                     ^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/utils/containers.py&quot;, line 27, in &lt;dictcomp&gt;
+    key: f.__call__(*args, **kwargs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/packages/energyplus/ooep/addons/rl/ray/env.py&quot;, line 135, in step
+    self.act(self.get_action(episode, observation=observation))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 139, in get_action
+    return episode.wait_for_action(observation)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/env/external_env.py&quot;, line 297, in wait_for_action
+    return self.action_queue.get(True, timeout=300.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File &quot;/usr/lib/python3.11/queue.py&quot;, line 179, in get
+    raise Empty
+_queue.Empty: 
+</pre></div>
+</div>
+</div>
+</div>
+<p>Configure the controller (an RLlib algorithm).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_numpy_</span>
+<span class="kn">import</span> <span class="nn">gymnasium</span> <span class="k">as</span> <span class="nn">_gymnasium_</span>
+
+<span class="kn">from</span> <span class="nn">energyplus.ooep.addons.rl</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">VariableBox</span><span class="p">,</span>
+    <span class="n">SimulatorEnv</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">energyplus.ooep</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Actuator</span><span class="p">,</span>
+    <span class="n">OutputVariable</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">ray.rllib.algorithms.ppo</span> <span class="kn">import</span> <span class="n">PPOConfig</span>
+
+
+<span class="n">config</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">PPOConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>        
+        <span class="s1">&#39;create_env_on_local_worker&#39;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="p">})</span>
+    <span class="o">.</span><span class="n">resources</span><span class="p">(</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">environment</span><span class="p">(</span>
+        <span class="n">SimulatorEnv</span><span class="p">,</span> 
+        <span class="n">env_config</span><span class="o">=</span><span class="n">SimulatorEnv</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span>
+            <span class="n">action_space</span><span class="o">=</span><span class="n">_gymnasium_</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span>
+                <span class="s1">&#39;thermostat&#39;</span><span class="p">:</span> <span class="n">VariableBox</span><span class="p">(</span>
+                    <span class="n">low</span><span class="o">=</span><span class="mf">15.</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">16.</span><span class="p">,</span>
+                    <span class="n">dtype</span><span class="o">=</span><span class="n">_numpy_</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+                    <span class="n">shape</span><span class="o">=</span><span class="p">(),</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">Actuator</span><span class="o">.</span><span class="n">Ref</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;Zone Temperature Control&#39;</span><span class="p">,</span>
+                    <span class="n">control_type</span><span class="o">=</span><span class="s1">&#39;Heating Setpoint&#39;</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="s1">&#39;CORE_MID&#39;</span><span class="p">,</span>
+                <span class="p">))</span>
+            <span class="p">}),</span>    
+            <span class="n">observation_space</span><span class="o">=</span><span class="n">_gymnasium_</span><span class="o">.</span><span class="n">spaces</span><span class="o">.</span><span class="n">Dict</span><span class="p">({</span>
+                <span class="s1">&#39;temperature&#39;</span><span class="p">:</span> <span class="n">VariableBox</span><span class="p">(</span>
+                    <span class="n">low</span><span class="o">=-</span><span class="n">_numpy_</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">high</span><span class="o">=+</span><span class="n">_numpy_</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                    <span class="n">dtype</span><span class="o">=</span><span class="n">_numpy_</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+                    <span class="n">shape</span><span class="o">=</span><span class="p">(),</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">OutputVariable</span><span class="o">.</span><span class="n">Ref</span><span class="p">(</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;People Air Temperature&#39;</span><span class="p">,</span>
+                    <span class="n">key</span><span class="o">=</span><span class="s1">&#39;CORE_MID&#39;</span><span class="p">,</span>
+                <span class="p">)),</span>
+            <span class="p">}),</span>
+            <span class="n">reward_function</span><span class="o">=</span><span class="k">lambda</span> <span class="n">__obs</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">event_refs</span><span class="o">=</span><span class="p">[</span>
+                <span class="s1">&#39;begin_zone_timestep_after_init_heat_balance&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">simulator_factory</span><span class="o">=</span><span class="k">lambda</span> <span class="n">simulator</span><span class="o">=</span><span class="n">simulator</span><span class="p">:</span> <span class="n">simulator</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">rollouts</span><span class="p">(</span>
+        <span class="c1">#num_rollout_workers=10,</span>
+        <span class="n">num_rollout_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">enable_connectors</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">framework</span><span class="p">(</span><span class="s2">&quot;torch&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">training</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;fcnet_hiddens&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">]},</span>
+        <span class="n">lr</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">evaluation</span><span class="p">(</span>
+        <span class="c1">#evaluation_interval=1,</span>
+        <span class="c1">#evaluation_num_workers=0</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+
+<span class="n">algo</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">use_copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/rllib/algorithms/algorithm.py:500: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS=&quot;ignore::DeprecationWarning&quot;
+`UnifiedLogger` will be removed in Ray 2.7.
+  return UnifiedLogger(config, logdir, loggers=None)
+/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS=&quot;ignore::DeprecationWarning&quot;
+The `JsonLogger interface is deprecated in favor of the `ray.tune.json.JsonLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+2024-04-18 06:30:54,334	WARNING unified.py:56 -- Could not instantiate JsonLogger: cannot pickle &#39;_hashlib.HMAC&#39; object.
+/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS=&quot;ignore::DeprecationWarning&quot;
+The `CSVLogger interface is deprecated in favor of the `ray.tune.csv.CSVLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+/home/user@AD/lab/EnergyPlus-OOEP/.venv/lib/python3.11/site-packages/ray/tune/logger/unified.py:53: RayDeprecationWarning: This API is deprecated and may be removed in future Ray releases. You could suppress this warning by setting env variable PYTHONWARNINGS=&quot;ignore::DeprecationWarning&quot;
+The `TBXLogger interface is deprecated in favor of the `ray.tune.tensorboardx.TBXLoggerCallback` interface and will be removed in Ray 2.7.
+  self._loggers.append(cls(self.config, self.logdir, self.trial))
+2024-04-18 06:30:54,345	WARNING env.py:89 -- Env checking isn&#39;t implemented for RemoteBaseEnvs, ExternalMultiAgentEnv, ExternalEnvs or environments that are Ray actors.
+2024-04-18 06:30:55,025	WARNING util.py:62 -- Install gputil for GPU system monitoring.
+</pre></div>
+</div>
+</div>
+</div>
+<p>Train the algorithm.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># force simulator to rerun to make the newly requested variables available</span>
+<span class="n">simulator</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+<span class="c1"># start training</span>
+<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">algo</span><span class="o">.</span><span class="n">train</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-18 06:31:10,018	WARNING deprecation.py:50 -- DeprecationWarning: `ray.rllib.execution.train_ops.multi_gpu_train_one_step` has been deprecated. This will raise an error in the future!
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;custom_metrics&#39;: {}, &#39;episode_media&#39;: {}, &#39;info&#39;: {&#39;learner&#39;: {&#39;default_policy&#39;: {&#39;custom_metrics&#39;: {}, &#39;learner_stats&#39;: {&#39;cur_kl_coeff&#39;: 0.20000000000000004, &#39;cur_lr&#39;: 0.00010000000000000003, &#39;total_loss&#39;: 9.938055196372412, &#39;policy_loss&#39;: -0.062189261382946406, &#39;vf_loss&#39;: 10.0, &#39;vf_explained_var&#39;: 0.7088255363125955, &#39;kl&#39;: 0.0012224227473232395, &#39;entropy&#39;: 1.4575255892610037, &#39;entropy_coeff&#39;: 0.0}, &#39;model&#39;: {}, &#39;num_grad_updates_lifetime&#39;: 465.5, &#39;diff_num_grad_updates_vs_sampler_policy&#39;: 464.5}}, &#39;num_env_steps_sampled&#39;: 4000, &#39;num_env_steps_trained&#39;: 4000, &#39;num_agent_steps_sampled&#39;: 4000, &#39;num_agent_steps_trained&#39;: 4000}, &#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: nan, &#39;episode_reward_min&#39;: nan, &#39;episode_reward_mean&#39;: nan, &#39;episode_len_mean&#39;: nan, &#39;episode_media&#39;: {}, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;custom_metrics&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [], &#39;episode_lengths&#39;: []}, &#39;sampler_perf&#39;: {}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}}, &#39;episode_reward_max&#39;: nan, &#39;episode_reward_min&#39;: nan, &#39;episode_reward_mean&#39;: nan, &#39;episode_len_mean&#39;: nan, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [], &#39;episode_lengths&#39;: []}, &#39;sampler_perf&#39;: {}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}, &#39;num_healthy_workers&#39;: 0, &#39;num_in_flight_async_reqs&#39;: 0, &#39;num_remote_worker_restarts&#39;: 0, &#39;num_agent_steps_sampled&#39;: 4000, &#39;num_agent_steps_trained&#39;: 4000, &#39;num_env_steps_sampled&#39;: 4000, &#39;num_env_steps_trained&#39;: 4000, &#39;num_env_steps_sampled_this_iter&#39;: 4000, &#39;num_env_steps_trained_this_iter&#39;: 4000, &#39;num_env_steps_sampled_throughput_per_sec&#39;: 210.7307298259702, &#39;num_env_steps_trained_throughput_per_sec&#39;: 210.7307298259702, &#39;timesteps_total&#39;: 4000, &#39;num_steps_trained_this_iter&#39;: 4000, &#39;agent_timesteps_total&#39;: 4000, &#39;timers&#39;: {&#39;training_iteration_time_ms&#39;: 18981.552, &#39;sample_time_ms&#39;: 14946.59, &#39;load_time_ms&#39;: 0.765, &#39;load_throughput&#39;: 5229805.486, &#39;learn_time_ms&#39;: 4033.56, &#39;learn_throughput&#39;: 991.68, &#39;synch_weights_time_ms&#39;: 0.003}, &#39;counters&#39;: {&#39;num_env_steps_sampled&#39;: 4000, &#39;num_env_steps_trained&#39;: 4000, &#39;num_agent_steps_sampled&#39;: 4000, &#39;num_agent_steps_trained&#39;: 4000}, &#39;done&#39;: False, &#39;episodes_total&#39;: 0, &#39;training_iteration&#39;: 1, &#39;trial_id&#39;: &#39;default&#39;, &#39;date&#39;: &#39;2024-04-18_06-31-14&#39;, &#39;timestamp&#39;: 1713447074, &#39;time_this_iter_s&#39;: 18.981648683547974, &#39;time_total_s&#39;: 18.981648683547974, &#39;pid&#39;: 4067700, &#39;hostname&#39;: &#39;hvaclab-srv&#39;, &#39;node_ip&#39;: &#39;192.168.200.111&#39;, &#39;config&#39;: {&#39;extra_python_environs_for_driver&#39;: {}, &#39;extra_python_environs_for_worker&#39;: {}, &#39;num_gpus&#39;: 1, &#39;num_cpus_per_worker&#39;: 1, &#39;num_gpus_per_worker&#39;: 0, &#39;_fake_gpus&#39;: False, &#39;num_learner_workers&#39;: 0, &#39;num_gpus_per_learner_worker&#39;: 0, &#39;num_cpus_per_learner_worker&#39;: 1, &#39;local_gpu_idx&#39;: 0, &#39;custom_resources_per_worker&#39;: {}, &#39;placement_strategy&#39;: &#39;PACK&#39;, &#39;eager_tracing&#39;: True, &#39;eager_max_retraces&#39;: 20, &#39;tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 2, &#39;inter_op_parallelism_threads&#39;: 2, &#39;gpu_options&#39;: {&#39;allow_growth&#39;: True}, &#39;log_device_placement&#39;: False, &#39;device_count&#39;: {&#39;CPU&#39;: 1}, &#39;allow_soft_placement&#39;: True}, &#39;local_tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 8, &#39;inter_op_parallelism_threads&#39;: 8}, &#39;torch_compile_learner&#39;: False, &#39;torch_compile_learner_what_to_compile&#39;: &lt;TorchCompileWhatToCompile.FORWARD_TRAIN: &#39;forward_train&#39;&gt;, &#39;torch_compile_learner_dynamo_backend&#39;: &#39;inductor&#39;, &#39;torch_compile_learner_dynamo_mode&#39;: None, &#39;torch_compile_worker&#39;: False, &#39;torch_compile_worker_dynamo_backend&#39;: &#39;onnxrt&#39;, &#39;torch_compile_worker_dynamo_mode&#39;: None, &#39;env&#39;: &lt;class &#39;energyplus.ooep.addons.rl.ray.env.SimulatorEnv&#39;&gt;, &#39;env_config&#39;: {&#39;action_space&#39;: Dict(&#39;thermostat&#39;: Box(15.0, 16.0, (), float32)), &#39;observation_space&#39;: Dict(&#39;temperature&#39;: Box(-inf, inf, (), float32)), &#39;reward_function&#39;: &lt;function &lt;lambda&gt; at 0x7fc09cdeade0&gt;, &#39;event_refs&#39;: [&#39;begin_zone_timestep_after_init_heat_balance&#39;], &#39;simulator_factory&#39;: &lt;function &lt;lambda&gt; at 0x7fc09c142840&gt;}, &#39;observation_space&#39;: None, &#39;action_space&#39;: None, &#39;env_task_fn&#39;: None, &#39;render_env&#39;: False, &#39;clip_rewards&#39;: None, &#39;normalize_actions&#39;: True, &#39;clip_actions&#39;: False, &#39;disable_env_checking&#39;: False, &#39;auto_wrap_old_gym_envs&#39;: True, &#39;action_mask_key&#39;: &#39;action_mask&#39;, &#39;_is_atari&#39;: None, &#39;env_runner_cls&#39;: None, &#39;num_envs_per_worker&#39;: 1, &#39;enable_connectors&#39;: False, &#39;_env_to_module_connector&#39;: None, &#39;_module_to_env_connector&#39;: None, &#39;add_default_connectors_to_env_to_module_pipeline&#39;: True, &#39;add_default_connectors_to_module_to_env_pipeline&#39;: True, &#39;episode_lookback_horizon&#39;: 1, &#39;rollout_fragment_length&#39;: &#39;auto&#39;, &#39;batch_mode&#39;: &#39;truncate_episodes&#39;, &#39;validate_workers_after_construction&#39;: True, &#39;compress_observations&#39;: False, &#39;sampler_perf_stats_ema_coef&#39;: None, &#39;sample_async&#39;: -1, &#39;remote_worker_envs&#39;: False, &#39;remote_env_batch_wait_ms&#39;: 0, &#39;enable_tf1_exec_eagerly&#39;: False, &#39;sample_collector&#39;: &lt;class &#39;ray.rllib.evaluation.collectors.simple_list_collector.SimpleListCollector&#39;&gt;, &#39;preprocessor_pref&#39;: &#39;deepmind&#39;, &#39;observation_filter&#39;: &#39;NoFilter&#39;, &#39;update_worker_filter_stats&#39;: True, &#39;use_worker_filter_stats&#39;: True, &#39;gamma&#39;: 0.99, &#39;lr&#39;: 0.0001, &#39;grad_clip&#39;: None, &#39;grad_clip_by&#39;: &#39;global_norm&#39;, &#39;train_batch_size&#39;: 4000, &#39;train_batch_size_per_learner&#39;: None, &#39;model&#39;: {&#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;fcnet_hiddens&#39;: [64, 64], &#39;fcnet_activation&#39;: &#39;tanh&#39;, &#39;fcnet_weights_initializer&#39;: None, &#39;fcnet_weights_initializer_config&#39;: None, &#39;fcnet_bias_initializer&#39;: None, &#39;fcnet_bias_initializer_config&#39;: None, &#39;conv_filters&#39;: None, &#39;conv_activation&#39;: &#39;relu&#39;, &#39;conv_kernel_initializer&#39;: None, &#39;conv_kernel_initializer_config&#39;: None, &#39;conv_bias_initializer&#39;: None, &#39;conv_bias_initializer_config&#39;: None, &#39;conv_transpose_kernel_initializer&#39;: None, &#39;conv_transpose_kernel_initializer_config&#39;: None, &#39;conv_transpose_bias_initializer&#39;: None, &#39;conv_transpose_bias_initializer_config&#39;: None, &#39;post_fcnet_hiddens&#39;: [], &#39;post_fcnet_activation&#39;: &#39;relu&#39;, &#39;post_fcnet_weights_initializer&#39;: None, &#39;post_fcnet_weights_initializer_config&#39;: None, &#39;post_fcnet_bias_initializer&#39;: None, &#39;post_fcnet_bias_initializer_config&#39;: None, &#39;free_log_std&#39;: False, &#39;no_final_linear&#39;: False, &#39;vf_share_layers&#39;: False, &#39;use_lstm&#39;: False, &#39;max_seq_len&#39;: 20, &#39;lstm_cell_size&#39;: 256, &#39;lstm_use_prev_action&#39;: False, &#39;lstm_use_prev_reward&#39;: False, &#39;lstm_weights_initializer&#39;: None, &#39;lstm_weights_initializer_config&#39;: None, &#39;lstm_bias_initializer&#39;: None, &#39;lstm_bias_initializer_config&#39;: None, &#39;_time_major&#39;: False, &#39;use_attention&#39;: False, &#39;attention_num_transformer_units&#39;: 1, &#39;attention_dim&#39;: 64, &#39;attention_num_heads&#39;: 1, &#39;attention_head_dim&#39;: 32, &#39;attention_memory_inference&#39;: 50, &#39;attention_memory_training&#39;: 50, &#39;attention_position_wise_mlp_dim&#39;: 32, &#39;attention_init_gru_gate_bias&#39;: 2.0, &#39;attention_use_n_prev_actions&#39;: 0, &#39;attention_use_n_prev_rewards&#39;: 0, &#39;framestack&#39;: True, &#39;dim&#39;: 84, &#39;grayscale&#39;: False, &#39;zero_mean&#39;: True, &#39;custom_model&#39;: None, &#39;custom_model_config&#39;: {}, &#39;custom_action_dist&#39;: None, &#39;custom_preprocessor&#39;: None, &#39;encoder_latent_dim&#39;: None, &#39;always_check_shapes&#39;: False, &#39;lstm_use_prev_action_reward&#39;: -1, &#39;_use_default_native_models&#39;: -1}, &#39;_learner_connector&#39;: None, &#39;add_default_connectors_to_learner_pipeline&#39;: True, &#39;optimizer&#39;: {}, &#39;max_requests_in_flight_per_sampler_worker&#39;: 2, &#39;_learner_class&#39;: None, &#39;explore&#39;: True, &#39;exploration_config&#39;: {&#39;type&#39;: &#39;StochasticSampling&#39;}, &#39;algorithm_config_overrides_per_module&#39;: {}, &#39;_per_module_overrides&#39;: {}, &#39;count_steps_by&#39;: &#39;env_steps&#39;, &#39;policy_map_capacity&#39;: 100, &#39;policy_mapping_fn&#39;: &lt;function AlgorithmConfig.DEFAULT_POLICY_MAPPING_FN at 0x7fbf261f3ba0&gt;, &#39;policies_to_train&#39;: None, &#39;policy_states_are_swappable&#39;: False, &#39;observation_fn&#39;: None, &#39;input_config&#39;: {}, &#39;actions_in_input_normalized&#39;: False, &#39;postprocess_inputs&#39;: False, &#39;shuffle_buffer_size&#39;: 0, &#39;output&#39;: None, &#39;output_config&#39;: {}, &#39;output_compress_columns&#39;: [&#39;obs&#39;, &#39;new_obs&#39;], &#39;output_max_file_size&#39;: 67108864, &#39;offline_sampling&#39;: False, &#39;evaluation_interval&#39;: None, &#39;evaluation_duration&#39;: 10, &#39;evaluation_duration_unit&#39;: &#39;episodes&#39;, &#39;evaluation_sample_timeout_s&#39;: 180.0, &#39;evaluation_parallel_to_training&#39;: False, &#39;evaluation_config&#39;: None, &#39;off_policy_estimation_methods&#39;: {}, &#39;ope_split_batch_by_episode&#39;: True, &#39;evaluation_num_workers&#39;: 0, &#39;custom_async_evaluation_function&#39;: None, &#39;always_attach_evaluation_results&#39;: False, &#39;enable_async_evaluation&#39;: False, &#39;in_evaluation&#39;: False, &#39;sync_filters_on_rollout_workers_timeout_s&#39;: 60.0, &#39;keep_per_episode_custom_metrics&#39;: False, &#39;metrics_episode_collection_timeout_s&#39;: 60.0, &#39;metrics_num_episodes_for_smoothing&#39;: 100, &#39;min_time_s_per_iteration&#39;: None, &#39;min_train_timesteps_per_iteration&#39;: 0, &#39;min_sample_timesteps_per_iteration&#39;: 0, &#39;export_native_model_files&#39;: False, &#39;checkpoint_trainable_policies_only&#39;: False, &#39;logger_creator&#39;: None, &#39;logger_config&#39;: None, &#39;log_level&#39;: &#39;WARN&#39;, &#39;log_sys_usage&#39;: True, &#39;fake_sampler&#39;: False, &#39;seed&#39;: None, &#39;ignore_worker_failures&#39;: False, &#39;recreate_failed_workers&#39;: False, &#39;max_num_worker_restarts&#39;: 1000, &#39;delay_between_worker_restarts_s&#39;: 60.0, &#39;restart_failed_sub_environments&#39;: False, &#39;num_consecutive_worker_failures_tolerance&#39;: 100, &#39;worker_health_probe_timeout_s&#39;: 60, &#39;worker_restore_timeout_s&#39;: 1800, &#39;_rl_module_spec&#39;: None, &#39;_AlgorithmConfig__prior_exploration_config&#39;: None, &#39;_enable_new_api_stack&#39;: False, &#39;_tf_policy_handles_more_than_one_loss&#39;: False, &#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;_disable_initialize_loss_from_dummy_batch&#39;: False, &#39;simple_optimizer&#39;: False, &#39;policy_map_cache&#39;: -1, &#39;worker_cls&#39;: -1, &#39;synchronize_filters&#39;: -1, &#39;replay_sequence_length&#39;: None, &#39;_disable_execution_plan_api&#39;: -1, &#39;lr_schedule&#39;: None, &#39;use_critic&#39;: True, &#39;use_gae&#39;: True, &#39;use_kl_loss&#39;: True, &#39;kl_coeff&#39;: 0.2, &#39;kl_target&#39;: 0.01, &#39;sgd_minibatch_size&#39;: 128, &#39;mini_batch_size_per_learner&#39;: None, &#39;num_sgd_iter&#39;: 30, &#39;shuffle_sequences&#39;: True, &#39;vf_loss_coeff&#39;: 1.0, &#39;entropy_coeff&#39;: 0.0, &#39;entropy_coeff_schedule&#39;: None, &#39;clip_param&#39;: 0.3, &#39;vf_clip_param&#39;: 10.0, &#39;vf_share_layers&#39;: -1, &#39;lambda&#39;: 1.0, &#39;input&#39;: &#39;sampler&#39;, &#39;policies&#39;: {&#39;default_policy&#39;: (None, None, None, None)}, &#39;callbacks&#39;: &lt;class &#39;ray.rllib.algorithms.callbacks.DefaultCallbacks&#39;&gt;, &#39;create_env_on_driver&#39;: True, &#39;custom_eval_function&#39;: None, &#39;framework&#39;: &#39;torch&#39;, &#39;num_cpus_for_driver&#39;: 1, &#39;num_workers&#39;: 0}, &#39;time_since_restore&#39;: 18.981648683547974, &#39;iterations_since_restore&#39;: 1, &#39;perf&#39;: {&#39;cpu_util_percent&#39;: 9.042857142857143, &#39;ram_util_percent&#39;: 43.13928571428571}}
+{&#39;custom_metrics&#39;: {}, &#39;episode_media&#39;: {}, &#39;info&#39;: {&#39;learner&#39;: {&#39;default_policy&#39;: {&#39;custom_metrics&#39;: {}, &#39;learner_stats&#39;: {&#39;cur_kl_coeff&#39;: 0.10000000000000002, &#39;cur_lr&#39;: 0.00010000000000000003, &#39;total_loss&#39;: 9.93769951481973, &#39;policy_loss&#39;: -0.06248819433473131, &#39;vf_loss&#39;: 10.0, &#39;vf_explained_var&#39;: 0.7428782005463878, &#39;kl&#39;: 0.001876832003847906, &#39;entropy&#39;: 1.4218879921461947, &#39;entropy_coeff&#39;: 0.0}, &#39;model&#39;: {}, &#39;num_grad_updates_lifetime&#39;: 1395.5, &#39;diff_num_grad_updates_vs_sampler_policy&#39;: 464.5}}, &#39;num_env_steps_sampled&#39;: 8000, &#39;num_env_steps_trained&#39;: 8000, &#39;num_agent_steps_sampled&#39;: 8000, &#39;num_agent_steps_trained&#39;: 8000}, &#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: nan, &#39;episode_reward_min&#39;: nan, &#39;episode_reward_mean&#39;: nan, &#39;episode_len_mean&#39;: nan, &#39;episode_media&#39;: {}, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;custom_metrics&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [], &#39;episode_lengths&#39;: []}, &#39;sampler_perf&#39;: {}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}}, &#39;episode_reward_max&#39;: nan, &#39;episode_reward_min&#39;: nan, &#39;episode_reward_mean&#39;: nan, &#39;episode_len_mean&#39;: nan, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [], &#39;episode_lengths&#39;: []}, &#39;sampler_perf&#39;: {}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}, &#39;num_healthy_workers&#39;: 0, &#39;num_in_flight_async_reqs&#39;: 0, &#39;num_remote_worker_restarts&#39;: 0, &#39;num_agent_steps_sampled&#39;: 8000, &#39;num_agent_steps_trained&#39;: 8000, &#39;num_env_steps_sampled&#39;: 8000, &#39;num_env_steps_trained&#39;: 8000, &#39;num_env_steps_sampled_this_iter&#39;: 4000, &#39;num_env_steps_trained_this_iter&#39;: 4000, &#39;num_env_steps_sampled_throughput_per_sec&#39;: 184.14455555537995, &#39;num_env_steps_trained_throughput_per_sec&#39;: 184.14455555537995, &#39;timesteps_total&#39;: 8000, &#39;num_steps_trained_this_iter&#39;: 4000, &#39;agent_timesteps_total&#39;: 8000, &#39;timers&#39;: {&#39;training_iteration_time_ms&#39;: 20351.803, &#39;sample_time_ms&#39;: 16424.3, &#39;load_time_ms&#39;: 0.65, &#39;load_throughput&#39;: 6155647.037, &#39;learn_time_ms&#39;: 3926.424, &#39;learn_throughput&#39;: 1018.739, &#39;synch_weights_time_ms&#39;: 0.003}, &#39;counters&#39;: {&#39;num_env_steps_sampled&#39;: 8000, &#39;num_env_steps_trained&#39;: 8000, &#39;num_agent_steps_sampled&#39;: 8000, &#39;num_agent_steps_trained&#39;: 8000}, &#39;done&#39;: False, &#39;episodes_total&#39;: 0, &#39;training_iteration&#39;: 2, &#39;trial_id&#39;: &#39;default&#39;, &#39;date&#39;: &#39;2024-04-18_06-31-35&#39;, &#39;timestamp&#39;: 1713447095, &#39;time_this_iter_s&#39;: 21.722134828567505, &#39;time_total_s&#39;: 40.70378351211548, &#39;pid&#39;: 4067700, &#39;hostname&#39;: &#39;hvaclab-srv&#39;, &#39;node_ip&#39;: &#39;192.168.200.111&#39;, &#39;config&#39;: {&#39;extra_python_environs_for_driver&#39;: {}, &#39;extra_python_environs_for_worker&#39;: {}, &#39;num_gpus&#39;: 1, &#39;num_cpus_per_worker&#39;: 1, &#39;num_gpus_per_worker&#39;: 0, &#39;_fake_gpus&#39;: False, &#39;num_learner_workers&#39;: 0, &#39;num_gpus_per_learner_worker&#39;: 0, &#39;num_cpus_per_learner_worker&#39;: 1, &#39;local_gpu_idx&#39;: 0, &#39;custom_resources_per_worker&#39;: {}, &#39;placement_strategy&#39;: &#39;PACK&#39;, &#39;eager_tracing&#39;: True, &#39;eager_max_retraces&#39;: 20, &#39;tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 2, &#39;inter_op_parallelism_threads&#39;: 2, &#39;gpu_options&#39;: {&#39;allow_growth&#39;: True}, &#39;log_device_placement&#39;: False, &#39;device_count&#39;: {&#39;CPU&#39;: 1}, &#39;allow_soft_placement&#39;: True}, &#39;local_tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 8, &#39;inter_op_parallelism_threads&#39;: 8}, &#39;torch_compile_learner&#39;: False, &#39;torch_compile_learner_what_to_compile&#39;: &lt;TorchCompileWhatToCompile.FORWARD_TRAIN: &#39;forward_train&#39;&gt;, &#39;torch_compile_learner_dynamo_backend&#39;: &#39;inductor&#39;, &#39;torch_compile_learner_dynamo_mode&#39;: None, &#39;torch_compile_worker&#39;: False, &#39;torch_compile_worker_dynamo_backend&#39;: &#39;onnxrt&#39;, &#39;torch_compile_worker_dynamo_mode&#39;: None, &#39;env&#39;: &lt;class &#39;energyplus.ooep.addons.rl.ray.env.SimulatorEnv&#39;&gt;, &#39;env_config&#39;: {&#39;action_space&#39;: Dict(&#39;thermostat&#39;: Box(15.0, 16.0, (), float32)), &#39;observation_space&#39;: Dict(&#39;temperature&#39;: Box(-inf, inf, (), float32)), &#39;reward_function&#39;: &lt;function &lt;lambda&gt; at 0x7fc09cdeade0&gt;, &#39;event_refs&#39;: [&#39;begin_zone_timestep_after_init_heat_balance&#39;], &#39;simulator_factory&#39;: &lt;function &lt;lambda&gt; at 0x7fc09c142840&gt;}, &#39;observation_space&#39;: None, &#39;action_space&#39;: None, &#39;env_task_fn&#39;: None, &#39;render_env&#39;: False, &#39;clip_rewards&#39;: None, &#39;normalize_actions&#39;: True, &#39;clip_actions&#39;: False, &#39;disable_env_checking&#39;: False, &#39;auto_wrap_old_gym_envs&#39;: True, &#39;action_mask_key&#39;: &#39;action_mask&#39;, &#39;_is_atari&#39;: None, &#39;env_runner_cls&#39;: None, &#39;num_envs_per_worker&#39;: 1, &#39;enable_connectors&#39;: False, &#39;_env_to_module_connector&#39;: None, &#39;_module_to_env_connector&#39;: None, &#39;add_default_connectors_to_env_to_module_pipeline&#39;: True, &#39;add_default_connectors_to_module_to_env_pipeline&#39;: True, &#39;episode_lookback_horizon&#39;: 1, &#39;rollout_fragment_length&#39;: &#39;auto&#39;, &#39;batch_mode&#39;: &#39;truncate_episodes&#39;, &#39;validate_workers_after_construction&#39;: True, &#39;compress_observations&#39;: False, &#39;sampler_perf_stats_ema_coef&#39;: None, &#39;sample_async&#39;: -1, &#39;remote_worker_envs&#39;: False, &#39;remote_env_batch_wait_ms&#39;: 0, &#39;enable_tf1_exec_eagerly&#39;: False, &#39;sample_collector&#39;: &lt;class &#39;ray.rllib.evaluation.collectors.simple_list_collector.SimpleListCollector&#39;&gt;, &#39;preprocessor_pref&#39;: &#39;deepmind&#39;, &#39;observation_filter&#39;: &#39;NoFilter&#39;, &#39;update_worker_filter_stats&#39;: True, &#39;use_worker_filter_stats&#39;: True, &#39;gamma&#39;: 0.99, &#39;lr&#39;: 0.0001, &#39;grad_clip&#39;: None, &#39;grad_clip_by&#39;: &#39;global_norm&#39;, &#39;train_batch_size&#39;: 4000, &#39;train_batch_size_per_learner&#39;: None, &#39;model&#39;: {&#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;fcnet_hiddens&#39;: [64, 64], &#39;fcnet_activation&#39;: &#39;tanh&#39;, &#39;fcnet_weights_initializer&#39;: None, &#39;fcnet_weights_initializer_config&#39;: None, &#39;fcnet_bias_initializer&#39;: None, &#39;fcnet_bias_initializer_config&#39;: None, &#39;conv_filters&#39;: None, &#39;conv_activation&#39;: &#39;relu&#39;, &#39;conv_kernel_initializer&#39;: None, &#39;conv_kernel_initializer_config&#39;: None, &#39;conv_bias_initializer&#39;: None, &#39;conv_bias_initializer_config&#39;: None, &#39;conv_transpose_kernel_initializer&#39;: None, &#39;conv_transpose_kernel_initializer_config&#39;: None, &#39;conv_transpose_bias_initializer&#39;: None, &#39;conv_transpose_bias_initializer_config&#39;: None, &#39;post_fcnet_hiddens&#39;: [], &#39;post_fcnet_activation&#39;: &#39;relu&#39;, &#39;post_fcnet_weights_initializer&#39;: None, &#39;post_fcnet_weights_initializer_config&#39;: None, &#39;post_fcnet_bias_initializer&#39;: None, &#39;post_fcnet_bias_initializer_config&#39;: None, &#39;free_log_std&#39;: False, &#39;no_final_linear&#39;: False, &#39;vf_share_layers&#39;: False, &#39;use_lstm&#39;: False, &#39;max_seq_len&#39;: 20, &#39;lstm_cell_size&#39;: 256, &#39;lstm_use_prev_action&#39;: False, &#39;lstm_use_prev_reward&#39;: False, &#39;lstm_weights_initializer&#39;: None, &#39;lstm_weights_initializer_config&#39;: None, &#39;lstm_bias_initializer&#39;: None, &#39;lstm_bias_initializer_config&#39;: None, &#39;_time_major&#39;: False, &#39;use_attention&#39;: False, &#39;attention_num_transformer_units&#39;: 1, &#39;attention_dim&#39;: 64, &#39;attention_num_heads&#39;: 1, &#39;attention_head_dim&#39;: 32, &#39;attention_memory_inference&#39;: 50, &#39;attention_memory_training&#39;: 50, &#39;attention_position_wise_mlp_dim&#39;: 32, &#39;attention_init_gru_gate_bias&#39;: 2.0, &#39;attention_use_n_prev_actions&#39;: 0, &#39;attention_use_n_prev_rewards&#39;: 0, &#39;framestack&#39;: True, &#39;dim&#39;: 84, &#39;grayscale&#39;: False, &#39;zero_mean&#39;: True, &#39;custom_model&#39;: None, &#39;custom_model_config&#39;: {}, &#39;custom_action_dist&#39;: None, &#39;custom_preprocessor&#39;: None, &#39;encoder_latent_dim&#39;: None, &#39;always_check_shapes&#39;: False, &#39;lstm_use_prev_action_reward&#39;: -1, &#39;_use_default_native_models&#39;: -1}, &#39;_learner_connector&#39;: None, &#39;add_default_connectors_to_learner_pipeline&#39;: True, &#39;optimizer&#39;: {}, &#39;max_requests_in_flight_per_sampler_worker&#39;: 2, &#39;_learner_class&#39;: None, &#39;explore&#39;: True, &#39;exploration_config&#39;: {&#39;type&#39;: &#39;StochasticSampling&#39;}, &#39;algorithm_config_overrides_per_module&#39;: {}, &#39;_per_module_overrides&#39;: {}, &#39;count_steps_by&#39;: &#39;env_steps&#39;, &#39;policy_map_capacity&#39;: 100, &#39;policy_mapping_fn&#39;: &lt;function AlgorithmConfig.DEFAULT_POLICY_MAPPING_FN at 0x7fbf261f3ba0&gt;, &#39;policies_to_train&#39;: None, &#39;policy_states_are_swappable&#39;: False, &#39;observation_fn&#39;: None, &#39;input_config&#39;: {}, &#39;actions_in_input_normalized&#39;: False, &#39;postprocess_inputs&#39;: False, &#39;shuffle_buffer_size&#39;: 0, &#39;output&#39;: None, &#39;output_config&#39;: {}, &#39;output_compress_columns&#39;: [&#39;obs&#39;, &#39;new_obs&#39;], &#39;output_max_file_size&#39;: 67108864, &#39;offline_sampling&#39;: False, &#39;evaluation_interval&#39;: None, &#39;evaluation_duration&#39;: 10, &#39;evaluation_duration_unit&#39;: &#39;episodes&#39;, &#39;evaluation_sample_timeout_s&#39;: 180.0, &#39;evaluation_parallel_to_training&#39;: False, &#39;evaluation_config&#39;: None, &#39;off_policy_estimation_methods&#39;: {}, &#39;ope_split_batch_by_episode&#39;: True, &#39;evaluation_num_workers&#39;: 0, &#39;custom_async_evaluation_function&#39;: None, &#39;always_attach_evaluation_results&#39;: False, &#39;enable_async_evaluation&#39;: False, &#39;in_evaluation&#39;: False, &#39;sync_filters_on_rollout_workers_timeout_s&#39;: 60.0, &#39;keep_per_episode_custom_metrics&#39;: False, &#39;metrics_episode_collection_timeout_s&#39;: 60.0, &#39;metrics_num_episodes_for_smoothing&#39;: 100, &#39;min_time_s_per_iteration&#39;: None, &#39;min_train_timesteps_per_iteration&#39;: 0, &#39;min_sample_timesteps_per_iteration&#39;: 0, &#39;export_native_model_files&#39;: False, &#39;checkpoint_trainable_policies_only&#39;: False, &#39;logger_creator&#39;: None, &#39;logger_config&#39;: None, &#39;log_level&#39;: &#39;WARN&#39;, &#39;log_sys_usage&#39;: True, &#39;fake_sampler&#39;: False, &#39;seed&#39;: None, &#39;ignore_worker_failures&#39;: False, &#39;recreate_failed_workers&#39;: False, &#39;max_num_worker_restarts&#39;: 1000, &#39;delay_between_worker_restarts_s&#39;: 60.0, &#39;restart_failed_sub_environments&#39;: False, &#39;num_consecutive_worker_failures_tolerance&#39;: 100, &#39;worker_health_probe_timeout_s&#39;: 60, &#39;worker_restore_timeout_s&#39;: 1800, &#39;_rl_module_spec&#39;: None, &#39;_AlgorithmConfig__prior_exploration_config&#39;: None, &#39;_enable_new_api_stack&#39;: False, &#39;_tf_policy_handles_more_than_one_loss&#39;: False, &#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;_disable_initialize_loss_from_dummy_batch&#39;: False, &#39;simple_optimizer&#39;: False, &#39;policy_map_cache&#39;: -1, &#39;worker_cls&#39;: -1, &#39;synchronize_filters&#39;: -1, &#39;replay_sequence_length&#39;: None, &#39;_disable_execution_plan_api&#39;: -1, &#39;lr_schedule&#39;: None, &#39;use_critic&#39;: True, &#39;use_gae&#39;: True, &#39;use_kl_loss&#39;: True, &#39;kl_coeff&#39;: 0.2, &#39;kl_target&#39;: 0.01, &#39;sgd_minibatch_size&#39;: 128, &#39;mini_batch_size_per_learner&#39;: None, &#39;num_sgd_iter&#39;: 30, &#39;shuffle_sequences&#39;: True, &#39;vf_loss_coeff&#39;: 1.0, &#39;entropy_coeff&#39;: 0.0, &#39;entropy_coeff_schedule&#39;: None, &#39;clip_param&#39;: 0.3, &#39;vf_clip_param&#39;: 10.0, &#39;vf_share_layers&#39;: -1, &#39;lambda&#39;: 1.0, &#39;input&#39;: &#39;sampler&#39;, &#39;policies&#39;: {&#39;default_policy&#39;: (None, None, None, None)}, &#39;callbacks&#39;: &lt;class &#39;ray.rllib.algorithms.callbacks.DefaultCallbacks&#39;&gt;, &#39;create_env_on_driver&#39;: True, &#39;custom_eval_function&#39;: None, &#39;framework&#39;: &#39;torch&#39;, &#39;num_cpus_for_driver&#39;: 1, &#39;num_workers&#39;: 0}, &#39;time_since_restore&#39;: 40.70378351211548, &#39;iterations_since_restore&#39;: 2, &#39;perf&#39;: {&#39;cpu_util_percent&#39;: 9.735483870967743, &#39;ram_util_percent&#39;: 43.29999999999998}}
+{&#39;custom_metrics&#39;: {}, &#39;episode_media&#39;: {}, &#39;info&#39;: {&#39;learner&#39;: {&#39;default_policy&#39;: {&#39;custom_metrics&#39;: {}, &#39;learner_stats&#39;: {&#39;cur_kl_coeff&#39;: 0.05000000000000001, &#39;cur_lr&#39;: 0.00010000000000000003, &#39;total_loss&#39;: 9.946981360322686, &#39;policy_loss&#39;: -0.04410907684234522, &#39;vf_loss&#39;: 9.990995856254331, &#39;vf_explained_var&#39;: 0.4249570138992802, &#39;kl&#39;: 0.0018918529105302628, &#39;entropy&#39;: 1.4607113258813018, &#39;entropy_coeff&#39;: 0.0}, &#39;model&#39;: {}, &#39;num_grad_updates_lifetime&#39;: 2325.5, &#39;diff_num_grad_updates_vs_sampler_policy&#39;: 464.5}}, &#39;num_env_steps_sampled&#39;: 12000, &#39;num_env_steps_trained&#39;: 12000, &#39;num_agent_steps_sampled&#39;: 12000, &#39;num_agent_steps_trained&#39;: 12000}, &#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episode_media&#39;: {}, &#39;episodes_this_iter&#39;: 1, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;custom_metrics&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0], &#39;episode_lengths&#39;: [9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11636366190224604, &#39;mean_inference_ms&#39;: 1.020515427909639, &#39;mean_action_processing_ms&#39;: 0.08841127857449174, &#39;mean_env_wait_ms&#39;: 2.6869930598839504, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}}, &#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episodes_this_iter&#39;: 1, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0], &#39;episode_lengths&#39;: [9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11636366190224604, &#39;mean_inference_ms&#39;: 1.020515427909639, &#39;mean_action_processing_ms&#39;: 0.08841127857449174, &#39;mean_env_wait_ms&#39;: 2.6869930598839504, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}, &#39;num_healthy_workers&#39;: 0, &#39;num_in_flight_async_reqs&#39;: 0, &#39;num_remote_worker_restarts&#39;: 0, &#39;num_agent_steps_sampled&#39;: 12000, &#39;num_agent_steps_trained&#39;: 12000, &#39;num_env_steps_sampled&#39;: 12000, &#39;num_env_steps_trained&#39;: 12000, &#39;num_env_steps_sampled_this_iter&#39;: 4000, &#39;num_env_steps_trained_this_iter&#39;: 4000, &#39;num_env_steps_sampled_throughput_per_sec&#39;: 219.53438295073207, &#39;num_env_steps_trained_throughput_per_sec&#39;: 219.53438295073207, &#39;timesteps_total&#39;: 12000, &#39;num_steps_trained_this_iter&#39;: 4000, &#39;agent_timesteps_total&#39;: 12000, &#39;timers&#39;: {&#39;training_iteration_time_ms&#39;: 19641.325, &#39;sample_time_ms&#39;: 15669.437, &#39;load_time_ms&#39;: 0.6, &#39;load_throughput&#39;: 6668209.857, &#39;learn_time_ms&#39;: 3970.925, &#39;learn_throughput&#39;: 1007.322, &#39;synch_weights_time_ms&#39;: 0.003}, &#39;counters&#39;: {&#39;num_env_steps_sampled&#39;: 12000, &#39;num_env_steps_trained&#39;: 12000, &#39;num_agent_steps_sampled&#39;: 12000, &#39;num_agent_steps_trained&#39;: 12000}, &#39;done&#39;: False, &#39;episodes_total&#39;: 1, &#39;training_iteration&#39;: 3, &#39;trial_id&#39;: &#39;default&#39;, &#39;date&#39;: &#39;2024-04-18_06-31-54&#39;, &#39;timestamp&#39;: 1713447114, &#39;time_this_iter_s&#39;: 18.220512628555298, &#39;time_total_s&#39;: 58.924296140670776, &#39;pid&#39;: 4067700, &#39;hostname&#39;: &#39;hvaclab-srv&#39;, &#39;node_ip&#39;: &#39;192.168.200.111&#39;, &#39;config&#39;: {&#39;extra_python_environs_for_driver&#39;: {}, &#39;extra_python_environs_for_worker&#39;: {}, &#39;num_gpus&#39;: 1, &#39;num_cpus_per_worker&#39;: 1, &#39;num_gpus_per_worker&#39;: 0, &#39;_fake_gpus&#39;: False, &#39;num_learner_workers&#39;: 0, &#39;num_gpus_per_learner_worker&#39;: 0, &#39;num_cpus_per_learner_worker&#39;: 1, &#39;local_gpu_idx&#39;: 0, &#39;custom_resources_per_worker&#39;: {}, &#39;placement_strategy&#39;: &#39;PACK&#39;, &#39;eager_tracing&#39;: True, &#39;eager_max_retraces&#39;: 20, &#39;tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 2, &#39;inter_op_parallelism_threads&#39;: 2, &#39;gpu_options&#39;: {&#39;allow_growth&#39;: True}, &#39;log_device_placement&#39;: False, &#39;device_count&#39;: {&#39;CPU&#39;: 1}, &#39;allow_soft_placement&#39;: True}, &#39;local_tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 8, &#39;inter_op_parallelism_threads&#39;: 8}, &#39;torch_compile_learner&#39;: False, &#39;torch_compile_learner_what_to_compile&#39;: &lt;TorchCompileWhatToCompile.FORWARD_TRAIN: &#39;forward_train&#39;&gt;, &#39;torch_compile_learner_dynamo_backend&#39;: &#39;inductor&#39;, &#39;torch_compile_learner_dynamo_mode&#39;: None, &#39;torch_compile_worker&#39;: False, &#39;torch_compile_worker_dynamo_backend&#39;: &#39;onnxrt&#39;, &#39;torch_compile_worker_dynamo_mode&#39;: None, &#39;env&#39;: &lt;class &#39;energyplus.ooep.addons.rl.ray.env.SimulatorEnv&#39;&gt;, &#39;env_config&#39;: {&#39;action_space&#39;: Dict(&#39;thermostat&#39;: Box(15.0, 16.0, (), float32)), &#39;observation_space&#39;: Dict(&#39;temperature&#39;: Box(-inf, inf, (), float32)), &#39;reward_function&#39;: &lt;function &lt;lambda&gt; at 0x7fc09cdeade0&gt;, &#39;event_refs&#39;: [&#39;begin_zone_timestep_after_init_heat_balance&#39;], &#39;simulator_factory&#39;: &lt;function &lt;lambda&gt; at 0x7fc09c142840&gt;}, &#39;observation_space&#39;: None, &#39;action_space&#39;: None, &#39;env_task_fn&#39;: None, &#39;render_env&#39;: False, &#39;clip_rewards&#39;: None, &#39;normalize_actions&#39;: True, &#39;clip_actions&#39;: False, &#39;disable_env_checking&#39;: False, &#39;auto_wrap_old_gym_envs&#39;: True, &#39;action_mask_key&#39;: &#39;action_mask&#39;, &#39;_is_atari&#39;: None, &#39;env_runner_cls&#39;: None, &#39;num_envs_per_worker&#39;: 1, &#39;enable_connectors&#39;: False, &#39;_env_to_module_connector&#39;: None, &#39;_module_to_env_connector&#39;: None, &#39;add_default_connectors_to_env_to_module_pipeline&#39;: True, &#39;add_default_connectors_to_module_to_env_pipeline&#39;: True, &#39;episode_lookback_horizon&#39;: 1, &#39;rollout_fragment_length&#39;: &#39;auto&#39;, &#39;batch_mode&#39;: &#39;truncate_episodes&#39;, &#39;validate_workers_after_construction&#39;: True, &#39;compress_observations&#39;: False, &#39;sampler_perf_stats_ema_coef&#39;: None, &#39;sample_async&#39;: -1, &#39;remote_worker_envs&#39;: False, &#39;remote_env_batch_wait_ms&#39;: 0, &#39;enable_tf1_exec_eagerly&#39;: False, &#39;sample_collector&#39;: &lt;class &#39;ray.rllib.evaluation.collectors.simple_list_collector.SimpleListCollector&#39;&gt;, &#39;preprocessor_pref&#39;: &#39;deepmind&#39;, &#39;observation_filter&#39;: &#39;NoFilter&#39;, &#39;update_worker_filter_stats&#39;: True, &#39;use_worker_filter_stats&#39;: True, &#39;gamma&#39;: 0.99, &#39;lr&#39;: 0.0001, &#39;grad_clip&#39;: None, &#39;grad_clip_by&#39;: &#39;global_norm&#39;, &#39;train_batch_size&#39;: 4000, &#39;train_batch_size_per_learner&#39;: None, &#39;model&#39;: {&#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;fcnet_hiddens&#39;: [64, 64], &#39;fcnet_activation&#39;: &#39;tanh&#39;, &#39;fcnet_weights_initializer&#39;: None, &#39;fcnet_weights_initializer_config&#39;: None, &#39;fcnet_bias_initializer&#39;: None, &#39;fcnet_bias_initializer_config&#39;: None, &#39;conv_filters&#39;: None, &#39;conv_activation&#39;: &#39;relu&#39;, &#39;conv_kernel_initializer&#39;: None, &#39;conv_kernel_initializer_config&#39;: None, &#39;conv_bias_initializer&#39;: None, &#39;conv_bias_initializer_config&#39;: None, &#39;conv_transpose_kernel_initializer&#39;: None, &#39;conv_transpose_kernel_initializer_config&#39;: None, &#39;conv_transpose_bias_initializer&#39;: None, &#39;conv_transpose_bias_initializer_config&#39;: None, &#39;post_fcnet_hiddens&#39;: [], &#39;post_fcnet_activation&#39;: &#39;relu&#39;, &#39;post_fcnet_weights_initializer&#39;: None, &#39;post_fcnet_weights_initializer_config&#39;: None, &#39;post_fcnet_bias_initializer&#39;: None, &#39;post_fcnet_bias_initializer_config&#39;: None, &#39;free_log_std&#39;: False, &#39;no_final_linear&#39;: False, &#39;vf_share_layers&#39;: False, &#39;use_lstm&#39;: False, &#39;max_seq_len&#39;: 20, &#39;lstm_cell_size&#39;: 256, &#39;lstm_use_prev_action&#39;: False, &#39;lstm_use_prev_reward&#39;: False, &#39;lstm_weights_initializer&#39;: None, &#39;lstm_weights_initializer_config&#39;: None, &#39;lstm_bias_initializer&#39;: None, &#39;lstm_bias_initializer_config&#39;: None, &#39;_time_major&#39;: False, &#39;use_attention&#39;: False, &#39;attention_num_transformer_units&#39;: 1, &#39;attention_dim&#39;: 64, &#39;attention_num_heads&#39;: 1, &#39;attention_head_dim&#39;: 32, &#39;attention_memory_inference&#39;: 50, &#39;attention_memory_training&#39;: 50, &#39;attention_position_wise_mlp_dim&#39;: 32, &#39;attention_init_gru_gate_bias&#39;: 2.0, &#39;attention_use_n_prev_actions&#39;: 0, &#39;attention_use_n_prev_rewards&#39;: 0, &#39;framestack&#39;: True, &#39;dim&#39;: 84, &#39;grayscale&#39;: False, &#39;zero_mean&#39;: True, &#39;custom_model&#39;: None, &#39;custom_model_config&#39;: {}, &#39;custom_action_dist&#39;: None, &#39;custom_preprocessor&#39;: None, &#39;encoder_latent_dim&#39;: None, &#39;always_check_shapes&#39;: False, &#39;lstm_use_prev_action_reward&#39;: -1, &#39;_use_default_native_models&#39;: -1}, &#39;_learner_connector&#39;: None, &#39;add_default_connectors_to_learner_pipeline&#39;: True, &#39;optimizer&#39;: {}, &#39;max_requests_in_flight_per_sampler_worker&#39;: 2, &#39;_learner_class&#39;: None, &#39;explore&#39;: True, &#39;exploration_config&#39;: {&#39;type&#39;: &#39;StochasticSampling&#39;}, &#39;algorithm_config_overrides_per_module&#39;: {}, &#39;_per_module_overrides&#39;: {}, &#39;count_steps_by&#39;: &#39;env_steps&#39;, &#39;policy_map_capacity&#39;: 100, &#39;policy_mapping_fn&#39;: &lt;function AlgorithmConfig.DEFAULT_POLICY_MAPPING_FN at 0x7fbf261f3ba0&gt;, &#39;policies_to_train&#39;: None, &#39;policy_states_are_swappable&#39;: False, &#39;observation_fn&#39;: None, &#39;input_config&#39;: {}, &#39;actions_in_input_normalized&#39;: False, &#39;postprocess_inputs&#39;: False, &#39;shuffle_buffer_size&#39;: 0, &#39;output&#39;: None, &#39;output_config&#39;: {}, &#39;output_compress_columns&#39;: [&#39;obs&#39;, &#39;new_obs&#39;], &#39;output_max_file_size&#39;: 67108864, &#39;offline_sampling&#39;: False, &#39;evaluation_interval&#39;: None, &#39;evaluation_duration&#39;: 10, &#39;evaluation_duration_unit&#39;: &#39;episodes&#39;, &#39;evaluation_sample_timeout_s&#39;: 180.0, &#39;evaluation_parallel_to_training&#39;: False, &#39;evaluation_config&#39;: None, &#39;off_policy_estimation_methods&#39;: {}, &#39;ope_split_batch_by_episode&#39;: True, &#39;evaluation_num_workers&#39;: 0, &#39;custom_async_evaluation_function&#39;: None, &#39;always_attach_evaluation_results&#39;: False, &#39;enable_async_evaluation&#39;: False, &#39;in_evaluation&#39;: False, &#39;sync_filters_on_rollout_workers_timeout_s&#39;: 60.0, &#39;keep_per_episode_custom_metrics&#39;: False, &#39;metrics_episode_collection_timeout_s&#39;: 60.0, &#39;metrics_num_episodes_for_smoothing&#39;: 100, &#39;min_time_s_per_iteration&#39;: None, &#39;min_train_timesteps_per_iteration&#39;: 0, &#39;min_sample_timesteps_per_iteration&#39;: 0, &#39;export_native_model_files&#39;: False, &#39;checkpoint_trainable_policies_only&#39;: False, &#39;logger_creator&#39;: None, &#39;logger_config&#39;: None, &#39;log_level&#39;: &#39;WARN&#39;, &#39;log_sys_usage&#39;: True, &#39;fake_sampler&#39;: False, &#39;seed&#39;: None, &#39;ignore_worker_failures&#39;: False, &#39;recreate_failed_workers&#39;: False, &#39;max_num_worker_restarts&#39;: 1000, &#39;delay_between_worker_restarts_s&#39;: 60.0, &#39;restart_failed_sub_environments&#39;: False, &#39;num_consecutive_worker_failures_tolerance&#39;: 100, &#39;worker_health_probe_timeout_s&#39;: 60, &#39;worker_restore_timeout_s&#39;: 1800, &#39;_rl_module_spec&#39;: None, &#39;_AlgorithmConfig__prior_exploration_config&#39;: None, &#39;_enable_new_api_stack&#39;: False, &#39;_tf_policy_handles_more_than_one_loss&#39;: False, &#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;_disable_initialize_loss_from_dummy_batch&#39;: False, &#39;simple_optimizer&#39;: False, &#39;policy_map_cache&#39;: -1, &#39;worker_cls&#39;: -1, &#39;synchronize_filters&#39;: -1, &#39;replay_sequence_length&#39;: None, &#39;_disable_execution_plan_api&#39;: -1, &#39;lr_schedule&#39;: None, &#39;use_critic&#39;: True, &#39;use_gae&#39;: True, &#39;use_kl_loss&#39;: True, &#39;kl_coeff&#39;: 0.2, &#39;kl_target&#39;: 0.01, &#39;sgd_minibatch_size&#39;: 128, &#39;mini_batch_size_per_learner&#39;: None, &#39;num_sgd_iter&#39;: 30, &#39;shuffle_sequences&#39;: True, &#39;vf_loss_coeff&#39;: 1.0, &#39;entropy_coeff&#39;: 0.0, &#39;entropy_coeff_schedule&#39;: None, &#39;clip_param&#39;: 0.3, &#39;vf_clip_param&#39;: 10.0, &#39;vf_share_layers&#39;: -1, &#39;lambda&#39;: 1.0, &#39;input&#39;: &#39;sampler&#39;, &#39;policies&#39;: {&#39;default_policy&#39;: (None, None, None, None)}, &#39;callbacks&#39;: &lt;class &#39;ray.rllib.algorithms.callbacks.DefaultCallbacks&#39;&gt;, &#39;create_env_on_driver&#39;: True, &#39;custom_eval_function&#39;: None, &#39;framework&#39;: &#39;torch&#39;, &#39;num_cpus_for_driver&#39;: 1, &#39;num_workers&#39;: 0}, &#39;time_since_restore&#39;: 58.924296140670776, &#39;iterations_since_restore&#39;: 3, &#39;perf&#39;: {&#39;cpu_util_percent&#39;: 8.584615384615384, &#39;ram_util_percent&#39;: 43.29999999999999}}
+{&#39;custom_metrics&#39;: {}, &#39;episode_media&#39;: {}, &#39;info&#39;: {&#39;learner&#39;: {&#39;default_policy&#39;: {&#39;custom_metrics&#39;: {}, &#39;learner_stats&#39;: {&#39;cur_kl_coeff&#39;: 0.025000000000000005, &#39;cur_lr&#39;: 0.00010000000000000003, &#39;total_loss&#39;: 9.937925826862294, &#39;policy_loss&#39;: -0.06211710368753762, &#39;vf_loss&#39;: 10.0, &#39;vf_explained_var&#39;: 0.7432902091933835, &#39;kl&#39;: 0.0017182119827104485, &#39;entropy&#39;: 1.4995368412745895, &#39;entropy_coeff&#39;: 0.0}, &#39;model&#39;: {}, &#39;num_grad_updates_lifetime&#39;: 3255.5, &#39;diff_num_grad_updates_vs_sampler_policy&#39;: 464.5}}, &#39;num_env_steps_sampled&#39;: 16000, &#39;num_env_steps_trained&#39;: 16000, &#39;num_agent_steps_sampled&#39;: 16000, &#39;num_agent_steps_trained&#39;: 16000}, &#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episode_media&#39;: {}, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;custom_metrics&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0], &#39;episode_lengths&#39;: [9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11636366190224604, &#39;mean_inference_ms&#39;: 1.020515427909639, &#39;mean_action_processing_ms&#39;: 0.08841127857449174, &#39;mean_env_wait_ms&#39;: 2.6869930598839504, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}}, &#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episodes_this_iter&#39;: 0, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0], &#39;episode_lengths&#39;: [9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11636366190224604, &#39;mean_inference_ms&#39;: 1.020515427909639, &#39;mean_action_processing_ms&#39;: 0.08841127857449174, &#39;mean_env_wait_ms&#39;: 2.6869930598839504, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}, &#39;num_healthy_workers&#39;: 0, &#39;num_in_flight_async_reqs&#39;: 0, &#39;num_remote_worker_restarts&#39;: 0, &#39;num_agent_steps_sampled&#39;: 16000, &#39;num_agent_steps_trained&#39;: 16000, &#39;num_env_steps_sampled&#39;: 16000, &#39;num_env_steps_trained&#39;: 16000, &#39;num_env_steps_sampled_this_iter&#39;: 4000, &#39;num_env_steps_trained_this_iter&#39;: 4000, &#39;num_env_steps_sampled_throughput_per_sec&#39;: 192.32489234295073, &#39;num_env_steps_trained_throughput_per_sec&#39;: 192.32489234295073, &#39;timesteps_total&#39;: 16000, &#39;num_steps_trained_this_iter&#39;: 4000, &#39;agent_timesteps_total&#39;: 16000, &#39;timers&#39;: {&#39;training_iteration_time_ms&#39;: 19930.525, &#39;sample_time_ms&#39;: 15984.191, &#39;load_time_ms&#39;: 0.572, &#39;load_throughput&#39;: 6990506.667, &#39;learn_time_ms&#39;: 3945.434, &#39;learn_throughput&#39;: 1013.83, &#39;synch_weights_time_ms&#39;: 0.003}, &#39;counters&#39;: {&#39;num_env_steps_sampled&#39;: 16000, &#39;num_env_steps_trained&#39;: 16000, &#39;num_agent_steps_sampled&#39;: 16000, &#39;num_agent_steps_trained&#39;: 16000}, &#39;done&#39;: False, &#39;episodes_total&#39;: 1, &#39;training_iteration&#39;: 4, &#39;trial_id&#39;: &#39;default&#39;, &#39;date&#39;: &#39;2024-04-18_06-32-14&#39;, &#39;timestamp&#39;: 1713447134, &#39;time_this_iter_s&#39;: 20.798261404037476, &#39;time_total_s&#39;: 79.72255754470825, &#39;pid&#39;: 4067700, &#39;hostname&#39;: &#39;hvaclab-srv&#39;, &#39;node_ip&#39;: &#39;192.168.200.111&#39;, &#39;config&#39;: {&#39;extra_python_environs_for_driver&#39;: {}, &#39;extra_python_environs_for_worker&#39;: {}, &#39;num_gpus&#39;: 1, &#39;num_cpus_per_worker&#39;: 1, &#39;num_gpus_per_worker&#39;: 0, &#39;_fake_gpus&#39;: False, &#39;num_learner_workers&#39;: 0, &#39;num_gpus_per_learner_worker&#39;: 0, &#39;num_cpus_per_learner_worker&#39;: 1, &#39;local_gpu_idx&#39;: 0, &#39;custom_resources_per_worker&#39;: {}, &#39;placement_strategy&#39;: &#39;PACK&#39;, &#39;eager_tracing&#39;: True, &#39;eager_max_retraces&#39;: 20, &#39;tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 2, &#39;inter_op_parallelism_threads&#39;: 2, &#39;gpu_options&#39;: {&#39;allow_growth&#39;: True}, &#39;log_device_placement&#39;: False, &#39;device_count&#39;: {&#39;CPU&#39;: 1}, &#39;allow_soft_placement&#39;: True}, &#39;local_tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 8, &#39;inter_op_parallelism_threads&#39;: 8}, &#39;torch_compile_learner&#39;: False, &#39;torch_compile_learner_what_to_compile&#39;: &lt;TorchCompileWhatToCompile.FORWARD_TRAIN: &#39;forward_train&#39;&gt;, &#39;torch_compile_learner_dynamo_backend&#39;: &#39;inductor&#39;, &#39;torch_compile_learner_dynamo_mode&#39;: None, &#39;torch_compile_worker&#39;: False, &#39;torch_compile_worker_dynamo_backend&#39;: &#39;onnxrt&#39;, &#39;torch_compile_worker_dynamo_mode&#39;: None, &#39;env&#39;: &lt;class &#39;energyplus.ooep.addons.rl.ray.env.SimulatorEnv&#39;&gt;, &#39;env_config&#39;: {&#39;action_space&#39;: Dict(&#39;thermostat&#39;: Box(15.0, 16.0, (), float32)), &#39;observation_space&#39;: Dict(&#39;temperature&#39;: Box(-inf, inf, (), float32)), &#39;reward_function&#39;: &lt;function &lt;lambda&gt; at 0x7fc09cdeade0&gt;, &#39;event_refs&#39;: [&#39;begin_zone_timestep_after_init_heat_balance&#39;], &#39;simulator_factory&#39;: &lt;function &lt;lambda&gt; at 0x7fc09c142840&gt;}, &#39;observation_space&#39;: None, &#39;action_space&#39;: None, &#39;env_task_fn&#39;: None, &#39;render_env&#39;: False, &#39;clip_rewards&#39;: None, &#39;normalize_actions&#39;: True, &#39;clip_actions&#39;: False, &#39;disable_env_checking&#39;: False, &#39;auto_wrap_old_gym_envs&#39;: True, &#39;action_mask_key&#39;: &#39;action_mask&#39;, &#39;_is_atari&#39;: None, &#39;env_runner_cls&#39;: None, &#39;num_envs_per_worker&#39;: 1, &#39;enable_connectors&#39;: False, &#39;_env_to_module_connector&#39;: None, &#39;_module_to_env_connector&#39;: None, &#39;add_default_connectors_to_env_to_module_pipeline&#39;: True, &#39;add_default_connectors_to_module_to_env_pipeline&#39;: True, &#39;episode_lookback_horizon&#39;: 1, &#39;rollout_fragment_length&#39;: &#39;auto&#39;, &#39;batch_mode&#39;: &#39;truncate_episodes&#39;, &#39;validate_workers_after_construction&#39;: True, &#39;compress_observations&#39;: False, &#39;sampler_perf_stats_ema_coef&#39;: None, &#39;sample_async&#39;: -1, &#39;remote_worker_envs&#39;: False, &#39;remote_env_batch_wait_ms&#39;: 0, &#39;enable_tf1_exec_eagerly&#39;: False, &#39;sample_collector&#39;: &lt;class &#39;ray.rllib.evaluation.collectors.simple_list_collector.SimpleListCollector&#39;&gt;, &#39;preprocessor_pref&#39;: &#39;deepmind&#39;, &#39;observation_filter&#39;: &#39;NoFilter&#39;, &#39;update_worker_filter_stats&#39;: True, &#39;use_worker_filter_stats&#39;: True, &#39;gamma&#39;: 0.99, &#39;lr&#39;: 0.0001, &#39;grad_clip&#39;: None, &#39;grad_clip_by&#39;: &#39;global_norm&#39;, &#39;train_batch_size&#39;: 4000, &#39;train_batch_size_per_learner&#39;: None, &#39;model&#39;: {&#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;fcnet_hiddens&#39;: [64, 64], &#39;fcnet_activation&#39;: &#39;tanh&#39;, &#39;fcnet_weights_initializer&#39;: None, &#39;fcnet_weights_initializer_config&#39;: None, &#39;fcnet_bias_initializer&#39;: None, &#39;fcnet_bias_initializer_config&#39;: None, &#39;conv_filters&#39;: None, &#39;conv_activation&#39;: &#39;relu&#39;, &#39;conv_kernel_initializer&#39;: None, &#39;conv_kernel_initializer_config&#39;: None, &#39;conv_bias_initializer&#39;: None, &#39;conv_bias_initializer_config&#39;: None, &#39;conv_transpose_kernel_initializer&#39;: None, &#39;conv_transpose_kernel_initializer_config&#39;: None, &#39;conv_transpose_bias_initializer&#39;: None, &#39;conv_transpose_bias_initializer_config&#39;: None, &#39;post_fcnet_hiddens&#39;: [], &#39;post_fcnet_activation&#39;: &#39;relu&#39;, &#39;post_fcnet_weights_initializer&#39;: None, &#39;post_fcnet_weights_initializer_config&#39;: None, &#39;post_fcnet_bias_initializer&#39;: None, &#39;post_fcnet_bias_initializer_config&#39;: None, &#39;free_log_std&#39;: False, &#39;no_final_linear&#39;: False, &#39;vf_share_layers&#39;: False, &#39;use_lstm&#39;: False, &#39;max_seq_len&#39;: 20, &#39;lstm_cell_size&#39;: 256, &#39;lstm_use_prev_action&#39;: False, &#39;lstm_use_prev_reward&#39;: False, &#39;lstm_weights_initializer&#39;: None, &#39;lstm_weights_initializer_config&#39;: None, &#39;lstm_bias_initializer&#39;: None, &#39;lstm_bias_initializer_config&#39;: None, &#39;_time_major&#39;: False, &#39;use_attention&#39;: False, &#39;attention_num_transformer_units&#39;: 1, &#39;attention_dim&#39;: 64, &#39;attention_num_heads&#39;: 1, &#39;attention_head_dim&#39;: 32, &#39;attention_memory_inference&#39;: 50, &#39;attention_memory_training&#39;: 50, &#39;attention_position_wise_mlp_dim&#39;: 32, &#39;attention_init_gru_gate_bias&#39;: 2.0, &#39;attention_use_n_prev_actions&#39;: 0, &#39;attention_use_n_prev_rewards&#39;: 0, &#39;framestack&#39;: True, &#39;dim&#39;: 84, &#39;grayscale&#39;: False, &#39;zero_mean&#39;: True, &#39;custom_model&#39;: None, &#39;custom_model_config&#39;: {}, &#39;custom_action_dist&#39;: None, &#39;custom_preprocessor&#39;: None, &#39;encoder_latent_dim&#39;: None, &#39;always_check_shapes&#39;: False, &#39;lstm_use_prev_action_reward&#39;: -1, &#39;_use_default_native_models&#39;: -1}, &#39;_learner_connector&#39;: None, &#39;add_default_connectors_to_learner_pipeline&#39;: True, &#39;optimizer&#39;: {}, &#39;max_requests_in_flight_per_sampler_worker&#39;: 2, &#39;_learner_class&#39;: None, &#39;explore&#39;: True, &#39;exploration_config&#39;: {&#39;type&#39;: &#39;StochasticSampling&#39;}, &#39;algorithm_config_overrides_per_module&#39;: {}, &#39;_per_module_overrides&#39;: {}, &#39;count_steps_by&#39;: &#39;env_steps&#39;, &#39;policy_map_capacity&#39;: 100, &#39;policy_mapping_fn&#39;: &lt;function AlgorithmConfig.DEFAULT_POLICY_MAPPING_FN at 0x7fbf261f3ba0&gt;, &#39;policies_to_train&#39;: None, &#39;policy_states_are_swappable&#39;: False, &#39;observation_fn&#39;: None, &#39;input_config&#39;: {}, &#39;actions_in_input_normalized&#39;: False, &#39;postprocess_inputs&#39;: False, &#39;shuffle_buffer_size&#39;: 0, &#39;output&#39;: None, &#39;output_config&#39;: {}, &#39;output_compress_columns&#39;: [&#39;obs&#39;, &#39;new_obs&#39;], &#39;output_max_file_size&#39;: 67108864, &#39;offline_sampling&#39;: False, &#39;evaluation_interval&#39;: None, &#39;evaluation_duration&#39;: 10, &#39;evaluation_duration_unit&#39;: &#39;episodes&#39;, &#39;evaluation_sample_timeout_s&#39;: 180.0, &#39;evaluation_parallel_to_training&#39;: False, &#39;evaluation_config&#39;: None, &#39;off_policy_estimation_methods&#39;: {}, &#39;ope_split_batch_by_episode&#39;: True, &#39;evaluation_num_workers&#39;: 0, &#39;custom_async_evaluation_function&#39;: None, &#39;always_attach_evaluation_results&#39;: False, &#39;enable_async_evaluation&#39;: False, &#39;in_evaluation&#39;: False, &#39;sync_filters_on_rollout_workers_timeout_s&#39;: 60.0, &#39;keep_per_episode_custom_metrics&#39;: False, &#39;metrics_episode_collection_timeout_s&#39;: 60.0, &#39;metrics_num_episodes_for_smoothing&#39;: 100, &#39;min_time_s_per_iteration&#39;: None, &#39;min_train_timesteps_per_iteration&#39;: 0, &#39;min_sample_timesteps_per_iteration&#39;: 0, &#39;export_native_model_files&#39;: False, &#39;checkpoint_trainable_policies_only&#39;: False, &#39;logger_creator&#39;: None, &#39;logger_config&#39;: None, &#39;log_level&#39;: &#39;WARN&#39;, &#39;log_sys_usage&#39;: True, &#39;fake_sampler&#39;: False, &#39;seed&#39;: None, &#39;ignore_worker_failures&#39;: False, &#39;recreate_failed_workers&#39;: False, &#39;max_num_worker_restarts&#39;: 1000, &#39;delay_between_worker_restarts_s&#39;: 60.0, &#39;restart_failed_sub_environments&#39;: False, &#39;num_consecutive_worker_failures_tolerance&#39;: 100, &#39;worker_health_probe_timeout_s&#39;: 60, &#39;worker_restore_timeout_s&#39;: 1800, &#39;_rl_module_spec&#39;: None, &#39;_AlgorithmConfig__prior_exploration_config&#39;: None, &#39;_enable_new_api_stack&#39;: False, &#39;_tf_policy_handles_more_than_one_loss&#39;: False, &#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;_disable_initialize_loss_from_dummy_batch&#39;: False, &#39;simple_optimizer&#39;: False, &#39;policy_map_cache&#39;: -1, &#39;worker_cls&#39;: -1, &#39;synchronize_filters&#39;: -1, &#39;replay_sequence_length&#39;: None, &#39;_disable_execution_plan_api&#39;: -1, &#39;lr_schedule&#39;: None, &#39;use_critic&#39;: True, &#39;use_gae&#39;: True, &#39;use_kl_loss&#39;: True, &#39;kl_coeff&#39;: 0.2, &#39;kl_target&#39;: 0.01, &#39;sgd_minibatch_size&#39;: 128, &#39;mini_batch_size_per_learner&#39;: None, &#39;num_sgd_iter&#39;: 30, &#39;shuffle_sequences&#39;: True, &#39;vf_loss_coeff&#39;: 1.0, &#39;entropy_coeff&#39;: 0.0, &#39;entropy_coeff_schedule&#39;: None, &#39;clip_param&#39;: 0.3, &#39;vf_clip_param&#39;: 10.0, &#39;vf_share_layers&#39;: -1, &#39;lambda&#39;: 1.0, &#39;input&#39;: &#39;sampler&#39;, &#39;policies&#39;: {&#39;default_policy&#39;: (None, None, None, None)}, &#39;callbacks&#39;: &lt;class &#39;ray.rllib.algorithms.callbacks.DefaultCallbacks&#39;&gt;, &#39;create_env_on_driver&#39;: True, &#39;custom_eval_function&#39;: None, &#39;framework&#39;: &#39;torch&#39;, &#39;num_cpus_for_driver&#39;: 1, &#39;num_workers&#39;: 0}, &#39;time_since_restore&#39;: 79.72255754470825, &#39;iterations_since_restore&#39;: 4, &#39;perf&#39;: {&#39;cpu_util_percent&#39;: 8.858620689655172, &#39;ram_util_percent&#39;: 43.29999999999998}}
+{&#39;custom_metrics&#39;: {}, &#39;episode_media&#39;: {}, &#39;info&#39;: {&#39;learner&#39;: {&#39;default_policy&#39;: {&#39;custom_metrics&#39;: {}, &#39;learner_stats&#39;: {&#39;cur_kl_coeff&#39;: 0.012500000000000002, &#39;cur_lr&#39;: 0.00010000000000000003, &#39;total_loss&#39;: 9.946046631310576, &#39;policy_loss&#39;: -0.04322724438082146, &#39;vf_loss&#39;: 9.989232449890466, &#39;vf_explained_var&#39;: 0.4134032673733209, &#39;kl&#39;: 0.0033129410947191403, &#39;entropy&#39;: 1.5064540132399529, &#39;entropy_coeff&#39;: 0.0}, &#39;model&#39;: {}, &#39;num_grad_updates_lifetime&#39;: 4185.5, &#39;diff_num_grad_updates_vs_sampler_policy&#39;: 464.5}}, &#39;num_env_steps_sampled&#39;: 20000, &#39;num_env_steps_trained&#39;: 20000, &#39;num_agent_steps_sampled&#39;: 20000, &#39;num_agent_steps_trained&#39;: 20000}, &#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episode_media&#39;: {}, &#39;episodes_this_iter&#39;: 1, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;custom_metrics&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0, 9023.0], &#39;episode_lengths&#39;: [9024, 9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11642273528025636, &#39;mean_inference_ms&#39;: 1.0201058690424236, &#39;mean_action_processing_ms&#39;: 0.08844155284277846, &#39;mean_env_wait_ms&#39;: 2.7011069619397974, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}}, &#39;episode_reward_max&#39;: 9023.0, &#39;episode_reward_min&#39;: 9023.0, &#39;episode_reward_mean&#39;: 9023.0, &#39;episode_len_mean&#39;: 9024.0, &#39;episodes_this_iter&#39;: 1, &#39;policy_reward_min&#39;: {}, &#39;policy_reward_max&#39;: {}, &#39;policy_reward_mean&#39;: {}, &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0, 9023.0], &#39;episode_lengths&#39;: [9024, 9024]}, &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.11642273528025636, &#39;mean_inference_ms&#39;: 1.0201058690424236, &#39;mean_action_processing_ms&#39;: 0.08844155284277846, &#39;mean_env_wait_ms&#39;: 2.7011069619397974, &#39;mean_env_render_ms&#39;: 0.0}, &#39;num_faulty_episodes&#39;: 0, &#39;connector_metrics&#39;: {}, &#39;num_healthy_workers&#39;: 0, &#39;num_in_flight_async_reqs&#39;: 0, &#39;num_remote_worker_restarts&#39;: 0, &#39;num_agent_steps_sampled&#39;: 20000, &#39;num_agent_steps_trained&#39;: 20000, &#39;num_env_steps_sampled&#39;: 20000, &#39;num_env_steps_trained&#39;: 20000, &#39;num_env_steps_sampled_this_iter&#39;: 4000, &#39;num_env_steps_trained_this_iter&#39;: 4000, &#39;num_env_steps_sampled_throughput_per_sec&#39;: 210.49383247335638, &#39;num_env_steps_trained_throughput_per_sec&#39;: 210.49383247335638, &#39;timesteps_total&#39;: 20000, &#39;num_steps_trained_this_iter&#39;: 4000, &#39;agent_timesteps_total&#39;: 20000, &#39;timers&#39;: {&#39;training_iteration_time_ms&#39;: 19745.004, &#39;sample_time_ms&#39;: 15779.282, &#39;load_time_ms&#39;: 0.559, &#39;load_throughput&#39;: 7156294.148, &#39;learn_time_ms&#39;: 3964.84, &#39;learn_throughput&#39;: 1008.868, &#39;synch_weights_time_ms&#39;: 0.003}, &#39;counters&#39;: {&#39;num_env_steps_sampled&#39;: 20000, &#39;num_env_steps_trained&#39;: 20000, &#39;num_agent_steps_sampled&#39;: 20000, &#39;num_agent_steps_trained&#39;: 20000}, &#39;done&#39;: False, &#39;episodes_total&#39;: 2, &#39;training_iteration&#39;: 5, &#39;trial_id&#39;: &#39;default&#39;, &#39;date&#39;: &#39;2024-04-18_06-32-33&#39;, &#39;timestamp&#39;: 1713447153, &#39;time_this_iter_s&#39;: 19.003072261810303, &#39;time_total_s&#39;: 98.72562980651855, &#39;pid&#39;: 4067700, &#39;hostname&#39;: &#39;hvaclab-srv&#39;, &#39;node_ip&#39;: &#39;192.168.200.111&#39;, &#39;config&#39;: {&#39;extra_python_environs_for_driver&#39;: {}, &#39;extra_python_environs_for_worker&#39;: {}, &#39;num_gpus&#39;: 1, &#39;num_cpus_per_worker&#39;: 1, &#39;num_gpus_per_worker&#39;: 0, &#39;_fake_gpus&#39;: False, &#39;num_learner_workers&#39;: 0, &#39;num_gpus_per_learner_worker&#39;: 0, &#39;num_cpus_per_learner_worker&#39;: 1, &#39;local_gpu_idx&#39;: 0, &#39;custom_resources_per_worker&#39;: {}, &#39;placement_strategy&#39;: &#39;PACK&#39;, &#39;eager_tracing&#39;: True, &#39;eager_max_retraces&#39;: 20, &#39;tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 2, &#39;inter_op_parallelism_threads&#39;: 2, &#39;gpu_options&#39;: {&#39;allow_growth&#39;: True}, &#39;log_device_placement&#39;: False, &#39;device_count&#39;: {&#39;CPU&#39;: 1}, &#39;allow_soft_placement&#39;: True}, &#39;local_tf_session_args&#39;: {&#39;intra_op_parallelism_threads&#39;: 8, &#39;inter_op_parallelism_threads&#39;: 8}, &#39;torch_compile_learner&#39;: False, &#39;torch_compile_learner_what_to_compile&#39;: &lt;TorchCompileWhatToCompile.FORWARD_TRAIN: &#39;forward_train&#39;&gt;, &#39;torch_compile_learner_dynamo_backend&#39;: &#39;inductor&#39;, &#39;torch_compile_learner_dynamo_mode&#39;: None, &#39;torch_compile_worker&#39;: False, &#39;torch_compile_worker_dynamo_backend&#39;: &#39;onnxrt&#39;, &#39;torch_compile_worker_dynamo_mode&#39;: None, &#39;env&#39;: &lt;class &#39;energyplus.ooep.addons.rl.ray.env.SimulatorEnv&#39;&gt;, &#39;env_config&#39;: {&#39;action_space&#39;: Dict(&#39;thermostat&#39;: Box(15.0, 16.0, (), float32)), &#39;observation_space&#39;: Dict(&#39;temperature&#39;: Box(-inf, inf, (), float32)), &#39;reward_function&#39;: &lt;function &lt;lambda&gt; at 0x7fc09cdeade0&gt;, &#39;event_refs&#39;: [&#39;begin_zone_timestep_after_init_heat_balance&#39;], &#39;simulator_factory&#39;: &lt;function &lt;lambda&gt; at 0x7fc09c142840&gt;}, &#39;observation_space&#39;: None, &#39;action_space&#39;: None, &#39;env_task_fn&#39;: None, &#39;render_env&#39;: False, &#39;clip_rewards&#39;: None, &#39;normalize_actions&#39;: True, &#39;clip_actions&#39;: False, &#39;disable_env_checking&#39;: False, &#39;auto_wrap_old_gym_envs&#39;: True, &#39;action_mask_key&#39;: &#39;action_mask&#39;, &#39;_is_atari&#39;: None, &#39;env_runner_cls&#39;: None, &#39;num_envs_per_worker&#39;: 1, &#39;enable_connectors&#39;: False, &#39;_env_to_module_connector&#39;: None, &#39;_module_to_env_connector&#39;: None, &#39;add_default_connectors_to_env_to_module_pipeline&#39;: True, &#39;add_default_connectors_to_module_to_env_pipeline&#39;: True, &#39;episode_lookback_horizon&#39;: 1, &#39;rollout_fragment_length&#39;: &#39;auto&#39;, &#39;batch_mode&#39;: &#39;truncate_episodes&#39;, &#39;validate_workers_after_construction&#39;: True, &#39;compress_observations&#39;: False, &#39;sampler_perf_stats_ema_coef&#39;: None, &#39;sample_async&#39;: -1, &#39;remote_worker_envs&#39;: False, &#39;remote_env_batch_wait_ms&#39;: 0, &#39;enable_tf1_exec_eagerly&#39;: False, &#39;sample_collector&#39;: &lt;class &#39;ray.rllib.evaluation.collectors.simple_list_collector.SimpleListCollector&#39;&gt;, &#39;preprocessor_pref&#39;: &#39;deepmind&#39;, &#39;observation_filter&#39;: &#39;NoFilter&#39;, &#39;update_worker_filter_stats&#39;: True, &#39;use_worker_filter_stats&#39;: True, &#39;gamma&#39;: 0.99, &#39;lr&#39;: 0.0001, &#39;grad_clip&#39;: None, &#39;grad_clip_by&#39;: &#39;global_norm&#39;, &#39;train_batch_size&#39;: 4000, &#39;train_batch_size_per_learner&#39;: None, &#39;model&#39;: {&#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;fcnet_hiddens&#39;: [64, 64], &#39;fcnet_activation&#39;: &#39;tanh&#39;, &#39;fcnet_weights_initializer&#39;: None, &#39;fcnet_weights_initializer_config&#39;: None, &#39;fcnet_bias_initializer&#39;: None, &#39;fcnet_bias_initializer_config&#39;: None, &#39;conv_filters&#39;: None, &#39;conv_activation&#39;: &#39;relu&#39;, &#39;conv_kernel_initializer&#39;: None, &#39;conv_kernel_initializer_config&#39;: None, &#39;conv_bias_initializer&#39;: None, &#39;conv_bias_initializer_config&#39;: None, &#39;conv_transpose_kernel_initializer&#39;: None, &#39;conv_transpose_kernel_initializer_config&#39;: None, &#39;conv_transpose_bias_initializer&#39;: None, &#39;conv_transpose_bias_initializer_config&#39;: None, &#39;post_fcnet_hiddens&#39;: [], &#39;post_fcnet_activation&#39;: &#39;relu&#39;, &#39;post_fcnet_weights_initializer&#39;: None, &#39;post_fcnet_weights_initializer_config&#39;: None, &#39;post_fcnet_bias_initializer&#39;: None, &#39;post_fcnet_bias_initializer_config&#39;: None, &#39;free_log_std&#39;: False, &#39;no_final_linear&#39;: False, &#39;vf_share_layers&#39;: False, &#39;use_lstm&#39;: False, &#39;max_seq_len&#39;: 20, &#39;lstm_cell_size&#39;: 256, &#39;lstm_use_prev_action&#39;: False, &#39;lstm_use_prev_reward&#39;: False, &#39;lstm_weights_initializer&#39;: None, &#39;lstm_weights_initializer_config&#39;: None, &#39;lstm_bias_initializer&#39;: None, &#39;lstm_bias_initializer_config&#39;: None, &#39;_time_major&#39;: False, &#39;use_attention&#39;: False, &#39;attention_num_transformer_units&#39;: 1, &#39;attention_dim&#39;: 64, &#39;attention_num_heads&#39;: 1, &#39;attention_head_dim&#39;: 32, &#39;attention_memory_inference&#39;: 50, &#39;attention_memory_training&#39;: 50, &#39;attention_position_wise_mlp_dim&#39;: 32, &#39;attention_init_gru_gate_bias&#39;: 2.0, &#39;attention_use_n_prev_actions&#39;: 0, &#39;attention_use_n_prev_rewards&#39;: 0, &#39;framestack&#39;: True, &#39;dim&#39;: 84, &#39;grayscale&#39;: False, &#39;zero_mean&#39;: True, &#39;custom_model&#39;: None, &#39;custom_model_config&#39;: {}, &#39;custom_action_dist&#39;: None, &#39;custom_preprocessor&#39;: None, &#39;encoder_latent_dim&#39;: None, &#39;always_check_shapes&#39;: False, &#39;lstm_use_prev_action_reward&#39;: -1, &#39;_use_default_native_models&#39;: -1}, &#39;_learner_connector&#39;: None, &#39;add_default_connectors_to_learner_pipeline&#39;: True, &#39;optimizer&#39;: {}, &#39;max_requests_in_flight_per_sampler_worker&#39;: 2, &#39;_learner_class&#39;: None, &#39;explore&#39;: True, &#39;exploration_config&#39;: {&#39;type&#39;: &#39;StochasticSampling&#39;}, &#39;algorithm_config_overrides_per_module&#39;: {}, &#39;_per_module_overrides&#39;: {}, &#39;count_steps_by&#39;: &#39;env_steps&#39;, &#39;policy_map_capacity&#39;: 100, &#39;policy_mapping_fn&#39;: &lt;function AlgorithmConfig.DEFAULT_POLICY_MAPPING_FN at 0x7fbf261f3ba0&gt;, &#39;policies_to_train&#39;: None, &#39;policy_states_are_swappable&#39;: False, &#39;observation_fn&#39;: None, &#39;input_config&#39;: {}, &#39;actions_in_input_normalized&#39;: False, &#39;postprocess_inputs&#39;: False, &#39;shuffle_buffer_size&#39;: 0, &#39;output&#39;: None, &#39;output_config&#39;: {}, &#39;output_compress_columns&#39;: [&#39;obs&#39;, &#39;new_obs&#39;], &#39;output_max_file_size&#39;: 67108864, &#39;offline_sampling&#39;: False, &#39;evaluation_interval&#39;: None, &#39;evaluation_duration&#39;: 10, &#39;evaluation_duration_unit&#39;: &#39;episodes&#39;, &#39;evaluation_sample_timeout_s&#39;: 180.0, &#39;evaluation_parallel_to_training&#39;: False, &#39;evaluation_config&#39;: None, &#39;off_policy_estimation_methods&#39;: {}, &#39;ope_split_batch_by_episode&#39;: True, &#39;evaluation_num_workers&#39;: 0, &#39;custom_async_evaluation_function&#39;: None, &#39;always_attach_evaluation_results&#39;: False, &#39;enable_async_evaluation&#39;: False, &#39;in_evaluation&#39;: False, &#39;sync_filters_on_rollout_workers_timeout_s&#39;: 60.0, &#39;keep_per_episode_custom_metrics&#39;: False, &#39;metrics_episode_collection_timeout_s&#39;: 60.0, &#39;metrics_num_episodes_for_smoothing&#39;: 100, &#39;min_time_s_per_iteration&#39;: None, &#39;min_train_timesteps_per_iteration&#39;: 0, &#39;min_sample_timesteps_per_iteration&#39;: 0, &#39;export_native_model_files&#39;: False, &#39;checkpoint_trainable_policies_only&#39;: False, &#39;logger_creator&#39;: None, &#39;logger_config&#39;: None, &#39;log_level&#39;: &#39;WARN&#39;, &#39;log_sys_usage&#39;: True, &#39;fake_sampler&#39;: False, &#39;seed&#39;: None, &#39;ignore_worker_failures&#39;: False, &#39;recreate_failed_workers&#39;: False, &#39;max_num_worker_restarts&#39;: 1000, &#39;delay_between_worker_restarts_s&#39;: 60.0, &#39;restart_failed_sub_environments&#39;: False, &#39;num_consecutive_worker_failures_tolerance&#39;: 100, &#39;worker_health_probe_timeout_s&#39;: 60, &#39;worker_restore_timeout_s&#39;: 1800, &#39;_rl_module_spec&#39;: None, &#39;_AlgorithmConfig__prior_exploration_config&#39;: None, &#39;_enable_new_api_stack&#39;: False, &#39;_tf_policy_handles_more_than_one_loss&#39;: False, &#39;_disable_preprocessor_api&#39;: False, &#39;_disable_action_flattening&#39;: False, &#39;_disable_initialize_loss_from_dummy_batch&#39;: False, &#39;simple_optimizer&#39;: False, &#39;policy_map_cache&#39;: -1, &#39;worker_cls&#39;: -1, &#39;synchronize_filters&#39;: -1, &#39;replay_sequence_length&#39;: None, &#39;_disable_execution_plan_api&#39;: -1, &#39;lr_schedule&#39;: None, &#39;use_critic&#39;: True, &#39;use_gae&#39;: True, &#39;use_kl_loss&#39;: True, &#39;kl_coeff&#39;: 0.2, &#39;kl_target&#39;: 0.01, &#39;sgd_minibatch_size&#39;: 128, &#39;mini_batch_size_per_learner&#39;: None, &#39;num_sgd_iter&#39;: 30, &#39;shuffle_sequences&#39;: True, &#39;vf_loss_coeff&#39;: 1.0, &#39;entropy_coeff&#39;: 0.0, &#39;entropy_coeff_schedule&#39;: None, &#39;clip_param&#39;: 0.3, &#39;vf_clip_param&#39;: 10.0, &#39;vf_share_layers&#39;: -1, &#39;lambda&#39;: 1.0, &#39;input&#39;: &#39;sampler&#39;, &#39;policies&#39;: {&#39;default_policy&#39;: (None, None, None, None)}, &#39;callbacks&#39;: &lt;class &#39;ray.rllib.algorithms.callbacks.DefaultCallbacks&#39;&gt;, &#39;create_env_on_driver&#39;: True, &#39;custom_eval_function&#39;: None, &#39;framework&#39;: &#39;torch&#39;, &#39;num_cpus_for_driver&#39;: 1, &#39;num_workers&#39;: 0}, &#39;time_since_restore&#39;: 98.72562980651855, &#39;iterations_since_restore&#39;: 5, &#39;perf&#39;: {&#39;cpu_util_percent&#39;: 9.178571428571429, &#39;ram_util_percent&#39;: 43.29999999999999}}
+</pre></div>
+</div>
+</div>
+</div>
+<p>Evaluate the algorithm.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">algo</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;evaluation&#39;: {&#39;sampler_results&#39;: {&#39;episode_reward_max&#39;: 9023.0,
+   &#39;episode_reward_min&#39;: 9023.0,
+   &#39;episode_reward_mean&#39;: 9023.0,
+   &#39;episode_len_mean&#39;: 9024.0,
+   &#39;episode_media&#39;: {},
+   &#39;episodes_this_iter&#39;: 4,
+   &#39;policy_reward_min&#39;: {},
+   &#39;policy_reward_max&#39;: {},
+   &#39;policy_reward_mean&#39;: {},
+   &#39;custom_metrics&#39;: {},
+   &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0, 9023.0, 9023.0, 9023.0],
+    &#39;episode_lengths&#39;: [9024, 9024, 9024, 9024]},
+   &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.12053759098410564,
+    &#39;mean_inference_ms&#39;: 1.0440719720254743,
+    &#39;mean_action_processing_ms&#39;: 0.08953358841889589,
+    &#39;mean_env_wait_ms&#39;: 2.702368601608092,
+    &#39;mean_env_render_ms&#39;: 0.0},
+   &#39;num_faulty_episodes&#39;: 0,
+   &#39;connector_metrics&#39;: {}},
+  &#39;episode_reward_max&#39;: 9023.0,
+  &#39;episode_reward_min&#39;: 9023.0,
+  &#39;episode_reward_mean&#39;: 9023.0,
+  &#39;episode_len_mean&#39;: 9024.0,
+  &#39;episode_media&#39;: {},
+  &#39;episodes_this_iter&#39;: 4,
+  &#39;policy_reward_min&#39;: {},
+  &#39;policy_reward_max&#39;: {},
+  &#39;policy_reward_mean&#39;: {},
+  &#39;custom_metrics&#39;: {},
+  &#39;hist_stats&#39;: {&#39;episode_reward&#39;: [9023.0, 9023.0, 9023.0, 9023.0],
+   &#39;episode_lengths&#39;: [9024, 9024, 9024, 9024]},
+  &#39;sampler_perf&#39;: {&#39;mean_raw_obs_processing_ms&#39;: 0.12053759098410564,
+   &#39;mean_inference_ms&#39;: 1.0440719720254743,
+   &#39;mean_action_processing_ms&#39;: 0.08953358841889589,
+   &#39;mean_env_wait_ms&#39;: 2.702368601608092,
+   &#39;mean_env_render_ms&#39;: 0.0},
+  &#39;num_faulty_episodes&#39;: 0,
+  &#39;connector_metrics&#39;: {},
+  &#39;num_agent_steps_sampled_this_iter&#39;: 40000,
+  &#39;num_env_steps_sampled_this_iter&#39;: 40000,
+  &#39;timesteps_this_iter&#39;: 40000}}
+</pre></div>
+</div>
+</div>
+</div>
+<p>Stop the simulation environment when we are done!</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./content/examples"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By EnergyPlus Contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

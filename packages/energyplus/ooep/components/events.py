@@ -1,7 +1,7 @@
 r"""
 Events
 
-Scope: Events that can occur in a system, simulated or real-world.
+Scope: Event management inside an enviornment.
 """
 
 from __future__ import annotations
@@ -149,7 +149,7 @@ class EventManager(
     def __attach__(self, engine):
         super().__attach__(engine=engine)
         # TODO
-        #self._engine._workflows.on('run:pre')
+        #self._engine._workflows.on('run:pre', ...)
         return self
 
 

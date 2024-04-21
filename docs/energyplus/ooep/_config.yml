@@ -1,7 +1,7 @@
 title: Documentation
 author: EnergyPlus Contributors
 execute:
-  execute_notebooks: 'auto'
+  execute_notebooks: false
 
 # Add a bibtex file so that we can create citations
 #bibtex_bibfiles:

@@ -1,0 +1,679 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Get Started &#8212; Documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.1/css/all.min.css?digest=8d27b9dea8ad943066ae" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.1/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=384b581d" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css?v=be8a1c11" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae" />
+  <script src="../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=efea14e4"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'content/tutorials/0_starter';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Control" href="1_control.html" />
+    <link rel="prev" title="Introduction" href="../root.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a id="pst-skip-link" class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+
+<a class="navbar-brand logo" href="../root.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Documentation</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn navbar-btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../root.html">
+                    Introduction
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">📚 Tutorials</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Get Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1_control.html">Control</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">💡 Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../examples/0_basic.html">TODO</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">📇 References</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../references/architecture/root.html">🏛️ Architecture</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../references/architecture/component.html">⚙️ Component System</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../references/api/root.html">🔌 API</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-2"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.html">energyplus.ooep</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-3"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.html">energyplus.ooep.addons</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-4"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.base.html">energyplus.ooep.addons.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.logging.html">energyplus.ooep.addons.logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.plotting.html">energyplus.ooep.addons.plotting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.progress.html">energyplus.ooep.addons.progress</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.addons.rl.html">energyplus.ooep.addons.rl</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.html">energyplus.ooep.components</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-5"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.base.html">energyplus.ooep.components.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.environment.html">energyplus.ooep.components.environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.events.html">energyplus.ooep.components.events</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.variables.html">energyplus.ooep.components.variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.components.views.html">energyplus.ooep.components.views</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.datas.html">energyplus.ooep.datas</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.html">energyplus.ooep.engines</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-6"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.base.html">energyplus.ooep.engines.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.engines.simulators.html">energyplus.ooep.engines.simulators</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.exceptions.html">energyplus.ooep.exceptions</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.html">energyplus.ooep.utils</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-7"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.awaitables.html">energyplus.ooep.utils.awaitables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.containers.html">energyplus.ooep.utils.containers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.events.html">energyplus.ooep.utils.events</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.ipy.html">energyplus.ooep.utils.ipy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.utils.mappings.html">energyplus.ooep.utils.mappings</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../references/api/_autosummary/energyplus.ooep.workflows.html">energyplus.ooep.workflows</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/content/tutorials/0_starter.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Get Started</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare">🧳 Prepare</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure">🛠️ Configure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run">💨 Run!</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observe">👀 Observe</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#progress-tracking">⏱️ Progress Tracking</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">📝 Logging</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reflect">🤔 Reflect</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="get-started">
+<h1>Get Started<a class="headerlink" href="#get-started" title="Link to this heading">#</a></h1>
+<p>Before you start:</p>
+<ul class="simple">
+<li><p>Make sure you have the following packages installed via <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">energyplus-ooep</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">energyplus-dataset</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>What you will learn in this chapter:</p>
+<ul class="simple">
+<li><p>How to configure and run a simulator.</p></li>
+<li><p>How to add progress report to a running simulator.</p></li>
+</ul>
+<section id="prepare">
+<h2>🧳 Prepare<a class="headerlink" href="#prepare" title="Link to this heading">#</a></h2>
+<p>Import <code class="docutils literal notranslate"><span class="pre">energyplus.ooep</span></code> into your program. Here, it’s imported as <code class="docutils literal notranslate"><span class="pre">_ooep_</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">energyplus.ooep</span> <span class="k">as</span> <span class="nn">_ooep_</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Import <code class="docutils literal notranslate"><span class="pre">energyplus.dataset</span></code>.
+This will be used later to run the simulation as it contains relevant model and weather files.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">energyplus.dataset.basic</span> <span class="kn">import</span> <span class="n">dataset</span> <span class="k">as</span> <span class="n">_epds_</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="configure">
+<h2>🛠️ Configure<a class="headerlink" href="#configure" title="Link to this heading">#</a></h2>
+<p>Create a simulator and configure it!</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simulator</span> <span class="o">=</span> <span class="n">_ooep_</span><span class="o">.</span><span class="n">Simulator</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="run">
+<h2>💨 Run!<a class="headerlink" href="#run" title="Link to this heading">#</a></h2>
+<p>Ready to go!</p>
+<p>But wait… Not so early!</p>
+<p>In order for a simulator to run, it needs to know its</p>
+<ul class="simple">
+<li><p>Inputs: <code class="docutils literal notranslate"><span class="pre">_ooep_.Simulator.InputSpecs</span></code></p></li>
+<li><p>Expected outputs: <code class="docutils literal notranslate"><span class="pre">_ooep_.Simulator.OutputSpecs</span></code></p></li>
+<li><p>Expected runtime behavior: <code class="docutils literal notranslate"><span class="pre">_ooep_.Simulator.RuntimeOptions</span></code></p></li>
+</ul>
+<p>For inputs, model and weather are the absolute mandatory,
+as they are the basis of a simulation environment.</p>
+<p>The rest is optional. So leave it for another time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">awaitable</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+    <span class="nb">input</span><span class="o">=</span><span class="n">_ooep_</span><span class="o">.</span><span class="n">Simulator</span><span class="o">.</span><span class="n">InputSpecs</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">_epds_</span><span class="o">.</span><span class="n">models</span> <span class="o">/</span> <span class="s1">&#39;ASHRAE901_OfficeLarge_STD2019_Denver_Chiller205_Detailed.idf&#39;</span>
+        <span class="p">),</span>
+        <span class="n">weather</span><span class="o">=</span><span class="p">(</span><span class="n">_epds_</span><span class="o">.</span><span class="n">weathers</span> <span class="o">/</span> <span class="s1">&#39;USA_CO_Denver-Aurora-Buckley.AFB.724695_TMY3.epw&#39;</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Performing Zone Sizing Simulation
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:...for Sizing Period: #1 DENVER-AURORA-BUCKLEY.AFB_CO_USA ANN HTG 99.6% CONDNS DB
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Performing Zone Sizing Simulation
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:...for Sizing Period: #2 DENVER-AURORA-BUCKLEY.AFB_CO_USA ANN CLG .4% CONDNS DB=&gt;MWB
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Calculating System sizing
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:...for Sizing Period: #1 DENVER-AURORA-BUCKLEY.AFB_CO_USA ANN HTG 99.6% CONDNS DB
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Calculating System sizing
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:...for Sizing Period: #2 DENVER-AURORA-BUCKLEY.AFB_CO_USA ANN CLG .4% CONDNS DB=&gt;MWB
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Adjusting Air System Sizing
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Adjusting Standard 62.1 Ventilation Sizing
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Initializing Simulation
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Reporting Surfaces
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Beginning Primary Simulation
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Starting Simulation at 01/01/2017 for RUNPERIOD 1
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Updating Shadowing Calculations, Start Date=01/31/2017
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Updating Detailed Daylighting Factors, Start Date=01/31
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Initializing New Environment Parameters
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Starting Simulation at 04/01/2007 for RUNPERIOD 2
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Continuing Simulation at 04/01/2007 for RUNPERIOD 2
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Initializing New Environment Parameters
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Starting Simulation at 07/01/2007 for RUNPERIOD 3
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Updating Shadowing Calculations, Start Date=07/31/2007
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Updating Detailed Daylighting Factors, Start Date=07/31
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Writing tabular output file results using comma format.
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:Writing tabular output file results using HTML format.
+INFO:&lt;energyplus.ooep.engines.simulators.Simulator object at 0x7fe7c8e39f10&gt;:EnergyPlus Run Time=00hr 00min 14.09sec
+</pre></div>
+</div>
+</div>
+</div>
+<p>And that’s it! Your simulation should run in the background.
+You may notice that there isn’t any useful user feedback yet.
+So let’s go ahead and spice it up.
+Yeehaw!</p>
+</section>
+<section id="observe">
+<h2>👀 Observe<a class="headerlink" href="#observe" title="Link to this heading">#</a></h2>
+<section id="progress-tracking">
+<h3>⏱️ Progress Tracking<a class="headerlink" href="#progress-tracking" title="Link to this heading">#</a></h3>
+<p>Put a progress bar here so we can track the simulation progress in real time.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">energyplus.ooep.addons.progress</span> <span class="kn">import</span> <span class="n">ProgressProvider</span>
+
+<span class="c1"># add progress provider</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ProgressProvider</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "ead0c75a2a6148549aa254c2926793a2", "version_major": 2, "version_minor": 0}</script></div>
+</div>
+</section>
+<section id="logging">
+<h3>📝 Logging<a class="headerlink" href="#logging" title="Link to this heading">#</a></h3>
+<p>Optionally, if progress bars aren’t enough, there’s also the good old standard text output.
+Activate it by adding a <code class="docutils literal notranslate"><span class="pre">LogProvider</span></code> instance to the <code class="docutils literal notranslate"><span class="pre">simulator</span></code> and setting the global log level
+to <code class="docutils literal notranslate"><span class="pre">INFO</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span> <span class="k">as</span> <span class="nn">_logging_</span>
+<span class="kn">from</span> <span class="nn">energyplus.ooep.addons.logging</span> <span class="kn">import</span> <span class="n">LogProvider</span>
+
+<span class="c1"># configure the global log level</span>
+<span class="n">_logging_</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">)</span>
+<span class="c1"># add log provider</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">LogProvider</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="reflect">
+<h2>🤔 Reflect<a class="headerlink" href="#reflect" title="Link to this heading">#</a></h2>
+<p>As you may have noticed, <code class="docutils literal notranslate"><span class="pre">LogProvider</span></code> and <code class="docutils literal notranslate"><span class="pre">ProgressProvider</span></code> are imported and added to the <code class="docutils literal notranslate"><span class="pre">simulator</span></code> as addons.</p>
+<p>Addons may be added at any point - either before you kick off the simulation or during.
+It’s totally up to you and what works best for your setup!</p>
+<p>Just a heads-up, though: some addons need to be added right at the start to wake up properly.
+If you plug them in halfway through, you might not see their magic until the next round of your simulation.</p>
+<p>So what are addons? Learn more about addons here TODO!</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./content/tutorials"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../root.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="1_control.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Control</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prepare">🧳 Prepare</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configure">🛠️ Configure</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run">💨 Run!</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#observe">👀 Observe</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#progress-tracking">⏱️ Progress Tracking</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#logging">📝 Logging</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reflect">🤔 Reflect</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By EnergyPlus Contributors
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=8d27b9dea8ad943066ae"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=8d27b9dea8ad943066ae"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

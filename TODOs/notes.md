@@ -1,0 +1,5 @@
+- Discret
+- ANN
+- 异步 同步 (High level defination)
+- Log action and observation, Time, return dataframe
+- Demo to building gym

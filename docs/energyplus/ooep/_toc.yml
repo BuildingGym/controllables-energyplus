@@ -13,4 +13,5 @@ parts:
   - file: content/references/architecture/root
     sections:
     - file: content/references/architecture/component
+    - file: content/references/architecture/addons/rl
   - file: content/references/api/root
