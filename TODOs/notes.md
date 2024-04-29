@@ -1,5 +1,7 @@
 - Discret
 - ANN
-- 异步 同步 (High level defination)
+- sync async (High level defination)
 - Log action and observation, Time, return dataframe
 - Demo to building gym
+
+https://community.plotly.com/t/plot-real-time-data/31467

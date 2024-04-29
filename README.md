@@ -5,15 +5,10 @@
 python3 -m pip install --extra-index-url https://test.pypi.org/simple git+https://github.com/NTU-CCA-HVAC-OPTIM-a842a748/EnergyPlus-OOEP
 ```
 
-## Build
-```sh
-python3 -m build
-```
-
 ## Development
 ```sh
 python3 -m pip install --extra-index-url https://test.pypi.org/simple/ -e .
 ```
-
-## TODOs
-- addon: `gym` interface
+```sh
+python3 -m build
+```

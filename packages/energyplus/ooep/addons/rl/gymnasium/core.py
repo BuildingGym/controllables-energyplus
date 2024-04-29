@@ -1,8 +1,6 @@
 import abc as _abc_
 import typing as _typing_
 
-from energyplus.ooep.engines.base import Engine
-
 
 # TODO
 from . import utils as _utils_
@@ -41,7 +39,7 @@ class VariableSpaceView(_base_.Addon):
         # TODO
         #self._variables = _components_.variables.VariableManager()
 
-    def __attach__(self, engine: Engine):
+    def __attach__(self, engine):
         super().__attach__(engine)
         # TODO
         self._variables = self._engine.variables

@@ -150,7 +150,7 @@ class SimulatorEnv(
             self.end_episode(episode, observation=observation)
             episode = None
 
-        def setup(__event=...):
+        def setup():
             nonlocal self, start, end, step
             # TODO detachable workflow??
             self._engine._workflows \

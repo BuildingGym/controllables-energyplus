@@ -55,15 +55,13 @@ class EventManager(
 ):
     @property
     def _core_callback_setters(self):
-        # TODO NOTE energyplus currently does not take ret values??
-        def trigger(*args, **kwargs):
-            try: self.trigger(*args, **kwargs)
-            except Exception as e:
-                self._engine.stop()
-                raise e
-
         api = self._engine._core.api.runtime
         state = self._engine._core.state
+
+        def trigger(*args, **kwargs):
+            nonlocal self
+            self.trigger(*args, **kwargs)
+            # TODO NOTE energyplus currently does not take ret values??
 
         return {
             # TODO
@@ -132,7 +130,12 @@ class EventManager(
         if not event.spec.include_warmup:
             if self._engine._core.api.exchange.warmup_flag(self._engine._core.state):
                 return self
-        super().trigger(event, *args, **kwargs)
+            
+        try: super().trigger(event, *args, **kwargs)
+        except Exception as e:
+            self._engine.stop()
+            raise e
+        
         return self
 
     # TODO
