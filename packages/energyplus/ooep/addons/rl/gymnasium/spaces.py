@@ -84,7 +84,15 @@ class VariableDiscrete(
     _gymnasium_.spaces.Discrete, 
     _typing_.Generic[T], VariableSpace[T],
 ):
-    # TODO
+    r"""
+    A Gymnasium Discrete space that can have a variable bound to it.
+
+    Similar to :class:`VariableBox`, this allows for the association of
+
+    .. seealso::
+        * `gymnasium.spaces.Discrete <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Discrete>`_
+    """
+
     pass
 
 

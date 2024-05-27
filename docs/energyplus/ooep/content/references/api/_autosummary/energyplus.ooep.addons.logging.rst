@@ -17,7 +17,7 @@ energyplus.ooep.addons.logging
 
    .. autosummary::
    
-      LogProvider
+      MessageLogger
    
    
 

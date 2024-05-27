@@ -1,4 +1,4 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 # TODO variable viz
 # TODO mpl svg animations https://github.com/matplotlib/matplotlib/issues/19694

@@ -1,4 +1,4 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 import typing as _typing_
 # TODO
@@ -14,7 +14,6 @@ import ray.rllib.utils.typing as _rayrl_typing_
 
 from .... import (
     components as _components_,
-    engines as _engines_,
     exceptions as _exceptions_,
 )
 
@@ -44,7 +43,7 @@ class SimulatorEnv(
             OutputVariable,
         )
 
-        # NOTE create and start an `energyplus.ooep.Simulator` instance here
+        # NOTE create and start an `energyplus.ooep.World` instance here
         simulator = ...
 
         SimulatorEnv(
@@ -90,8 +89,8 @@ class SimulatorEnv(
         reward_function: _typing_.Callable[[_internal_gym_.core.ObsType], float]
         event_refs: _typing_.Iterable[_components_.events.Event.Ref]
         # TODO
-        #simulator: _engines_.simulators.Simulator
-        simulator_factory: _typing_.Callable[[], _engines_.simulators.Simulator]
+        #simulator: _engines_.simulators.World
+        simulator_factory: _typing_.Callable[[], _components_.worlds.World]
 
     def __init__(self, config: Config | _rayrl_typing_.EnvConfigDict):
         super().__init__(
@@ -132,7 +131,9 @@ class SimulatorEnv(
             try:
                 observation = self.observe()
                 self.log_returns(episode, self.reward_function(observation))
-                self.act(self.get_action(episode, observation=observation))
+                self.act(action := self.get_action(episode, observation=observation))
+                # TODO rm !!!!!!!!!!!!!!!
+                #print('act', action)
             except _exceptions_.TemporaryUnavailableError: pass
         
         def end(__event):
@@ -157,11 +158,11 @@ class SimulatorEnv(
                 .on('run:pre', start) \
                 .on('run:post', end)
             for event_ref in self.event_refs:
-                self._engine._events.on(event_ref, step)
+                self._engine.events.on(event_ref, step)
         
         setup()
         
-        # TODO !!!!!!!!
+        # # TODO !!!!!!!!
         import threading as _threading_
         event = _threading_.Event()
         event.wait()

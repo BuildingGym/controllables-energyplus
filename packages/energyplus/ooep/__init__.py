@@ -15,12 +15,12 @@ from .components.variables import (
     OutputVariable,
     WallClock,
 )
+from .components.worlds import World
 from .datas import (
-    Weather,
-    Model,
+    WeatherModel,
+    InputModel,
     Report,
 )
-from .engines.simulators import Simulator
 from .exceptions import TemporaryUnavailableError
 
 __all__ = [
@@ -33,9 +33,9 @@ __all__ = [
     'OutputMeter',
     'OutputVariable',
     'WallClock',
-    'Weather',
-    'Model',
+    'WeatherModel',
+    'InputModel',
     'Report',
-    'Simulator',
+    'World',
     'TemporaryUnavailableError',
 ]

@@ -1,10 +1,22 @@
+r"""
+Progress Logging.
+
+Scope: Logging and presenting progress messages and values.
+"""
+
 from .. import base as _base_
 from ... import (
     components as _components_,
 )
 
 
-class ProgressProvider(_base_.Addon):
+class ProgressLogger(_base_.Addon):
+    r"""
+    A logger that logs message and progress to a `tqdm.tqdm` progress bar.
+
+    ..seealso:: https://tqdm.github.io/
+    """
+
     try: 
         import tqdm as _tqdm_
         import tqdm.auto
@@ -12,6 +24,13 @@ class ProgressProvider(_base_.Addon):
         raise _base_.OptionalImportError(['tqdm']) from e
 
     def __init__(self, progbar_ref: _tqdm_.tqdm | None = None):
+        r"""
+        Initializes a new instance of :class:`ProgressLogger`.
+
+        :param progbar_ref: Optional. The progress bar to log progress to.
+            If not provided or `None`, a new `tqdm.auto.tqdm` progress bar will be created.
+        """
+
         super().__init__()
         self._progbar_ref = progbar_ref
         # TODO
@@ -42,6 +61,8 @@ class ProgressProvider(_base_.Addon):
         return self
 
 
+ProgressLogger = ProgressLogger
+
 __all__ = [
-    'ProgressProvider',
+    'ProgressLogger',
 ]

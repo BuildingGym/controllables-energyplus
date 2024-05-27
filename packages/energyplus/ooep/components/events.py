@@ -1,23 +1,27 @@
 r"""
 Events
 
-Scope: Event management inside an enviornment.
+Scope: Event management for engines and worlds.
 """
 
-from __future__ import annotations
+# from __future__ import annotations
 
 import typing as _typing_
 
-from . import base as _base_
+from . import (
+    base as _base_,
+    worlds as _worlds_,
+)
 from .. import utils as _utils_
 
 
+# TODO naming!!!!!!!!!!!!!!!!
 # TODO component???
 class Event(_utils_.events.BaseEvent):
     Ref = _utils_.events.BaseEventRef
 
     class Spec(_typing_.NamedTuple):
-        ref: Event.Ref
+        ref: 'Event.Ref'
         include_warmup: bool = False
 
     def __init__(self, spec: Spec):
@@ -51,7 +55,7 @@ class StateEvent(Event):
 # TODO typing
 class EventManager(
     _utils_.events.BaseEventManager, 
-    _base_.Component,
+    _base_.Component[_worlds_.Engine],
 ):
     @property
     def _core_callback_setters(self):
@@ -59,9 +63,13 @@ class EventManager(
         state = self._engine._core.state
 
         def trigger(*args, **kwargs):
+            r"""
+            Wrapper for triggering events with return values ignored
+            due to the core API not handling return values properly.
+            """
+
             nonlocal self
             self.trigger(*args, **kwargs)
-            # TODO NOTE energyplus currently does not take ret values??
 
         return {
             # TODO
@@ -109,9 +117,9 @@ class EventManager(
 
     def on(self, spec_or_ref: Event.Spec | Event.Ref, *handlers):
         spec = (
-            Event.Spec(spec_or_ref)
-            if not isinstance(spec_or_ref, Event.Spec) else
             spec_or_ref
+            if isinstance(spec_or_ref, Event.Spec) else
+            Event.Spec(spec_or_ref)
         )
 
         super().on(spec.ref, *handlers)
@@ -128,7 +136,8 @@ class EventManager(
     # TODO
     def trigger(self, event: Event, *args, **kwargs):
         if not event.spec.include_warmup:
-            if self._engine._core.api.exchange.warmup_flag(self._engine._core.state):
+            if self._engine._core.api \
+                .exchange.warmup_flag(self._engine._core.state):
                 return self
             
         try: super().trigger(event, *args, **kwargs)

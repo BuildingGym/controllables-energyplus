@@ -13,12 +13,11 @@ class OptionalImportError(ImportError):
     
 from ... import (
     components as _components_,
-    engines as _engines_,
 )
 
 
 class Addon(_components_.base.Component):
-    _engine: '_engines_.simulators.Simulator'
+    _engine: _components_.worlds.World
 
 
 __all__ = [

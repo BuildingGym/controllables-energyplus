@@ -16,19 +16,6 @@ class FileBacked(_abc_.ABC):
             raise ValueError('Not `open`ed')
         return self._path
 
-# TODO
-class Weather(FileBacked):
-    pass
-
-# TODO rm
-#class Model(FileBacked):
-#    pass
-
-# TODO
-class Report(FileBacked):
-    pass
-
-
 
 
 import os as _os_
@@ -44,8 +31,8 @@ import tempfile as _tempfile_
 from .. import _core as _core_
 
 
-
-class Model(_collections_.UserDict):
+# TODO mv InputModel
+class InputModel(_collections_.UserDict):
     Formats = _core_.Formats
 
     def load(self, fp):
@@ -106,10 +93,18 @@ class Model(_collections_.UserDict):
         return path
 
 
+class WeatherModel(FileBacked):
+    pass
+
+# TODO
+class Report(FileBacked):
+    pass
+
+
 
 
 __all__ = [
-    'Weather',
-    'Model',
+    'InputModel',
+    'WeatherModel',
     'Report',
 ]

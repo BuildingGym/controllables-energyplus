@@ -17,7 +17,7 @@ energyplus.ooep.engines.simulators
 
    .. autosummary::
    
-      Simulator
+      World
    
    
 

@@ -1,7 +1,7 @@
 r"""
 Variables.
 
-Scope: Variable management inside an enviornment.
+Scope: Variable management for engines and worlds.
 """
 
 import abc as _abc_
@@ -11,7 +11,10 @@ import dataclasses as _dataclasses_
 import itertools as _itertools_
 import contextlib as _contextlib_
 
-from . import base as _base_
+from . import (
+    base as _base_,
+    worlds as _worlds_,
+)
 
 from .. import (
     exceptions as _exceptions_,
@@ -19,6 +22,7 @@ from .. import (
 )
 
 
+# TODO naming!!!!!!!!!!!!!!!!
 class BaseVariable(_base_.Component, _abc_.ABC):
     r"""Variable base class."""
 
@@ -44,7 +48,7 @@ class BaseVariable(_base_.Component, _abc_.ABC):
         raise NotImplementedError
 
 class BaseMutableVariable(BaseVariable, _abc_.ABC):
-    r"""Control variable base class."""
+    r"""Mutable variable base class."""
 
     @BaseVariable.value.setter
     @_abc_.abstractmethod
@@ -77,6 +81,9 @@ class BaseVariableManager(_base_.Component, _abc_.ABC):
         raise NotImplementedError
 
 
+
+
+
 class CoreExceptionableMixin(_base_.Component):
     @_contextlib_.contextmanager
     def _ensure_exception(self):
@@ -99,8 +106,17 @@ class WallClock(
     _base_.Component,
 ):
     r"""Wall clock variable class."""
+
     @_dataclasses_.dataclass(frozen=True)
     class Ref(BaseVariable.Ref):
+        r"""
+        Reference to a wall clock.
+        
+        :param calendar: Whether to use the calendar year or the simulation year.
+        """
+
+        calendar: bool = False
+
         def __build__(self):
             return WallClock(ref=self)
 
@@ -115,12 +131,18 @@ class WallClock(
             return _datetime_.datetime(
                 # NOTE see https://github.com/NREL/EnergyPlus/issues/10210
                 # TODO .calendar_year v .year
-                year=api.calendar_year(state),
+                year=(
+                    api.calendar_year(state) 
+                    if self.ref.calendar else 
+                    api.year(state)
+                ),
                 month=api.month(state),
                 day=api.day_of_month(state),
                 hour=api.hour(state),
                 # TODO NOTE energyplus api returns 0?-60: datetime requires range(60)
                 minute=api.minutes(state) % _datetime_.datetime.max.minute,
+                # TODO
+                tzinfo=_datetime_.timezone(offset=_datetime_.timedelta(0)),
             )
         except ValueError:
             # TODO better handling!!!!!!!!!!!!!
@@ -133,11 +155,33 @@ class Actuator(
     CoreExceptionableMixin,
     _base_.Component,
 ):
-    r"""Actuator variable class."""
+    r"""
+    Actuator variable class.
+
+    ..note:: DO NOT instantiate this class directly. 
+        Use the :class:`VariableManager` instead.
+    """
 
     @_dataclasses_.dataclass(frozen=True)
     class Ref(BaseMutableVariable.Ref):
-        r"""Reference to an actuator."""
+        r"""
+        Reference to an actuator.
+
+        :param type: The type of the actuator.
+        :param control_type: The control type of the actuator.
+        :param key: The key of the actuator.
+
+        Example usage:
+
+        .. code-block:: python        
+            Actuator.Ref(
+                type='Weather Data', 
+                control_type='Outdoor Dew Point', 
+                key='Environment',
+            )
+
+        ..seealso:: TODO link
+        """
 
         type: str
         control_type: str
@@ -298,24 +342,44 @@ class OutputVariable(
             )
 
 
-class VariableManager(BaseVariableManager, _base_.Component):
+class VariableManager(
+    BaseVariableManager, 
+    _base_.Component[_worlds_.Engine],
+):
     @_functools_.cached_property
     def _data(self):
-        return dict[BaseVariable.Ref, BaseVariable]()
+        return dict[str | BaseVariable.Ref, BaseVariable]()
 
     def on(self, ref):
         if ref in self._data:
             return self
         
-        # TODO depr __build__??? !!!!!!!!!!!
-        constructors = {
-            WallClock.Ref: WallClock,
-            Actuator.Ref: Actuator,
-            InternalVariable.Ref: InternalVariable,
-            OutputMeter.Ref: OutputMeter,
-            OutputVariable.Ref: OutputVariable,
-        }
+        def build(ref: str | BaseVariable.Ref):
+            symbols: dict[str, _typing_.Callable[[], BaseVariable]] = {
+                'wallclock': lambda: WallClock(WallClock.Ref()),
+                'wallclock:calendar': lambda: WallClock(WallClock.Ref(calendar=True)),
+            }
+            if ref in symbols:
+                return symbols[ref]()
 
+            constructors: dict[BaseVariable.Ref, BaseVariable] = {
+                WallClock.Ref: WallClock,
+                Actuator.Ref: Actuator,
+                InternalVariable.Ref: InternalVariable,
+                OutputMeter.Ref: OutputMeter,
+                OutputVariable.Ref: OutputVariable,
+            }
+            for ref_cls, constructor in constructors.items():
+                if isinstance(ref, ref_cls):
+                    return constructor(ref=ref)
+                
+            raise TypeError(f'Unknown symbol or reference {ref}.')
+
+        # TODO attach self????
+        self._data[ref] = build(ref).__attach__(self._engine)
+        return self
+
+        # TODO depr __build__??? !!!!!!!!!!!
         self._data[ref] = (
             ref.__build__()
                 .__attach__(self._engine)
@@ -336,6 +400,10 @@ class VariableManager(BaseVariableManager, _base_.Component):
             )
         return self._data.__getitem__(ref)
     
+    def get(self, ref):
+        return self.on(ref=ref)[ref]
+
+    # TODO deprecate
     def getdefault(self, ref):
         return self.on(ref=ref)[ref]
     

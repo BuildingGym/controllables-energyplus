@@ -8,7 +8,6 @@ from . import utils as _utils_
 from ... import base as _base_
 from .... import (
     components as _components_,
-    engines as _engines_,
 )
 
 from . import spaces as _spaces_
@@ -32,6 +31,10 @@ BaseMutableVariable = _components_.variables.BaseMutableVariable
 
 # TODO
 class VariableSpaceView(_base_.Addon):
+    r"""
+    A view of a variable space within an engine.
+    """
+
     # TODO typing
     def __init__(self, space: _spaces_.VariableSpace[BaseVariable.Ref]):
         super().__init__()
@@ -72,6 +75,10 @@ class VariableSpaceView(_base_.Addon):
 
 
 class MutableVariableSpaceView(VariableSpaceView):
+    r"""
+    A view of a mutable variable space within an engine.
+    """
+
     @VariableSpaceView.value.setter
     def value(self, data):
         # TODO
@@ -88,18 +95,19 @@ class BaseThinEnv(_base_.Addon, _abc_.ABC):
     Minimal abstract class for interfacing between 
     simulation engines and `Gymnasium spaces <https://gymnasium.farama.org/api/spaces/>`_. 
 
-    :ivar action_space: 
-        All possible actions within the environment. 
-        Fundamental elements of this space can only be associated with control variables (TODO link), 
-        i.e. variables with `value` writable.
     :ivar observation_space: 
         All possible observations or states the environment can be in.
-        Fundamental elements of this space can only be associated with regular variables (TODO link),
-        i.e. variables with `value` readable.
+    :ivar action_space: 
+        All possible actions within the environment. 
+
+    Fundamental elements of the above spaces can only be 
+    associated with regular variables (TODO link),
+    i.e. variables with `value` readable.
 
     .. note::
         This class cannot be used as a `gymnasium.Env` alone; 
-        rather, it's designed to be integrated with a Gymnasium-compliant environment (e.g. `gymnasium.Env`) 
+        rather, it's designed to be integrated with 
+        a Gymnasium-compliant environment (e.g. `gymnasium.Env`) 
         as a "mixin" to ensure compatibility with EnergyPlus OOEP engines.
 
         Inherited classes must have `action_space` and `observation_space` defined.
@@ -160,8 +168,8 @@ class ThinEnv(BaseThinEnv):
     This is an implementation example of its base class `BaseThinEnv`.
     """
 
-    action_space: _gymnasium_.spaces.Space[ActType]
     observation_space: _gymnasium_.spaces.Space[ObsType]
+    action_space: _gymnasium_.spaces.Space[ActType]
 
 
 __all__ = [

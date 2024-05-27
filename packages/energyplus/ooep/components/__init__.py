@@ -2,12 +2,12 @@ from . import (
     base,
     events,
     variables,
-    views,
+    worlds,
 )
 
 __all__ = [
     'base',
     'events',
     'variables',
-    'views',
+    'worlds',
 ]

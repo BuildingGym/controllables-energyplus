@@ -112,9 +112,9 @@ class Line2DProvider(BaseArtistProvider):
     def __init__(
         self, 
         # TODO complete doc and type hints:
-        # TODO (Line2D) -> (xdata, ydata)
-        # TODO ((Line2D) -> (xdata), ydata: (Line2D) -> (ydata))
-        # TODO [(Line2D) -> (xdata), ydata: (Line2D) -> (ydata)]
+        # TODO () -> (x[], y[])
+        # TODO (() -> (x), () -> (y))
+        # TODO [() -> (x), () -> (y)]
         data_ref: callable,
         update_method: _typing_.Literal['set', 'extend'] = 'extend',
         **mpl_kwargs,

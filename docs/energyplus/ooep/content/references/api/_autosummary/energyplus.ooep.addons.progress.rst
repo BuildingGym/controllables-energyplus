@@ -17,7 +17,7 @@ energyplus.ooep.addons.progress
 
    .. autosummary::
    
-      ProgressProvider
+      ProgressLogger
    
    
 

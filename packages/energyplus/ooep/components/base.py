@@ -1,19 +1,28 @@
 r"""
 Base
 
-Scope: Basis for a component in a system, simulated or real-world.
+Scope: Abstract components and managers.
 """
 
 import abc as _abc_
 import typing as _typing_
 
-from .. import engines as _engines_
+
+class ComponentManager(_abc_.ABC):
+    pass
+ComponentManagerType = _typing_.TypeVar(
+    'ComponentManagerType', 
+    bound=ComponentManager,
+)
 
 
-class Component(_abc_.ABC):
-    _engine: '_engines_.base.Engine'
+class Component(
+    _abc_.ABC, 
+    _typing_.Generic[ComponentManagerType],
+):
+    _engine: ComponentManagerType
 
-    def __attach__(self, engine: '_engines_.base.Engine') -> _typing_.Self:       
+    def __attach__(self, engine: ComponentManagerType) -> _typing_.Self:       
         if getattr(self, '_engine', None) is not None:
             if engine == self._engine:
                 return self            
@@ -31,10 +40,6 @@ class Component(_abc_.ABC):
         self.__engine = None
         return self
     '''
-
-
-class ComponentManager(_abc_.ABC):
-    pass
 
 
 __all__ = [
