@@ -1,6 +1,6 @@
 # TODO
-from .env import SimulatorEnv
+from .env import ExternalEnv
 
 __all__ = [
-    'SimulatorEnv',
+    'ExternalEnv',
 ]

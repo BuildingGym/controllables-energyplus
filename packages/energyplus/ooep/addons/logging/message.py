@@ -22,10 +22,10 @@ class MessageLogger(_base_.Addon):
 
     def __init__(self, logger_ref: _logging_.Logger | str | None = None):
         r"""
-        Initializes a new instance of :class:`MessageLogger`.
+        Initialize a new instance of :class:`MessageLogger`.
 
         :param logger_ref: The logger or the name of the logger to log messages to.
-            If not provided or `None`, a new logger will be created with the name of the engine.
+            If not provided or `None`, a new logger with the name of the attached engine will be created.
         """
 
         super().__init__()
@@ -59,9 +59,6 @@ class MessageLogger(_base_.Addon):
         setup()
 
         return self
-
-# TODO deprecate
-LogProvider = MessageLogger
 
 
 __all__ = [

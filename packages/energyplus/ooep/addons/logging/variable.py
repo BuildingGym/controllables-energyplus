@@ -24,41 +24,7 @@ try:
     import plotly as _plotly_
     import plotly.basedatatypes as _plotly_types_
 except ImportError as e:
-    raise _base_.OptionalImportError(['plotly']) from e
-
-class TraceSpec(_typing_.TypedDict):
-    bindings: dict[
-        str, 
-        str | BaseVariable.Ref
-        | _typing_.Iterator,
-    ]
-
-class FigureWidget(_plotly_.graph_objs.FigureWidget):
-    def __init__(
-        self, 
-        logger: 'VariableLogger',
-        trace_specs: list[TraceSpec], 
-        **plotly_kwds,
-    ):
-        super().__init__(
-            data=[
-                {k: v for k, v in trace_spec.items() if k != 'bindings'}
-                for trace_spec in trace_specs
-            ], 
-            **plotly_kwds,
-        )
-        self._bindings: list[dict] = [
-            s.get('bindings', dict()) for s in trace_specs
-        ]
-        self._logger = logger
-
-    def update(self):
-        with self.batch_update():
-            for i, trace in enumerate(self.data):
-                for prop, ref in self._bindings[i].items():
-                    trace[prop] = list(self._logger[ref])
-        
-        return self
+    raise _base_.OptionalImportError.suggest(['plotly']) from e
 
 
 class VariableLogger(_base_.Addon):
@@ -68,23 +34,32 @@ class VariableLogger(_base_.Addon):
     Example usage:
 
     .. code-block:: python
-        VariableLogger().add('wallclock').add(iter(range(10)))
+        world = ...
+
+        VariableLogger() \
+            .__attach__(world)
+            .add('wallclock') \
+            .add(iter(range(10)))
         
-        VariableLogger(maxlen=100).plot([
-            dict(
-                type='scattergl',
-                bindings=dict(
-                    x='wallclock:calendar', 
-                    y=_ooep_.OutputVariable.Ref(
-                        type='People Air Temperature',
-                        key='CORE_MID',
-                    )
+        VariableLogger(maxlen=100) \
+            .__attach__(world)
+            .plot([
+                dict(
+                    type='scattergl',
+                    bindings=dict(
+                        x='wallclock:calendar', 
+                        y=_ooep_.OutputVariable.Ref(
+                            type='People Air Temperature',
+                            key='CORE_MID',
+                        )
+                    ),
                 ),
-            ),
-        ])
+            ])
 
         # TODO
-
+        VariableLogger(maxlen=100) \
+            .__attach__(world)
+            .dataframe()
     """
 
     def __init__(
@@ -95,10 +70,13 @@ class VariableLogger(_base_.Addon):
         r"""
         Initialize a new instance of :class:`VariableLogger`.
         
-        :param maxlen: The maximum number of values to store.
+        :param maxlen: 
+            The maximum number of values to store.
             If not provided or `None`, all values are stored.
-        :param event_ref: The event reference to trigger polling.
-            If not provided or `None`, polling is manual.
+        :param event_ref: 
+            The event reference to trigger polling (log operation).
+            If not provided or `None`, polling is manual. 
+            .. seealso:: :meth:`poll`
         """
 
         super().__init__()
@@ -109,6 +87,8 @@ class VariableLogger(_base_.Addon):
             lambda: _collections_.deque(maxlen=maxlen)
         )
         self._event_ref = event_ref
+
+        # TODO event manager
 
     def __attach__(self, engine):
         super().__attach__(engine)
@@ -121,13 +101,17 @@ class VariableLogger(_base_.Addon):
 
         return self
 
-    def add(self, ref: str | BaseVariable.Ref | _typing_.Iterator) -> _typing_.Self:
+    def add(
+        self, 
+        ref: str | BaseVariable.Ref | _typing_.Iterator,
+    ) -> _typing_.Self:
         r"""
-        Reserve a slot for a variable reference.
+        Reserve a slot for a reference.
         This is optional as the logger will automatically 
-        reserve a slot the first time the variable is logged.
+        reserve a slot the first time a reference is accessed.
 
-        :param ref: The variable reference to log.
+        :param ref: The reference to log.
+        :returns: This logger instance.
         """
 
         if isinstance(ref, (str, BaseVariable.Ref)):
@@ -142,10 +126,15 @@ class VariableLogger(_base_.Addon):
 
     def poll(self) -> _typing_.Self:
         r"""
-        Poll the variables and log their values.
+        Poll the references and add their values to the log.
+        * For variables, this logs the variable value;
+        * For iterators, this logs the next value from the iterator.
+
+        :returns: This logger instance.
         """
 
-        for ref, data in self._data.items():
+        # TODO
+        for ref, data in self._data.copy().items():
             value = None
             if isinstance(ref, (str, BaseVariable.Ref)):
                 try: value = self._engine.variables.get(ref).value
@@ -160,28 +149,79 @@ class VariableLogger(_base_.Addon):
     
     def __getitem__(self, ref: str | BaseVariable.Ref | _typing_.Iterator):
         r"""
-        Get the logged values for a variable reference.
+        Get the logged historical values of a reference.
 
-        :param ref: The variable reference.
+        :param ref: The reference.
+        :returns: The logged values.
         """
 
-        return self._data[ref]
+        return self._data.__getitem__(ref)
+    
+    class Figure:
+        class TraceSpec(_typing_.TypedDict):
+            bindings: dict[
+                str, 
+                str | BaseVariable.Ref
+                | _typing_.Iterator,
+            ]
 
-    def plot(self, trace_specs: list[TraceSpec | _typing_.Tuple], **plotly_kwds):
+        def __init__(
+            self, 
+            logger: 'VariableLogger',
+            trace_specs: list[TraceSpec | _typing_.Tuple], 
+            **plotly_kwds,
+        ):
+            self._base = _plotly_.graph_objs.FigureWidget(
+                data=[
+                    {k: v for k, v in trace_spec.items() if k != 'bindings'}
+                    for trace_spec in trace_specs
+                ], 
+                **plotly_kwds,
+            )
+            self._bindings: list[dict] = [
+                s.get('bindings', dict()) for s in trace_specs
+            ]
+            self._logger = logger
+
+        @property
+        def figure(self):
+            return self._base
+
+        def poll(self):
+            r"""
+            Poll the figure widget.
+            This updates the figure contents with 
+            the latest data from the logger.
+
+            :returns: This figure widget.
+            """
+            with self._base.batch_update():
+                for i, trace in enumerate(self._base.data):
+                    for prop, ref in self._bindings[i].items():
+                        trace[prop] = list(self._logger[ref])
+            
+            return self
+        
+        def _repr_mimebundle_(self, *args, **kwargs):
+            return self._base._repr_mimebundle_(*args, **kwargs)
+
+    def plot(self, trace_specs, **plotly_kwds) -> Figure:
         r"""
-        Plot the logged values of the variables.
+        Plot the logged historical values of references.
 
         :param trace_specs: The trace specifications. TODO
         :param plotly_kwds: Additional keyword arguments to pass to the plotly figure.
+        :returns: A plotly figure widget.
         """
 
-        return FigureWidget(self, trace_specs, **plotly_kwds).update()
+        return self.Figure(self, trace_specs, **plotly_kwds).poll()
     
-    # TODO 
-    def dataframe(self):
+    # TODO data, index, columns    
+    def dataframe(self, **pandas_kwds):
         import pandas as _pandas_
-        return _pandas_.DataFrame(self._data)
+        return _pandas_.DataFrame(self._data, **pandas_kwds)
     
+    # TODO save, restore
 
 __all__ = [
     'VariableLogger',

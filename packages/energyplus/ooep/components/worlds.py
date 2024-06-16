@@ -44,47 +44,127 @@ import enum as _enum_
 # TODO subsimulation/namespacing
 # TODO AddonManager?
 class Engine(_base_.ComponentManager):
-    r"""The main simulation engine."""
+    r"""
+    The main simulation engine.
+
+    Example usage:
+
+    .. code-block:: python
+        # TODO
+
+    """
 
     class State(_enum_.Enum):
+        r"""
+        The state of the engine.
+
+        :cvar IDLE: The engine is idle.
+        :cvar RUNNING: The engine is running.
+        :cvar STOPPING: The engine is stopping.
+        """
         IDLE = 0
         RUNNING = 1
         STOPPING = 2
 
-    class InputSpecs(_typing_.NamedTuple):
-        model: _datas_.InputModel | _os_.PathLike
-        weather: _datas_.WeatherModel | _os_.PathLike | None = None
+    class Specs(_typing_.NamedTuple):
+        r"""
+        Specifications for the engine.
 
-    class OutputSpecs(_typing_.NamedTuple):
-        # TODO mv to runtimeopts?
-        report: _datas_.Report | _os_.PathLike | None = None
+        :param input: The input specifications.
+        :param output: The output specifications.
+        :param runtime: The runtime specifications.     
+        """
 
-    class RuntimeOptions(_typing_.NamedTuple):
-        recurring: bool = False
-        design_day: bool = False
+        class Input(_typing_.NamedTuple):
+            r"""
+            The input specifications.
 
-    def __init__(
-        self, 
-        input: InputSpecs | dict, 
-        output: OutputSpecs | dict = OutputSpecs(),
-        options: RuntimeOptions | dict = RuntimeOptions(),
-    ):
-        def build(
-            typ: '_typing_.Type[_typing_.NamedTuple]',
-            obj: '_typing_.NamedTuple | dict', 
+            :param input: The input model.
+            :param weather: The weather model.
+            """
+            input: _datas_.InputModel | _os_.PathLike
+            weather: _datas_.WeatherModel | _os_.PathLike | None = None
+
+        class Output(_typing_.NamedTuple):
+            r"""
+            The output specifications.
+
+            :param report: The report.
+            """
+            report: _datas_.Report | _os_.PathLike | None = None
+
+        class Runtime(_typing_.NamedTuple):
+            r"""
+            The runtime specifications.
+            This controls the runtime behavior of the engine.
+
+            :param recurring: Whether to run in a loop. 
+                If `True`, the engine will run in a loop 
+                until :meth:`stop` is called. 
+                TODO max n epoches/runs.
+            :param design_day: Whether to run in design day mode.
+                ..seealso:: https://energyplus.readthedocs.io/en/latest/tips_and_tricks/tips_and_tricks.html#design-day-creation
+            """
+            recurring: bool = False
+            design_day: bool = False
+
+        input: Input
+        output: Output
+        runtime: Runtime
+
+        @classmethod
+        def make(
+            cls,
+            input: Input | dict, 
+            output: Output | dict = dict(),
+            runtime: Runtime | dict = dict(),
         ):
-            return typ(**(
-                obj._asdict() if isinstance(obj, typ) else obj
-            ))
-        
-        self._input = build(Engine.InputSpecs, input)
-        self._output = build(Engine.OutputSpecs, output)
-        self._options = build(Engine.RuntimeOptions, options)
+            r"""
+            Make a new instance of :class:`Engine.Specs`.
+            """
+            def build(
+                typ: '_typing_.Type[_typing_.NamedTuple]',
+                obj: '_typing_.NamedTuple | dict', 
+            ):
+                return typ(**(
+                    obj._asdict() if isinstance(obj, typ) else obj
+                ))
+            
+            return cls(
+                input=build(cls.Input, input),
+                output=build(cls.Output, output),
+                runtime=build(cls.Runtime, runtime),
+            )
 
-    _input: InputSpecs
-    _output: OutputSpecs
-    _options: RuntimeOptions
+    def __init__(self, **specs: 'Engine.Specs'):
+        r"""
+        Initialize a new instance of :class:`Engine`.
+
+        :param specs: The specifications of the engine. 
+            ..seealso:: :meth:`Engine.Specs.make`.
+        """
+        self._specs = Engine.Specs.make(**specs)
     
+    # TODO
+    def __getstate__(self) -> Specs:
+        r"""
+        Pickle.
+
+        :return: The specifications.
+
+        .. note::
+            Components are not pickled for now.       
+        """
+        return self._specs
+    
+    def __setstate__(self, specs: Specs):
+        r"""
+        Pickle.
+
+        :param specs: The specifications.
+        """
+        self.__init__(**specs._asdict())
+
     _state: State = State.IDLE
 
     @_functools_.cached_property
@@ -96,14 +176,25 @@ class Engine(_base_.ComponentManager):
         return _core_.Core()
 
     def run(self):
-        r"""Run the engine."""
+        r"""
+        Run the engine.
+        
+        :return: This engine.
+        :raises RuntimeError: If the engine is already running.
+        """
 
         if self._state != Engine.State.IDLE:
-            raise RuntimeError('Engine is already running.')
+            raise RuntimeError(f'Engine is currently running: {self._state}.')
 
-        input, output, options = self._input, self._output, self._options
+        input, output, options = (
+            self._specs.input, 
+            self._specs.output, 
+            self._specs.runtime,
+        )
 
-        while self._state != Engine.State.STOPPING:
+        keepalive = True
+
+        while keepalive:
             # NOTE state must be reset between runs
             self._core.reset()
 
@@ -120,12 +211,12 @@ class Engine(_base_.ComponentManager):
                     self._core.state,
                     command_line_args=[
                         str(
-                            input.model.dumpf(
+                            input.input.dumpf(
                                 _tempfile_.NamedTemporaryFile(suffix='.epJSON').name,
                                 format='json',
                             ) 
-                            if isinstance(input.model, _datas_.InputModel) else
-                            _pathlib_.Path(input.model)
+                            if isinstance(input.input, _datas_.InputModel) else
+                            _pathlib_.Path(input.input)
                         ),
                         *(['--weather', str(
                             input.weather.path
@@ -144,24 +235,36 @@ class Engine(_base_.ComponentManager):
                         *(['--design-day'] if options.design_day else []),
                     ],
                 )
+            if (self._state == Engine.State.STOPPING 
+                    or not options.recurring):
+                keepalive = False
             self._state = Engine.State.IDLE
             if status != 0:
                 raise RuntimeError(f'Operation failed with status {status}.')
             self._workflows.trigger(Workflow('run:post', self))
 
-            if not options.recurring:
-                break
+        return self
 
     def stop(self):
-        r"""Stop the engine."""
-        
+        r"""
+        Stop the engine.
+
+        :return: This engine.
+        :raises RuntimeError: If the engine is not running.
+        """
+
+        if self._state == Engine.State.IDLE:
+            raise RuntimeError(f'Engine is not running: {self._state}.')
+
         self._workflows.trigger(Workflow('stop:pre', self))
         self._state = Engine.State.STOPPING
         self._core.api.runtime \
             .stop_simulation(self._core.state)
         self._workflows.trigger(Workflow('stop:post', self))
 
-    # TODO
+        return self
+
+    # TODO deprecate??
     def add(self, *components: '_base_.Component'):
         for component in components:
             component.__attach__(self)
@@ -171,16 +274,25 @@ class Engine(_base_.ComponentManager):
     def remove(self, *components: '_base_.Component'):
         raise NotImplementedError
         return self
-    
 
 class AsyncEngineController(_base_.Component):
+    r"""
+    An asynchronous controller for the engine.
+    """
+
     def run(self, *args, **kwargs):
+        r"""
+        Run the engine asynchronously.
+        """
         return _asyncio_.create_task(
             _utils_.awaitables.asyncify()
             (self._engine.run)(*args, **kwargs)
         )
 
     def stop(self, *args, **kwargs):
+        r"""
+        Stop the engine asynchronously.
+        """
         return _asyncio_.create_task(
             _utils_.awaitables.asyncify()
             (self._engine.stop)(*args, **kwargs)
@@ -188,6 +300,10 @@ class AsyncEngineController(_base_.Component):
 
 
 class World(Engine):
+    r"""
+    TODO
+    """
+
     @_functools_.cached_property
     def events(self):
         from .events import EventManager
@@ -201,6 +317,12 @@ class World(Engine):
     @_functools_.cached_property
     def awaitable(self):
         return AsyncEngineController().__attach__(self)
+    
+    def __getstate__(self) -> Engine.Specs:
+        return super().__getstate__()
+    
+    def __setstate__(self, specs: Engine.Specs):
+        return super().__setstate__(specs)
 
 
 __all__ = [

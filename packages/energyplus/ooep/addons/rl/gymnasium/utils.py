@@ -3,8 +3,26 @@ import builtins as _builtins_
 import typing as _typing_
 import abc as _abc_
 
-# TODO
-from .... import utils as _utils_
+# TODO rm
+#from .... import utils as _utils_
+
+
+
+
+
+
+def IterableZipper(*iterables: _typing_.Iterable):
+    return _builtins_.zip(*iterables)
+
+import operator as _operator_
+import functools as _functools_
+# TODO ref https://stackoverflow.com/a/46328797
+def MappingZipper(*mappings: _typing_.Mapping):
+    keys_sets = _builtins_.map(_builtins_.set, mappings)
+    common_keys = _functools_.reduce(_builtins_.set.intersection, keys_sets)
+    for key in common_keys:
+        yield (key, _builtins_.tuple(_builtins_.map(_operator_.itemgetter(key), mappings)))
+
 
 
 class BaseMapper(_abc_.ABC):
@@ -44,7 +62,7 @@ class StructureMapper(BaseMapper):
                 continue
             return map_cls(
                 (index, self.__call__(*subobjs))
-                for index, subobjs in _utils_.mappings.zip(*objs)
+                for index, subobjs in MappingZipper(*objs)
             )
 
         for coll_cls in (_builtins_.tuple, _builtins_.list, _builtins_.set):
@@ -52,7 +70,7 @@ class StructureMapper(BaseMapper):
                 continue
             return coll_cls(
                 self.__call__(*subobjs)
-                for subobjs in _builtins_.zip(*objs)
+                for subobjs in IterableZipper(*objs)
             )
 
         if self._mapper_base is not None:

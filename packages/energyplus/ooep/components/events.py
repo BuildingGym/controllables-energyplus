@@ -4,8 +4,6 @@ Events
 Scope: Event management for engines and worlds.
 """
 
-# from __future__ import annotations
-
 import typing as _typing_
 
 from . import (
@@ -35,21 +33,44 @@ class Event(_utils_.events.BaseEvent):
     # TODO __attach__???
 
 class MessageEvent(Event):
+    r"""
+    An event that represents a message.
+    """
+
     Ref = str
 
     def __init__(self, spec, message: str):
+        r"""
+        Initialize a new instance of :class:`MessageEvent`.
+        
+        :param spec: The specification of the event.
+        :param message: The message.
+        """
         super().__init__(spec=spec)
         self.message = message
 
 class ProgressEvent(Event):
+    r"""
+    An event that represents the progress of a process.
+    """
+
     Ref = str
 
     def __init__(self, spec, progress: float):
+        r"""
+        Initialize a new instance of :class:`ProgressEvent`.
+
+        :param spec: The specification of the event.
+        :param progress: The progress of the event as a percentage between 0 and 1.
+        """
         super().__init__(spec=spec)
-        # TODO NOTE perct
         self.progress = progress
 
 class StateEvent(Event):
+    r"""
+    An event that represents a state change.
+    """
+    
     Ref = str
 
 # TODO typing
@@ -59,7 +80,7 @@ class EventManager(
 ):
     @property
     def _core_callback_setters(self):
-        api = self._engine._core.api.runtime
+        runtime = self._engine._core.api.runtime
         state = self._engine._core.state
 
         def trigger(*args, **kwargs):
@@ -74,13 +95,13 @@ class EventManager(
         return {
             # TODO
             'message': lambda spec: 
-                api.callback_message(
+                runtime.callback_message(
                     state, lambda s: trigger(
                         MessageEvent(spec=spec, message=bytes.decode(s))
                     )
                 ),
             'progress': lambda spec: 
-                api.callback_progress(
+                runtime.callback_progress(
                     state, lambda n: trigger(
                         ProgressEvent(spec=spec, progress=(n / 100))
                     )
@@ -93,24 +114,24 @@ class EventManager(
                         state, lambda _: trigger(StateEvent(spec=spec))
                     )
                 for ref, callback_setter in {
-                    'after_component_get_input': api.callback_after_component_get_input,
-                    'after_new_environment_warmup_complete': api.callback_after_new_environment_warmup_complete,
-                    'after_predictor_after_hvac_managers': api.callback_after_predictor_after_hvac_managers,
-                    'after_predictor_before_hvac_managers': api.callback_after_predictor_before_hvac_managers,
-                    'begin_new_environment': api.callback_begin_new_environment,
-                    'begin_system_timestep_before_predictor': api.callback_begin_system_timestep_before_predictor,
-                    'begin_zone_timestep_after_init_heat_balance': api.callback_begin_zone_timestep_after_init_heat_balance,
-                    'begin_zone_timestep_before_init_heat_balance': api.callback_begin_zone_timestep_before_init_heat_balance,
-                    'begin_zone_timestep_before_set_current_weather': api.callback_begin_zone_timestep_before_set_current_weather,
-                    'end_system_sizing': api.callback_end_system_sizing,
-                    'end_system_timestep_after_hvac_reporting': api.callback_end_system_timestep_after_hvac_reporting,
-                    'end_system_timestep_before_hvac_reporting': api.callback_end_system_timestep_before_hvac_reporting,
-                    'end_zone_sizing': api.callback_end_zone_sizing,
-                    'end_zone_timestep_after_zone_reporting': api.callback_end_zone_timestep_after_zone_reporting,
-                    'end_zone_timestep_before_zone_reporting': api.callback_end_zone_timestep_before_zone_reporting,
-                    'inside_system_iteration_loop': api.callback_inside_system_iteration_loop,
-                    'register_external_hvac_manager': api.callback_register_external_hvac_manager,
-                    'unitary_system_sizing': api.callback_unitary_system_sizing,
+                    'after_component_get_input': runtime.callback_after_component_get_input,
+                    'after_new_environment_warmup_complete': runtime.callback_after_new_environment_warmup_complete,
+                    'after_predictor_after_hvac_managers': runtime.callback_after_predictor_after_hvac_managers,
+                    'after_predictor_before_hvac_managers': runtime.callback_after_predictor_before_hvac_managers,
+                    'begin_new_environment': runtime.callback_begin_new_environment,
+                    'begin_system_timestep_before_predictor': runtime.callback_begin_system_timestep_before_predictor,
+                    'begin_zone_timestep_after_init_heat_balance': runtime.callback_begin_zone_timestep_after_init_heat_balance,
+                    'begin_zone_timestep_before_init_heat_balance': runtime.callback_begin_zone_timestep_before_init_heat_balance,
+                    'begin_zone_timestep_before_set_current_weather': runtime.callback_begin_zone_timestep_before_set_current_weather,
+                    'end_system_sizing': runtime.callback_end_system_sizing,
+                    'end_system_timestep_after_hvac_reporting': runtime.callback_end_system_timestep_after_hvac_reporting,
+                    'end_system_timestep_before_hvac_reporting': runtime.callback_end_system_timestep_before_hvac_reporting,
+                    'end_zone_sizing': runtime.callback_end_zone_sizing,
+                    'end_zone_timestep_after_zone_reporting': runtime.callback_end_zone_timestep_after_zone_reporting,
+                    'end_zone_timestep_before_zone_reporting': runtime.callback_end_zone_timestep_before_zone_reporting,
+                    'inside_system_iteration_loop': runtime.callback_inside_system_iteration_loop,
+                    'register_external_hvac_manager': runtime.callback_register_external_hvac_manager,
+                    'unitary_system_sizing': runtime.callback_unitary_system_sizing,
                 }.items()
             },
         }
@@ -134,6 +155,12 @@ class EventManager(
         return self
 
     # TODO
+    def off(self, ref, *handlers):
+        raise NotImplementedError
+        super().off(ref, *handlers)
+        return self
+
+    # TODO
     def trigger(self, event: Event, *args, **kwargs):
         if not event.spec.include_warmup:
             if self._engine._core.api \
@@ -147,22 +174,22 @@ class EventManager(
         
         return self
 
-    # TODO
-    def off(self, ref, *handlers):
-        raise NotImplementedError
-        super().off(ref, *handlers)
-        return self
-
     # TODO rich format
     def keys(self) -> _typing_.Iterable[Event.Ref]:
         return self._core_callback_setters.keys()
     
-    # TODO sync
+    # TODO sync; TODO child eventmanager
     def __attach__(self, engine):
         super().__attach__(engine=engine)
         # TODO
         #self._engine._workflows.on('run:pre', ...)
         return self
+    
+    def __getstate__(self) -> object:
+        return super().__getstate__()
+    
+    def __setstate__(self, state: object):
+        return super().__setstate__(state)
 
 
 __all__ = [

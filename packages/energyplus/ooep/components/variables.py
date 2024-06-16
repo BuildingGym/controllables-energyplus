@@ -29,7 +29,7 @@ class BaseVariable(_base_.Component, _abc_.ABC):
     class Ref(_abc_.ABC):
         @_abc_.abstractmethod
         def __build__(self) -> 'BaseVariable':
-            r"""Reconstructs an object from the current reference."""
+            r"""Reconstructs an object from this reference."""
             raise NotImplementedError
 
     def __init__(self, ref: Ref):
@@ -38,13 +38,17 @@ class BaseVariable(_base_.Component, _abc_.ABC):
 
     @property
     def ref(self) -> Ref:
-        r"""Get the reference to the current variable."""
+        r"""Get the reference to this variable."""
         return self._ref
 
     @property
     @_abc_.abstractmethod
     def value(self):
-        r"""Get the value of the current variable."""
+        r"""
+        Get the value of this variable.
+
+        :return: The value of this variable.
+        """
         raise NotImplementedError
 
 class BaseMutableVariable(BaseVariable, _abc_.ABC):
@@ -53,7 +57,11 @@ class BaseMutableVariable(BaseVariable, _abc_.ABC):
     @BaseVariable.value.setter
     @_abc_.abstractmethod
     def value(self, o: _typing_.Any):
-        r"""Set the value of the current variable."""
+        r"""
+        Set the value of this variable.
+
+        :param o: The value to set.
+        """
         raise NotImplementedError
 
 # TODO 
@@ -63,30 +71,62 @@ class BaseVariableManager(_base_.Component, _abc_.ABC):
     """
 
     @_abc_.abstractmethod
-    def on(self, ref: BaseVariable.Ref) -> _typing_.Self:
-        r"""Turn on a variable so it can be accessed.
+    def on(self, ref: str | BaseVariable.Ref) -> _typing_.Self:
+        r"""
+        Turn on a variable by reference.
+        Implementation shall enable access to the variable 
+        via the :meth:`__getitem__` method.
 
-        :param ref: Reference to the variable to be enabled.
-        :return: Current variable manager instance.
+        :param ref: 
+            Reference to the variable to be enabled.
+            This can be a string or a reference object.
+            Strings shall be used as "symbols" for 
+            predefined shortcut variables.
+        :return: This variable manager instance.
+        """
+        raise NotImplementedError
+    
+    @_abc_.abstractmethod
+    def off(self, ref: str | BaseVariable.Ref) -> _typing_.Self:
+        r"""
+        Turn off a variable by reference.
+        Implementation shall remove access to the variable 
+        via the :meth:`__getitem__` method,
+        and release any resources associated with the variable, 
+        if necessary.
+
+        :param ref: See :meth:`on`.
+        :return: This variable manager instance.
         """
         raise NotImplementedError
 
     @_abc_.abstractmethod
-    def __getitem__(self, ref: BaseVariable.Ref) -> BaseVariable:
-        r"""Access a variable from its reference.
+    def __getitem__(self, ref: str | BaseVariable.Ref) -> BaseVariable:
+        r"""
+        Access a variable by its reference.
 
         :param ref: Reference to the variable to be accessed.
         :return: Variable associated with reference `ref`.
+
+        .. seealso:: :meth:`on`
         """
         raise NotImplementedError
 
 
-
-
-
 class CoreExceptionableMixin(_base_.Component):
+    r"""
+    Exception handling mixin for core API calls.
+    """
+
     @_contextlib_.contextmanager
     def _ensure_exception(self):
+        r"""
+        Ensure that core API exceptions are caught and relevant errors raised.
+
+        :raises: :class:`TemporaryUnavailableError` if an error has occurred.
+
+        .. seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.api_error_flag
+        """
         try:
             yield
         finally:
@@ -112,7 +152,11 @@ class WallClock(
         r"""
         Reference to a wall clock.
         
-        :param calendar: Whether to use the calendar year or the simulation year.
+        :param calendar: 
+            Whether to use the calendar year or the simulation year.
+            If `True`, this reference refers to a calendar wall clock.
+            .. seealso::
+                * https://github.com/NREL/EnergyPlus/issues/10210
         """
 
         calendar: bool = False
@@ -126,11 +170,8 @@ class WallClock(
     def value(self):
         api = self._engine._core.api.exchange
         state = self._engine._core.state
-        # TODO err flag temp unavailable!!!!!!!!!!!
         try:
             return _datetime_.datetime(
-                # NOTE see https://github.com/NREL/EnergyPlus/issues/10210
-                # TODO .calendar_year v .year
                 year=(
                     api.calendar_year(state) 
                     if self.ref.calendar else 
@@ -139,13 +180,14 @@ class WallClock(
                 month=api.month(state),
                 day=api.day_of_month(state),
                 hour=api.hour(state),
-                # TODO NOTE energyplus api returns 0?-60: datetime requires range(60)
-                minute=api.minutes(state) % _datetime_.datetime.max.minute,
+                # NOTE core api returns 1-60: datetime requires range(60)
+                minute=api.minutes(state) - 1,
                 # TODO
                 tzinfo=_datetime_.timezone(offset=_datetime_.timedelta(0)),
             )
         except ValueError:
             # TODO better handling!!!!!!!!!!!!!
+            # TODO err flag temp unavailable!!!!!!!!!!!
             raise _exceptions_.TemporaryUnavailableError()
 
 
@@ -158,7 +200,7 @@ class Actuator(
     r"""
     Actuator variable class.
 
-    ..note:: DO NOT instantiate this class directly. 
+    .. note:: DO NOT instantiate this class directly. 
         Use the :class:`VariableManager` instead.
     """
 
@@ -180,7 +222,7 @@ class Actuator(
                 key='Environment',
             )
 
-        ..seealso:: TODO link
+        .. seealso:: TODO link
         """
 
         type: str
@@ -194,6 +236,14 @@ class Actuator(
 
     @property
     def _core_handle(self):
+        r"""
+        Get the internal handle of the actuator.
+
+        :raises: :class:`TemporaryUnavailableError` if the handle is not available.
+
+        ...seealso:: 
+            * https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.get_actuator_handle
+        """
         res = self._engine._core.api.exchange.get_actuator_handle(
             self._engine._core.state,
             component_type=self.ref.type,
@@ -206,6 +256,11 @@ class Actuator(
 
     @property
     def value(self):
+        r"""
+        Get the value of the actuator.
+
+        :raises: :class:`TemporaryUnavailableError` if the value is not available.
+        """
         with self._ensure_exception():
             return self._engine._core.api.exchange.get_actuator_value(
                 self._engine._core.state,
@@ -214,6 +269,11 @@ class Actuator(
 
     @value.setter
     def value(self, n: float):
+        r"""
+        Set the value of the actuator.
+
+        :param n: The value to set the actuator to.
+        """
         self._engine._core.api.exchange.set_actuator_value(
             self._engine._core.state,
             actuator_handle=self._core_handle,
@@ -221,6 +281,12 @@ class Actuator(
         )
 
     def reset(self):
+        r"""
+        Reset the actuator.
+        This transfers the control of the actuator back to attached engine.
+
+        ...seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.reset_actuator
+        """
         self._engine._core.api.exchange.reset_actuator(
             self._engine._core.state,
             actuator_handle=self._core_handle,
@@ -347,11 +413,11 @@ class VariableManager(
     _base_.Component[_worlds_.Engine],
 ):
     @_functools_.cached_property
-    def _data(self):
+    def _instances(self):
         return dict[str | BaseVariable.Ref, BaseVariable]()
 
     def on(self, ref):
-        if ref in self._data:
+        if ref in self._instances:
             return self
         
         def build(ref: str | BaseVariable.Ref):
@@ -373,14 +439,14 @@ class VariableManager(
                 if isinstance(ref, ref_cls):
                     return constructor(ref=ref)
                 
-            raise TypeError(f'Unknown symbol or reference {ref}.')
+            raise TypeError(f'Unknown symbol or reference: {ref}.')
 
         # TODO attach self????
-        self._data[ref] = build(ref).__attach__(self._engine)
+        self._instances[ref] = build(ref).__attach__(self._engine)
         return self
 
         # TODO depr __build__??? !!!!!!!!!!!
-        self._data[ref] = (
+        self._instances[ref] = (
             ref.__build__()
                 .__attach__(self._engine)
         )
@@ -391,14 +457,14 @@ class VariableManager(
         raise NotImplementedError
 
     def __contains__(self, ref):
-        return self._data.__contains__(ref)
+        return self._instances.__contains__(ref)
 
     def __getitem__(self, ref):
         if not self.__contains__(ref):
             raise _exceptions_.TemporaryUnavailableError(
-                f'{ref} not available or not turned on.'
+                f'Reference not available or not turned on: {ref}.'
             )
-        return self._data.__getitem__(ref)
+        return self._instances.__getitem__(ref)
     
     def get(self, ref):
         return self.on(ref=ref)[ref]
@@ -442,7 +508,13 @@ class VariableManager(
                     )
                 )
             ),
-        ) if all else self.KeysView(self._data.keys())
+        ) if all else self.KeysView(self._instances.keys())
+    
+    def __getstate__(self) -> object:
+        return super().__getstate__()
+    
+    def __setstate__(self, state: object):
+        return super().__setstate__(state)
         
 
 __all__ = [

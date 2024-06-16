@@ -1,17 +1,7 @@
-# from __future__ import annotations
 
-import builtins as _builtins_
 import typing as _typing_
-import operator as _operator_
-import functools as _functools_
 
 
-# TODO ref https://stackoverflow.com/a/46328797
-def zip(*mappings: _typing_.Mapping):
-    keys_sets = _builtins_.map(_builtins_.set, mappings)
-    common_keys = _functools_.reduce(_builtins_.set.intersection, keys_sets)
-    for key in common_keys:
-        yield (key, _builtins_.tuple(_builtins_.map(_operator_.itemgetter(key), mappings)))
 
 
 # TODO
@@ -58,7 +48,6 @@ class GroupableIterator:
     
 
 __all__ = [
-    'zip',
     'group',
     'GroupView',
     'GroupableIterator',

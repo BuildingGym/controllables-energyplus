@@ -17,7 +17,7 @@ try:
     import gymnasium.core
     import numpy as _numpy_
 except ImportError as e:
-    raise _base_.OptionalImportError(['gymnasium', 'numpy']) from e
+    raise _base_.OptionalImportError.suggest(['gymnasium', 'numpy']) from e
 
 
 ActType = _gymnasium_.core.ActType
@@ -90,15 +90,18 @@ class MutableVariableSpaceView(VariableSpaceView):
         return _spaces_.SpaceStructureMapper(apply_single)(self._space, data)
 
 
+import functools as _functools_
+
+
 class BaseThinEnv(_base_.Addon, _abc_.ABC):
     r"""
     Minimal abstract class for interfacing between 
     simulation engines and `Gymnasium spaces <https://gymnasium.farama.org/api/spaces/>`_. 
 
+    :ivar action_space: 
+        All possible actions within the environment.     
     :ivar observation_space: 
         All possible observations or states the environment can be in.
-    :ivar action_space: 
-        All possible actions within the environment. 
 
     Fundamental elements of the above spaces can only be 
     associated with regular variables (TODO link),
@@ -119,33 +122,27 @@ class BaseThinEnv(_base_.Addon, _abc_.ABC):
         * `gymnasium.Env.observation_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.observation_space>`_
     """
 
-    observation_space: _gymnasium_.spaces.Space[ObsType]
     action_space: _gymnasium_.spaces.Space[ActType]
+    observation_space: _gymnasium_.spaces.Space[ObsType]
+
+    @_functools_.cached_property
+    def _action_view(self):
+        return MutableVariableSpaceView(self.action_space)
+    
+    @_functools_.cached_property
+    def _observation_view(self):
+        return VariableSpaceView(self.observation_space)
 
     def __attach__(self, engine):
         super().__attach__(engine)
 
-        self.observation_view = (
-            VariableSpaceView(self.observation_space)
-                .__attach__(self._engine)
-        )
-        self.action_view = (
-            MutableVariableSpaceView(self.action_space)
-                .__attach__(self._engine)
-        )
+        self._action_view.__attach__(self._engine)
+        self._observation_view.__attach__(self._engine)
 
-        for view in self.observation_view, self.action_view:
+        for view in self._action_view, self._observation_view:
             view.on()
 
         return self
-
-    def observe(self) -> ObsType:
-        r"""Obtain an observation from the attached engine.
-        
-        :return: An observation from the observation space :attr:`observation_space`.
-        """
-        return self.observation_view.value
-
 
     def act(self, action: ActType):
         r"""Submit an action to the attached engine.
@@ -153,8 +150,15 @@ class BaseThinEnv(_base_.Addon, _abc_.ABC):
         :param action: An action within the action space :attr:`action_space`.
         :return: The action seen by the enviornment. Identical to the `action` submitted.
         """
-        self.action_view.value = action
+        self._action_view.value = action
         return action
+
+    def observe(self) -> ObsType:
+        r"""Obtain an observation from the attached engine.
+        
+        :return: An observation from the observation space :attr:`observation_space`.
+        """
+        return self._observation_view.value
 
 
 import dataclasses as _dataclasses_
@@ -168,8 +172,8 @@ class ThinEnv(BaseThinEnv):
     This is an implementation example of its base class `BaseThinEnv`.
     """
 
-    observation_space: _gymnasium_.spaces.Space[ObsType]
     action_space: _gymnasium_.spaces.Space[ActType]
+    observation_space: _gymnasium_.spaces.Space[ObsType]
 
 
 __all__ = [

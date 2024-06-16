@@ -27,7 +27,7 @@ class asyncify:
         asyncio.run(main())
 
     In this example, `blocking_function` is wrapped by `asyncify`, 
-    making it possible to use `await` with it in an asynchronous environment.
+    enabling it to be `await`-ed in an asynchronous environment.
     """
 
     def __init__(

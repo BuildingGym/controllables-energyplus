@@ -11,16 +11,26 @@ class OptionalImportError(ImportError):
             f'''Install them through {_sys_.executable} to use this feature.'''
         )
     
+
+    
 from ... import (
     components as _components_,
 )
 
+from ...components.base import (
+    Component,
+    ComponentWorkflow,
+)
 
-class Addon(_components_.base.Component):
-    _engine: _components_.worlds.World
+Addon = Component[_components_.worlds.World]
+
+#class Addon(Component):
+#    _engine: _components_.worlds.World
 
 
 __all__ = [
     'OptionalImportError',
+    'Component',
+    'ComponentWorkflow',
     'Addon',
 ]

@@ -14,7 +14,7 @@ try:
     import plotly as _plotly_
     import plotly.basedatatypes as _plotly_types_
 except ImportError as e:
-    raise _base_.OptionalImportError(['plotly']) from e
+    raise _base_.OptionalImportError.suggest(['plotly']) from e
 
 
 class TraceAdapter(_base_.Addon):

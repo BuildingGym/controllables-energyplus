@@ -7,7 +7,7 @@ python3 -m pip install --extra-index-url https://test.pypi.org/simple git+https:
 
 ## Development
 ```sh
-python3 -m pip install --extra-index-url https://test.pypi.org/simple/ -e .
+python3 -m pip install --extra-index-url https://test.pypi.org/simple -e .
 ```
 ```sh
 python3 -m build

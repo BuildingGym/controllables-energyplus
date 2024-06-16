@@ -5,7 +5,7 @@ from ... import base as _base_
 try: 
     import gymnasium as _gymnasium_
 except ImportError as e:
-    raise _base_.OptionalImportError(['gymnasium']) from e
+    raise _base_.OptionalImportError.suggest(['gymnasium']) from e
 
 from . import utils as _utils_
 

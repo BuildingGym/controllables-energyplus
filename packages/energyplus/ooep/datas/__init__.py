@@ -18,21 +18,26 @@ class FileBacked(_abc_.ABC):
 
 
 
-import os as _os_
 import typing as _typing_
 import collections as _collections_
 
-
 import json as _json_
-
+import os as _os_
 import tempfile as _tempfile_
 
 
 from .. import _core as _core_
 
 
-# TODO mv InputModel
+# TODO mv WorldModel
 class InputModel(_collections_.UserDict):
+    r"""
+    The input model.
+    This represents an epJSON object.
+
+    .. seealso:: https://energyplus.readthedocs.io/en/latest/schema.html
+    """
+
     Formats = _core_.Formats
 
     def load(self, fp):
@@ -99,8 +104,6 @@ class WeatherModel(FileBacked):
 # TODO
 class Report(FileBacked):
     pass
-
-
 
 
 __all__ = [
