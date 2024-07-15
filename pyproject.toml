@@ -13,11 +13,12 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = {file = "LICENSE.txt"}
 dependencies = [
-    'energyplus-core'
+    'energyplus-core==0.1.0a0',
+    'wrapt',
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "pytest-asyncio"]
 docs = [
     "jupyter-book", 
     "sphinxcontrib-mermaid",

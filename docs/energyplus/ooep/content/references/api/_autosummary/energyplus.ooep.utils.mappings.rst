@@ -14,7 +14,6 @@ energyplus.ooep.utils.mappings
    .. autosummary::
    
       group
-      zip
    
    
 

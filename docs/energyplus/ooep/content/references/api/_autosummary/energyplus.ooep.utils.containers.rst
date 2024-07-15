@@ -17,9 +17,7 @@ energyplus.ooep.utils.containers
 
    .. autosummary::
    
-      CallableSet
-      DefaultSet
-      OrderedSetDict
+      OrderedSet
    
    
 

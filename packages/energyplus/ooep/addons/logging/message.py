@@ -5,12 +5,9 @@ Scope: Logging and presenting messages.
 """
 
 from .. import base as _base_
-from ... import (
-    components as _components_,
-    exceptions as _exceptions_,
-)
 
 
+# TODO mv adapters/energyplus
 class MessageLogger(_base_.Addon):
     r"""
     A logger that logs messages to a `logging.Logger`.
@@ -33,12 +30,14 @@ class MessageLogger(_base_.Addon):
         # TODO
         #self._events = _components_.events.EventManager()
 
+        #super().__attach__.on('call:post', ...)
+
     def __attach__(self, engine):
-        super().__attach__(engine=engine)
+        super().__attach__(manager=engine)
 
         # TODO
         #self._events.__attach__(engine=self._engine)
-        self._events = self._engine.events
+        self._events = self._manager.events
 
         def setup():
             nonlocal self
@@ -53,8 +52,8 @@ class MessageLogger(_base_.Addon):
                 )
             )
             self._events \
-                .on('message', lambda event, logger=logger: 
-                    logger.info(event.message))
+                .on('message', lambda ctx, logger=logger: 
+                    logger.info(ctx.message))
 
         setup()
 

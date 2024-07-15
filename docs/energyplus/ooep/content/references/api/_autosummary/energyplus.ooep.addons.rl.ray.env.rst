@@ -1,4 +1,4 @@
-energyplus.ooep.addons.rl.ray.env
+﻿energyplus.ooep.addons.rl.ray.env
 =================================
 
 .. automodule:: energyplus.ooep.addons.rl.ray.env
@@ -17,7 +17,12 @@ energyplus.ooep.addons.rl.ray.env
 
    .. autosummary::
    
-      SimulatorEnv
+      Agent
+      AgentManager
+      BaseEnvEpisodeController
+      CommonEnv
+      ExternalEnv
+      ExternalMultiAgentEnv
    
    
 

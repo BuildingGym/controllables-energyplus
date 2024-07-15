@@ -3,15 +3,17 @@ root: content/root
 parts:
 - caption: 📚 Tutorials
   chapters:
-  - file: content/tutorials/0_starter
-  - file: content/tutorials/1_control
+  - file: content/tutorials/0_installation
+  - file: content/tutorials/1_get-started
+  - file: content/tutorials/2_interactions
+  - file: content/tutorials/3_modeling
 - caption: 💡 Examples
   chapters:
-  - file: content/examples/0_basic
+  - file: content/examples/10_rl
 - caption: 📇 References
   chapters:
   - file: content/references/architecture/root
     sections:
-    - file: content/references/architecture/component
     - file: content/references/architecture/addons/rl
   - file: content/references/api/root
+  - file: content/references/api/TODO

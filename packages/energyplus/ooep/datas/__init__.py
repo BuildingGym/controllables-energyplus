@@ -3,8 +3,10 @@ import os as _os_
 
 
 class FileBacked(_abc_.ABC):
-    def __init__(self):
+    def __init__(self, path: _os_.PathLike = None):
         self._path = None
+        if path is not None:
+            self.open(path)
 
     def open(self, path: _os_.PathLike) -> 'FileBacked':
         self._path = path
@@ -29,8 +31,7 @@ import tempfile as _tempfile_
 from .. import _core as _core_
 
 
-# TODO mv WorldModel
-class InputModel(_collections_.UserDict):
+class WorldModel(_collections_.UserDict):
     r"""
     The input model.
     This represents an epJSON object.
@@ -107,7 +108,7 @@ class Report(FileBacked):
 
 
 __all__ = [
-    'InputModel',
+    'WorldModel',
     'WeatherModel',
     'Report',
 ]

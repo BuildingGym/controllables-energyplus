@@ -18,9 +18,9 @@ energyplus.ooep.datas
    .. autosummary::
    
       FileBacked
-      Model
       Report
-      Weather
+      WeatherModel
+      WorldModel
    
    
 

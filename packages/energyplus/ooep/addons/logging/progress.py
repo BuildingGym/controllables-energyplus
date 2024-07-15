@@ -10,6 +10,7 @@ from ... import (
 )
 
 
+# TODO mv adapters/energyplus
 class ProgressLogger(_base_.Addon):
     r"""
     A logger that logs message and progress to a `tqdm.tqdm` progress bar.
@@ -43,12 +44,12 @@ class ProgressLogger(_base_.Addon):
     def _progbar_instance(self):
         raise NotImplementedError
 
-    def __attach__(self, engine):
-        super().__attach__(engine=engine)
+    def __attach__(self, manager):
+        super().__attach__(manager=manager)
 
         # TODO
         #self._events.__attach__(engine=self._engine)
-        _events = self._engine.events
+        _events = self._manager.events
         
         def setup():
             nonlocal self, _events
@@ -58,10 +59,10 @@ class ProgressLogger(_base_.Addon):
                 self._tqdm_.auto.tqdm(total=100)
             )
             _events \
-                .on('message', lambda event, progbar=progbar: 
-                    progbar.set_postfix_str(event.message)) \
-                .on('progress', lambda event, progbar=progbar: 
-                    progbar.update(event.progress * progbar.total - progbar.n))
+                .on('message', lambda ctx, progbar=progbar: 
+                    progbar.set_postfix_str(ctx.message)) \
+                .on('progress', lambda ctx, progbar=progbar: 
+                    progbar.update(ctx.progress * progbar.total - progbar.n))
 
         setup()
 

@@ -13,12 +13,6 @@ energyplus.ooep.addons.base
 
    
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      Addon
-   
    
 
    

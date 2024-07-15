@@ -27,9 +27,7 @@ energyplus.ooep.components
    :toctree:
    :recursive:
 
-   energyplus.ooep.components.base
-   energyplus.ooep.components.environment
    energyplus.ooep.components.events
    energyplus.ooep.components.variables
-   energyplus.ooep.components.views
+   energyplus.ooep.components.world
 

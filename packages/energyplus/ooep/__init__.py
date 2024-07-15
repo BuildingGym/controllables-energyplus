@@ -1,12 +1,14 @@
 r"""
-EnergyPlus, Object Oriented
+Common classes and functions for convenience purposes.
+Advanced users may import additional 
+classes and functions from the respective modules.
+
+Scope: Shortcut imports.
 """
+
 
 from .components.events import (
     Event,
-    MessageEvent,
-    ProgressEvent,
-    StateEvent,
 )
 from .components.variables import (
     Actuator,
@@ -15,26 +17,24 @@ from .components.variables import (
     OutputVariable,
     WallClock,
 )
-from .components.worlds import World
+from .components.world import World
 from .datas import (
+    WorldModel,
     WeatherModel,
-    InputModel,
     Report,
 )
-from .exceptions import TemporaryUnavailableError
+from .specs.exceptions import TemporaryUnavailableError
+
 
 __all__ = [
     'Event',
-    'MessageEvent',
-    'ProgressEvent',
-    'StateEvent',
     'Actuator',
     'InternalVariable',
     'OutputMeter',
     'OutputVariable',
     'WallClock',
+    'WorldModel',
     'WeatherModel',
-    'InputModel',
     'Report',
     'World',
     'TemporaryUnavailableError',

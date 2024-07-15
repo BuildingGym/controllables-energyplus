@@ -18,13 +18,12 @@ energyplus.ooep.components.variables
    .. autosummary::
    
       Actuator
-      BaseMutableVariable
-      BaseVariable
-      BaseVariableManager
       CoreExceptionableMixin
       InternalVariable
+      MutableVariable
       OutputMeter
       OutputVariable
+      Variable
       VariableManager
       WallClock
    

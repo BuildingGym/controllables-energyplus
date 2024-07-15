@@ -1,4 +1,4 @@
-energyplus.ooep.addons.rl.gymnasium.core
+﻿energyplus.ooep.addons.rl.gymnasium.core
 ========================================
 
 .. automodule:: energyplus.ooep.addons.rl.gymnasium.core
@@ -17,10 +17,10 @@ energyplus.ooep.addons.rl.gymnasium.core
 
    .. autosummary::
    
-      BaseThinEnv
-      MutableVariableSpaceView
-      ThinEnv
-      VariableSpaceView
+      BaseSpaceVariableContainer
+      MutableSpaceVariable
+      SpaceVariable
+      SpaceVariableContainer
    
    
 

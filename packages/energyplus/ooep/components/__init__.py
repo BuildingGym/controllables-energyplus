@@ -1,13 +1,11 @@
 from . import (
-    base,
     events,
     variables,
-    worlds,
+    world,
 )
 
 __all__ = [
-    'base',
     'events',
     'variables',
-    'worlds',
+    'world',
 ]

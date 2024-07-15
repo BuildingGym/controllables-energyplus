@@ -13,7 +13,9 @@ from . import utils as _utils_
 # TODO more types
 class SpaceStructureMapper(_utils_.StructureMapper):
     r"""
-    TODO doc
+    Mapper for composite spaces.
+
+    TODO
     """
   
     _struct_types = {
@@ -24,6 +26,8 @@ class SpaceStructureMapper(_utils_.StructureMapper):
         },
     }
 
+
+# TODO mv _RefT
 T = _typing_.TypeVar('T')
 
 class VariableSpace(
@@ -41,6 +45,7 @@ class VariableSpace(
         * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
     """
     
+    # TODO Composite Spaces structural [Ref, Ref] {Ref: Ref}
     def bind(self, var: T) -> _typing_.Self:
         r"""
         Bind a variable to this space.
@@ -68,7 +73,7 @@ class VariableBox(
     with the space, which can be useful in environments where spaces 
     need to carry extra information or context.
 
-    Example usage:
+    Examples:
 
     .. code-block:: python
 
@@ -78,16 +83,18 @@ class VariableBox(
         * `gymnasium.spaces.Box <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Box>`_
     """
 
+    # TODO binding: [Ref, Ref, ...]
+    # TODO type Ref: oneof [callable, Variable.Ref]
+
     pass
 
 class VariableDiscrete(
     _gymnasium_.spaces.Discrete, 
-    _typing_.Generic[T], VariableSpace[T],
+    VariableSpace[T],
+    _typing_.Generic[T],
 ):
     r"""
     A Gymnasium Discrete space that can have a variable bound to it.
-
-    Similar to :class:`VariableBox`, this allows for the association of
 
     .. seealso::
         * `gymnasium.spaces.Discrete <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Discrete>`_

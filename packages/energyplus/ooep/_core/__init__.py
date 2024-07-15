@@ -1,3 +1,8 @@
+r"""
+TODO adapters/energyplus ?
+"""
+
+
 import typing as _typing_
 
 import energyplus.core as _energyplus_core_
@@ -13,6 +18,7 @@ class Core:
         r"""
         Initialize the :class:`Core` object.
         """
+
         self.api = (
             _energyplus_core_.pyenergyplus
                 .api.EnergyPlusAPI()
@@ -23,6 +29,7 @@ class Core:
         r"""
         Reset the state of the :class:`Core` object.
         """
+
         self.api.state_manager.reset_state(self.state)
 
     def __del__(self):
@@ -30,6 +37,7 @@ class Core:
         Delete the state of the :class:`Core` object.
         This releases the resources used by the state.
         """
+
         self.api.state_manager.delete_state(self.state)
 
     def __getstate__(self) -> object:
@@ -40,9 +48,10 @@ class Core:
             No states to save as of now, 
             as `pyenergyplus` is essentially a black-box.
         """
+
         pass
 
-    def __setstate__(self, state: object):
+    def __setstate__(self, _: object):
         r"""
         Set the state of the :class:`Core` object from a pickle.
 
@@ -50,6 +59,7 @@ class Core:
 
         .. seealso:: :meth:`__getstate__`.
         """
+
         pass
 
 
@@ -60,13 +70,14 @@ import pathlib as _pathlib_
 def convert_common(
     input_file: _os_.PathLike, 
     output_directory: _os_.PathLike,
+    verbose: bool = False,
 ):
     core = Core()
     # shush
     core.api.runtime \
         .set_console_output_status(
             core.state,
-            print_output=False,
+            print_output=verbose,
         )
     res = core.api.runtime.run_energyplus(
         core.state,
@@ -81,12 +92,18 @@ def convert_common(
 
 def convert_idf_to_epjson(input_file, output_directory):
     input_file, output_directory = map(_pathlib_.Path, (input_file, output_directory))
-    convert_common(input_file=input_file, output_directory=output_directory)
+    convert_common(
+        input_file=input_file, 
+        output_directory=output_directory,
+    )
     return output_directory / _pathlib_.Path(input_file.stem).with_suffix('.epJSON')
 
 def convert_epjson_to_idf(input_file, output_directory):
     input_file, output_directory = map(_pathlib_.Path, (input_file, output_directory))
-    convert_common(input_file=input_file, output_directory=output_directory)
+    convert_common(
+        input_file=input_file, 
+        output_directory=output_directory,
+    )
     return output_directory / _pathlib_.Path(input_file.stem).with_suffix('.idf')
 
 

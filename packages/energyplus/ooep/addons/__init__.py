@@ -1,7 +1,7 @@
 r"""
 Addons.
 
-Addons are similar to components but must be loaded manually.
+Addons are a type of component that must be loaded manually.
 """
 
 __all__ = []

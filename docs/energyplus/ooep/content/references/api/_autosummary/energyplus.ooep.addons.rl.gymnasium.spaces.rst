@@ -19,6 +19,7 @@ energyplus.ooep.addons.rl.gymnasium.spaces
    
       SpaceStructureMapper
       VariableBox
+      VariableDiscrete
       VariableSpace
    
    

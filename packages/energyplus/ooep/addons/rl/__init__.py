@@ -1,19 +1,30 @@
-from .gymnasium import (
-    spaces,
-    BaseThinEnv,
-    ThinEnv,
+from .gymnasium.core import (
+    ActType,
+    ObsType,
+    SpaceVariable,
+    MutableSpaceVariable,
+    BaseSpaceVariableContainer,
+    SpaceVariableContainer,
+)
+from .gymnasium.spaces import (
     VariableSpace,
     VariableBox,
 )
-from .ray import (
+
+from .ray.env import (
+    ExternalMultiAgentEnv,
     ExternalEnv,
 )
 
 __all__ = [
-    'spaces',
-    'BaseThinEnv',
-    'ThinEnv',
+    'ActType',
+    'ObsType',
+    'SpaceVariable',
+    'MutableSpaceVariable',
+    'BaseSpaceVariableContainer',
+    'SpaceVariableContainer',
     'VariableSpace',
     'VariableBox',
+    'ExternalMultiAgentEnv',
     'ExternalEnv',
 ]

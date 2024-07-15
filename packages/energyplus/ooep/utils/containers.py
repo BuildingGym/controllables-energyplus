@@ -1,94 +1,43 @@
-import builtins as _builtins_
 import typing as _typing_
 import collections as _collections_
 
 
-
-class OrderedSetDict(
-    _typing_.Generic[_typing_.TypeVar('T')],
-    _collections_.OrderedDict,
+# TODO https://stackoverflow.com/questions/1653970/does-python-have-an-ordered-set
+class OrderedSet(
+    _typing_.AbstractSet[_T := _typing_.TypeVar('_T')],
+    _typing_.Generic[_T], 
 ):
-    def add(self, v):
-        self[v] = v
-
-    def update(self, *s: _typing_.Iterable):
-        for it in s:
-            for el in it:
-                self.add(el)
-
-    def remove(self, v):
-        return self.pop(v)
-    
-    def difference_update(self, *s: _typing_.Iterable):
-        for it in s:
-            for el in it:
-                self.remove(el)
-
-# TODO
-# TODO NOTE data format {<callable>: <callable>} {<key>: <callable>}
-class CallableSet(OrderedSetDict):
-    def __call__(self, *args, **kwargs):
-        return _collections_.OrderedDict({
-            key: f.__call__(*args, **kwargs)
-                for key, f in self.items()
-        })
-
-# TODO
-class DefaultSet(_builtins_.set):
-    def __init__(self, default_factory):
-        self._default_factory = default_factory
-
-    def add(self, *args, **kwargs):
-        return super().add(self._default_factory(*args, **kwargs))
-
-
-__all__ = [
-    'OrderedSetDict',
-    'CallableSet',
-    'DefaultSet',
-]
-
-
-
-
-
-import collections as _collections_
-import typing as _typing_
-
-T = _typing_.TypeVar('T')
-
-class OrderedSet(_typing_.Generic[T], _typing_.AbstractSet[T]):
-    def __init__(self, iterable: _typing_.Iterable[T] = ()):
+    def __init__(self, iterable: _typing_.Iterable[_T] = ()):
         self._data = _collections_.OrderedDict()
         self.update(iterable)
         
-    def __contains__(self, element: T) -> bool:
+    def __contains__(self, element: _T) -> bool:
         return element in self._data
     
-    def __iter__(self) -> _typing_.Iterator[T]:
+    def __iter__(self) -> _typing_.Iterator[_T]:
         return iter(self._data)
     
     def __len__(self) -> int:
         return len(self._data)
     
-    def add(self, element: T) -> None:
+    def add(self, element: _T) -> None:
         self._data[element] = None
     
-    def discard(self, element: T) -> None:
+    def discard(self, element: _T) -> None:
         if element in self._data:
             del self._data[element]
 
-    def remove(self, element: T) -> None:
+    def remove(self, element: _T) -> None:
         if element not in self._data:
             raise KeyError(element)
         del self._data[element]
     
-    def update(self, *iterables: _typing_.Iterable[T]) -> None:
+    def update(self, *iterables: _typing_.Iterable[_T]) -> None:
         for iterable in iterables:
             for element in iterable:
                 self.add(element)
     
-    def difference_update(self, *iterables: _typing_.Iterable[T]) -> None:
+    def difference_update(self, *iterables: _typing_.Iterable[_T]) -> None:
         for iterable in iterables:
             for element in iterable:
                 self.discard(element)

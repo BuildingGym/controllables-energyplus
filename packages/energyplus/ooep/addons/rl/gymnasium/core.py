@@ -1,111 +1,98 @@
 import abc as _abc_
 import typing as _typing_
-
+import functools as _functools_
 
 # TODO
 from . import utils as _utils_
+from . import spaces as _spaces_
 
 from ... import base as _base_
-from .... import (
-    components as _components_,
+from ....specs.components import BaseComponent
+from ....specs.systems import BaseSystem
+from ....specs.variables import (
+    BaseVariable,
+    BaseMutableVariable,
 )
-
-from . import spaces as _spaces_
 
 try: 
     import gymnasium as _gymnasium_
-    import gymnasium.core
+    from gymnasium.core import (
+        ActType,
+        ObsType,
+    )
     import numpy as _numpy_
 except ImportError as e:
     raise _base_.OptionalImportError.suggest(['gymnasium', 'numpy']) from e
 
-
-ActType = _gymnasium_.core.ActType
-ObsType = _gymnasium_.core.ObsType
-
-
-BaseVariable = _components_.variables.BaseVariable
-BaseMutableVariable = _components_.variables.BaseMutableVariable
-
-
-
 # TODO
-class VariableSpaceView(_base_.Addon):
-    r"""
-    A view of a variable space within an engine.
-    """
+from ....specs.variables import BaseVariable
 
-    # TODO typing
-    def __init__(self, space: _spaces_.VariableSpace[BaseVariable.Ref]):
-        super().__init__()
-        self._space = space
-        # TODO
-        #self._variables = _components_.variables.VariableManager()
+
+
+class SpaceVariable(
+    BaseVariable, 
+    BaseComponent[BaseSystem],
+    #_base_.Addon,
+):
+    r"""
+    TODO
+    """
 
     def __attach__(self, engine):
         super().__attach__(engine)
         # TODO
-        self._variables = self._engine.variables
-        #self._variables.__attach__(engine=engine)
+        self._variables = self._manager.variables
         return self
-
-    def on(self):
-        def apply_single(space: _spaces_.VariableSpace):
-            nonlocal self
-            # TODO
-            self._variables.on(space.binding)
-
-        # TODO ret ??
-        _spaces_.SpaceStructureMapper(apply_single)(self._space)
-        
-    def off(self):
-        # TODO
-        raise NotImplementedError
     
     @property
     def value(self):
         def apply_single(space: _spaces_.VariableSpace):
-            nonlocal self
+            def _f_get(ref):
+                return self._variables[ref].value
             return _numpy_.array(
-                self._variables[space.binding].value,
+                _utils_.StructureMapper(_f_get)(space.binding),
                 dtype=space.dtype,
             ).reshape(space.shape)
         
-        return _spaces_.SpaceStructureMapper(apply_single)(self._space)
+        return _spaces_.SpaceStructureMapper(apply_single)(self.ref)
 
 
-class MutableVariableSpaceView(VariableSpaceView):
+class MutableSpaceVariable(SpaceVariable):
     r"""
-    A view of a mutable variable space within an engine.
+    TODO
     """
 
-    @VariableSpaceView.value.setter
+    @SpaceVariable.value.setter
     def value(self, data):
         # TODO
-        def apply_single(space: _spaces_.VariableSpace[BaseMutableVariable.Ref], o: _typing_.Any):
-            nonlocal self
-            self._variables[space.binding].value = o
-            return o
-        
-        return _spaces_.SpaceStructureMapper(apply_single)(self._space, data)
+        def apply_single(
+            # TODO
+            space: _spaces_.VariableSpace,#[BaseMutableVariable.Ref], 
+            vals: _typing_.Any,
+        ):
+            def _f_set(ref, val):
+                self._variables[ref].value = val
+                return val
+            return _utils_.StructureMapper(_f_set)(space.binding, vals)
+
+        return _spaces_.SpaceStructureMapper(apply_single)(self.ref, data)
 
 
-import functools as _functools_
 
-
-class BaseThinEnv(_base_.Addon, _abc_.ABC):
+class BaseSpaceVariableContainer(
+    BaseComponent[BaseSystem],
+    _abc_.ABC,
+):
     r"""
     Minimal abstract class for interfacing between 
-    simulation engines and `Gymnasium spaces <https://gymnasium.farama.org/api/spaces/>`_. 
+    :class:`BaseSystem`s and :class:`gymnasium.spaces.Space`s. 
 
-    :ivar action_space: 
-        All possible actions within the environment.     
-    :ivar observation_space: 
-        All possible observations or states the environment can be in.
-
-    Fundamental elements of the above spaces can only be 
-    associated with regular variables (TODO link),
-    i.e. variables with `value` readable.
+    .. note::
+        * Implementations shall have `action_space` and `observation_space` defined.
+        * Any `fundamental space <https://gymnasium.farama.org/api/spaces/fundamental/#fundamental-spaces>`_
+            within the defined `action_space` and `observation_space` 
+            must be associated with a variable (i.e. :class:`BaseVariable` and :class:`BaseMutableVariable`) 
+            or a variable reference (TODO link) from an engine.
 
     .. note::
         This class cannot be used as a `gymnasium.Env` alone; 
@@ -113,63 +100,65 @@ class BaseThinEnv(_base_.Addon, _abc_.ABC):
         a Gymnasium-compliant environment (e.g. `gymnasium.Env`) 
         as a "mixin" to ensure compatibility with EnergyPlus OOEP engines.
 
-        Inherited classes must have `action_space` and `observation_space` defined.
-        Any `fundamental space <https://gymnasium.farama.org/api/spaces/fundamental/#fundamental-spaces>`_
-        must be associated with a variable reference (TODO link) from an engine.
-
     .. seealso::
+        * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
         * `gymnasium.Env.action_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.action_space>`_
         * `gymnasium.Env.observation_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.observation_space>`_
     """
 
     action_space: _gymnasium_.spaces.Space[ActType]
+    r"""All possible actions within the environment"""
     observation_space: _gymnasium_.spaces.Space[ObsType]
+    r"""All possible observations or states the environment can be in."""
 
     @_functools_.cached_property
-    def _action_view(self):
-        return MutableVariableSpaceView(self.action_space)
-    
+    def action(self):
+        r"""TODO"""
+        return MutableSpaceVariable(self.action_space)
+
     @_functools_.cached_property
-    def _observation_view(self):
-        return VariableSpaceView(self.observation_space)
+    def observation(self):
+        r"""TODO"""
+        return SpaceVariable(self.observation_space)
 
     def __attach__(self, engine):
         super().__attach__(engine)
 
-        self._action_view.__attach__(self._engine)
-        self._observation_view.__attach__(self._engine)
-
-        for view in self._action_view, self._observation_view:
-            view.on()
+        self.action.__attach__(self._manager)
+        self.observation.__attach__(self._manager)
 
         return self
 
-    def act(self, action: ActType):
-        r"""Submit an action to the attached engine.
+    def act(self, action: ActType) -> ActType:
+        r"""
+        Submit an action to the attached engine.
         
         :param action: An action within the action space :attr:`action_space`.
         :return: The action seen by the enviornment. Identical to the `action` submitted.
         """
-        self._action_view.value = action
+
+        self.action.value = action
         return action
 
     def observe(self) -> ObsType:
-        r"""Obtain an observation from the attached engine.
+        r"""
+        Obtain an observation from the attached engine.
         
         :return: An observation from the observation space :attr:`observation_space`.
         """
-        return self._observation_view.value
+
+        return self.observation.value
 
 
 import dataclasses as _dataclasses_
 
 @_dataclasses_.dataclass
-class ThinEnv(BaseThinEnv):
+class SpaceVariableContainer(BaseSpaceVariableContainer):
     r"""
     Standalone class for interfacing between 
     simulation engines and `Gymnasium spaces <https://gymnasium.farama.org/api/spaces/>`_.
 
-    This is an implementation example of its base class `BaseThinEnv`.
+    This is an implementation example of its base class :class:`BaseVariableSpaceContainer`.
     """
 
     action_space: _gymnasium_.spaces.Space[ActType]
@@ -177,6 +166,10 @@ class ThinEnv(BaseThinEnv):
 
 
 __all__ = [
-    'BaseThinEnv',
-    'ThinEnv',
+    'ActType',
+    'ObsType',
+    'SpaceVariable',
+    'MutableSpaceVariable',
+    'BaseSpaceVariableContainer',
+    'SpaceVariableContainer',
 ]

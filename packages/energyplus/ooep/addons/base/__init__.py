@@ -6,23 +6,21 @@ class OptionalImportError(ImportError):
     @classmethod
     def suggest(cls, package_names: _typing_.Collection[str]):
         return cls(
-            'Missing optional dependency(ies)/module(s): '
-            f'''{str.join(', ', package_names)}. '''
-            f'''Install them through {_sys_.executable} to use this feature.'''
+            'Missing optional dependency(ies)/module(s), run: '
+            f'''`{_sys_.executable} -m pip install {
+                str.join(' ', (f'"{s}"' for s in package_names))}`'''
         )
-    
 
     
 from ... import (
     components as _components_,
 )
 
-from ...components.base import (
-    Component,
-    ComponentWorkflow,
+from ...specs.components import (
+    BaseComponent,
 )
 
-Addon = Component[_components_.worlds.World]
+Addon = BaseComponent[_components_.world.World]
 
 #class Addon(Component):
 #    _engine: _components_.worlds.World
@@ -30,7 +28,6 @@ Addon = Component[_components_.worlds.World]
 
 __all__ = [
     'OptionalImportError',
-    'Component',
-    'ComponentWorkflow',
+    'BaseComponent',
     'Addon',
 ]
