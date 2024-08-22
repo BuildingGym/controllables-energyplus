@@ -1,36 +1,41 @@
 [build-system]
 requires = [
-    "setuptools", 
-    "setuptools_scm",
+    'setuptools', 
+    'setuptools_scm',
 ]
-build-backend = "setuptools.build_meta"
+build-backend = 'setuptools.build_meta'
 
 [project]
-name = "energyplus-ooep"
-dynamic = ["version"]
-description = "EnergyPlus Python API, Object-Oriented"
-requires-python = ">=3.11"
-readme = "README.md"
-license = {file = "LICENSE.txt"}
+name = 'controllables-core'
+dynamic = ['version']
+description = 'The Framework for Control Systems'
+requires-python = '>=3.11'
+readme = 'README.md'
+license = {file = 'LICENSE.txt'}
 dependencies = [
     'energyplus-core==0.1.0a0',
     'wrapt',
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-asyncio"]
+test = [
+    'pytest', 
+    'pytest-asyncio',
+    'energyplus-datasets',
+]
 docs = [
-    "jupyter-book", 
-    "sphinxcontrib-mermaid",
+    'jupyter-book', 
+    'sphinxcontrib-mermaid',
 ]
 
 [tool.setuptools.packages.find]
-where = ["packages"]
+where = ['packages']
 namespaces = true
 
 [tool.setuptools_scm]
-version_scheme = "no-guess-dev"
+version_scheme = 'no-guess-dev'
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = ["./tests"]
+minversion = '6.0'
+testpaths = ['./tests']
+addopts = '--import-mode=importlib --doctest-modules'
