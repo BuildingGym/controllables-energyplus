@@ -3,7 +3,10 @@ TODO adapters/energyplus ?
 """
 
 
-import typing as _typing_
+import functools as _functools_
+from typing import Literal, Self
+
+from controllables.core.workflows import WorkflowManager
 
 
 class Core:
@@ -11,6 +14,21 @@ class Core:
     The wrapper class for interfacing with the EnergyPlus kernel (core).
     This is typically used internally by the higher-level classes.
     """
+
+    # TODO use something else
+    WorkflowManager = WorkflowManager[
+        Literal[
+            'reset:pre', 
+            'reset:post', 
+            'run:pre',
+            'run:post',
+        ],
+        Self,
+    ]
+
+    @_functools_.cached_property
+    def workflows(self) -> WorkflowManager:
+        return self.WorkflowManager().__attach__(self)
 
     def __init__(self):
         r"""
@@ -56,12 +74,33 @@ class Core:
         )
         self.state = self.api.state_manager.new_state()
 
+    def configure(self, print_output: bool | None = None):
+        if print_output is not None:
+            self.api.runtime.set_console_output_status(
+                self.state,
+                print_output=print_output,
+            )
+
+    def run(self, args: list[str]) -> int:
+        # TODO pass args to workflows
+        self.workflows.__call__('run:pre')
+        res = self.api.runtime.run_energyplus(
+            self.state, command_line_args=args,
+        )
+        self.workflows.__call__('run:post')
+        return res
+    
+    def stop(self):
+        self.api.runtime.stop_simulation(self.state)
+
     def reset(self):
         r"""
         Reset the state of the :class:`Core` object.
         """
 
+        self.workflows.__call__('reset:pre')
         self.api.state_manager.reset_state(self.state)
+        self.workflows.__call__('reset:post')
 
     def __del__(self):
         r"""
@@ -94,7 +133,6 @@ class Core:
         pass
 
 
-
 import os as _os_
 import pathlib as _pathlib_
 
@@ -105,19 +143,12 @@ def convert_common(
 ):
     core = Core()
     # shush
-    core.api.runtime \
-        .set_console_output_status(
-            core.state,
-            print_output=verbose,
-        )
-    res = core.api.runtime.run_energyplus(
-        core.state,
-        command_line_args=[
-            '--convert-only', 
-            '--output-directory', str(output_directory),
-            str(input_file),
-        ],
-    )
+    core.configure(print_output=verbose)
+    res = core.run([
+        '--convert-only', 
+        '--output-directory', str(output_directory),
+        str(input_file),
+    ])
     if res != 0:
         raise RuntimeError()
 
@@ -140,7 +171,7 @@ def convert_epjson_to_idf(input_file, output_directory):
 
 import pathlib as _pathlib_
 
-Formats = _typing_.Literal['json', 'idf']
+Formats = Literal['json', 'idf']
 
 def infer_format_from_path(path: _os_.PathLike) -> Formats | None:
     match _pathlib_.Path(path).suffix.lower():

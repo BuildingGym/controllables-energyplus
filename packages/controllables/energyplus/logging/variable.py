@@ -5,12 +5,12 @@ r"""
 
 import functools as _functools_
 
-from controllables.core import (
+from controllables.core.components import (
     BaseComponent,
-    BaseSystem,
-    TemporaryUnavailableError,
 )
-from controllables.core.specs.variables import RefType, VariableRefManager
+from controllables.core.errors import TemporaryUnavailableError
+from controllables.core.systems import BaseSystem
+from controllables.core.variables import VariableRefType, VariableRefManager
 from controllables.core.tools.history import History
 # TODO
 from ..events import Event

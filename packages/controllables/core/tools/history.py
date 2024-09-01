@@ -20,16 +20,17 @@ from typing import (
 )
 
 
-from ..specs.callbacks import BaseCallback
-from ..specs.variables import BaseVariable
-from ..specs.components import BaseComponent
-from ..specs.workflows import WorkflowManager
-from ..specs.refs import RefManager
+from ..callbacks import BaseCallback
+from ..errors import OptionalModuleNotFoundError as OptionalModuleNotFoundError
+from ..variables import BaseVariable
+from ..components import BaseComponent
+from ..workflows import WorkflowManager
+from ..refs import BaseRefManager
 from .plot import PlotSpec, Plot
 
 
 class History(
-    RefManager,
+    BaseRefManager,
     _abc_.ABC,
     Generic[
         _RefT := TypeVar('_RefT'),
@@ -89,7 +90,7 @@ class History(
     def __init__(
         self, 
         spec: Spec | None = None, 
-        refs: RefManager[_RefT] | None = None,
+        refs: BaseRefManager[_RefT, Any] | None = None,
     ):
         r"""
         Initialize this history instance.
@@ -158,7 +159,7 @@ class History(
         def __init__(
             self, 
             spec: PlotSpec, 
-            refs: RefManager | None = None,
+            refs: BaseRefManager | None = None,
             autoupdate: bool | int = False,
         ):
             r"""
@@ -205,8 +206,12 @@ class History(
         """
 
         def __call__(self, **kwargs):
-            import pandas as _pandas_
-            return _pandas_.DataFrame({
+            try:
+                from pandas import DataFrame
+            except ModuleNotFoundError as e:
+                raise OptionalModuleNotFoundError.suggest(['pandas']) from e
+
+            return DataFrame({
                 key: self._manager[key]
                 for key in self._manager.keys()
             }, **kwargs)
@@ -221,7 +226,7 @@ class History(
         return self.DataFrameConstructor().__attach__(self)
 
 
-from ..specs.variables import BaseVariable, VariableRefManager
+from ..variables import BaseVariable, VariableRefManager
 
 # TODO
 class VariableHistory(
@@ -255,12 +260,15 @@ class Record(BaseVariable):
             History,
         ]().__attach__(self)
     
+    # TODO
+    class Config(TypedDict):
+        maxlen: Optional[int | None] = None
+        events: Optional[BaseCallback | None] = None
+    
     def __init__(
         self, 
         ref: BaseVariable, 
         maxlen: int | None = None,
-        # TODO
-        update: BaseCallback | Any | None = None,
     ):
         super().__init__()
         self._ref = ref

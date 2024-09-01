@@ -9,11 +9,11 @@ import operator as _operator_
 import functools as _functools_
 
 
-def IterableZipper(*iterables: _typing_.Iterable):
+def zip_iterable(*iterables: _typing_.Iterable):
     return _builtins_.zip(*iterables)
 
 # TODO ref https://stackoverflow.com/a/46328797
-def MappingZipper(*mappings: _typing_.Mapping):
+def zip_mapping(*mappings: _typing_.Mapping):
     keys_sets = _builtins_.map(_builtins_.set, mappings)
     common_keys = _functools_.reduce(_builtins_.set.intersection, keys_sets)
     for key in common_keys:
@@ -21,6 +21,6 @@ def MappingZipper(*mappings: _typing_.Mapping):
 
 
 __all__ = [
-    'IterableZipper',
-    'MappingZipper',
+    'zip_iterable',
+    'zip_mapping',
 ]

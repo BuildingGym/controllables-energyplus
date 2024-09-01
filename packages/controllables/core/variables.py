@@ -10,11 +10,28 @@ from typing import (
     Generic, 
     Iterable, 
     Mapping,
-    TypeVar, 
+    TypeAlias,
+    TypeVar,
 )
 
 
 _ValT = TypeVar('_ValT')
+
+
+class NilType(type):
+    r"""
+    :class:`NoneType`-like metaclass for representing nil values.
+    """
+
+    pass
+
+class Nil(metaclass=NilType):
+    r"""
+    :class:`None`-like class for representing nil values.
+    """
+    
+    pass
+
 
 class BaseVariable(
     _abc_.ABC, 
@@ -26,13 +43,15 @@ class BaseVariable(
 
     @property
     @_abc_.abstractmethod
-    def value(self) -> _ValT:
+    def value(self) -> _ValT | Nil:
         r"""
         Get the value of this variable.
 
         :return: The value of this variable.
         """
+
         ...
+
 
 class BaseMutableVariable(
     BaseVariable[_ValT], 
@@ -43,15 +62,17 @@ class BaseMutableVariable(
 
     @BaseVariable.value.setter
     @_abc_.abstractmethod
-    def value(self, o: _ValT):
+    def value(self, o: _ValT | Nil):
         r"""
         Set the value of this variable.
 
         :param o: The value to set.
         """
+
         ...
 
-RefType = str | Any
+
+VariableRefType = str | Any
 r"""
 Reference type.
 
@@ -60,11 +81,11 @@ Strings shall be used as "symbols" for
 predefined shortcut variables.
 """
 
-from .refs import RefManager
+from .refs import BaseRefManager
 
 # TODO generics?
 class BaseVariableManager(
-    RefManager[BaseVariable],
+    BaseRefManager[VariableRefType, BaseVariable],
     _abc_.ABC,
 ):
     r"""
@@ -72,27 +93,29 @@ class BaseVariableManager(
     """
 
     @_abc_.abstractmethod
-    def __contains__(self, ref: RefType) -> bool:
+    def __contains__(self, ref: VariableRefType) -> bool:
         r"""
         Check if a variable is enabled.
 
         :param ref: Reference to the variable.
         :return: Whether the variable is enabled.
         """
+
         ...
 
     @_abc_.abstractmethod
-    def __getitem__(self, ref: RefType) -> BaseVariable:
+    def __getitem__(self, ref: VariableRefType) -> BaseVariable:
         r"""
         Access a variable by its reference.
 
         :param ref: Reference to the variable to be accessed.
         :return: Variable associated with reference `ref`.
         """
+
         ...
 
     @_abc_.abstractmethod
-    def __delitem__(self, ref: RefType) -> None:
+    def __delitem__(self, ref: VariableRefType) -> None:
         r"""
         Delete a variable by its reference.
         Implementation shall remove access to the variable,
@@ -101,27 +124,123 @@ class BaseVariableManager(
 
         :param ref: Reference to the variable to be disabled.
         """
+
         ...
 
 
-from ..utils.mappers import StructureMapper
 
-class CompositeVariable(BaseVariable):
+from .utils.mappers import BaseMapper, CollectionMapper
+
+
+# TODO typing
+class BaseCompositeVariable(
+    BaseVariable,
+    _abc_.ABC,
+    #Generic[T := TypeVar('T')], 
+):
     r"""
-    TODO
+    Composite variable base class.
+    This can serve as a container for one or multiple variables.
+    When used with one variable, it behaves like a proxy 
+    for the underlying variable.
     """
 
     # TODO typehint: CompositeTypes[BaseVariable]
-    def __init__(self, vars):
-        self._vars = vars
+    # TODO
+    def __mapper__(self, next_mapper: 'BaseMapper'):
+        r"""
+        The mapper for the composite variable.
+        This defines how the elements of the composite variable
+        can be discovered and accessed.
+        TODO FIXME(clarity) By default, this assumes non-composite variables.
+
+        :param next_mapper: The next mapper to be applied.
+        """
+        
+        return next_mapper
+
+    __variables__: Any
+    r"""
+    The variables contained in this composite variable.
+    Permissible types determined by :attr:`__mapper__`.
+
+    .. note:: This MUST be overridden in subclasses.
+    """
 
     @property
     def value(self):
         def getter(o):
             return o.value if isinstance(o, BaseVariable) else o
-        return StructureMapper(getter)(self._vars)
+        return self.__mapper__(getter)(self.__variables__)
+
+
+class BaseMutableCompositeVariable(
+    BaseCompositeVariable, 
+    BaseMutableVariable,
+    _abc_.ABC,
+):
+    r"""
+    TODO
+    """
+
+    @property
+    def value(self):
+        return super().value
+
+    @value.setter
+    def value(self, o):
+        def setter(o, val):
+            if isinstance(o, BaseVariable):
+                o.value = val
+                return val
+            # TODO raise?
+            return None
+        return self.__mapper__(setter)(self.__variables__, o)
+
+
+class Variable(
+    Generic[_ValT],
+    BaseVariable[_ValT], 
+    _abc_.ABC,
+):
+    def __init__(self, value: _ValT):
+        super().__init__()
+        self.__value__ = value
+
+    @property
+    def value(self):
+        return self.__value__
+
+
+class MutableVariable(
+    Generic[_ValT],
+    Variable[_ValT],
+    _abc_.ABC,
+):
+    @Variable.value.setter
+    def value(self, o: _ValT):
+        self.__value__ = o
+
+
+# TODO typing
+class CompositeVariable(
+    BaseCompositeVariable,
+    _abc_.ABC,
+):
+    r"""
+    TODO
+    """
+
+    # TODO !!!!!
+    def __mapper__(self, next_mapper):
+        return CollectionMapper(next_mapper=next_mapper)
+
+    def __init__(self, variables: Any):
+        self.__variables__ = variables
+
     
 class MutableCompositeVariable(
+    BaseMutableCompositeVariable,
     CompositeVariable, 
     BaseMutableVariable,
 ):
@@ -129,19 +248,7 @@ class MutableCompositeVariable(
     TODO
     """
 
-    @CompositeVariable.value.setter
-    def value(self, o):
-        def setter(o, val):
-            if isinstance(o, BaseVariable):
-                o.value = val
-                return val
-            return None
-        return StructureMapper(setter)(self._vars, o)
-
-
-# TODO
-def valueof(o: BaseVariable | Any):
-    return o.value if isinstance(o, BaseVariable) else o
+    pass
 
 
 # TODO metaclass=VariableProxyMeta
@@ -164,6 +271,10 @@ class ComputedVariable(BaseVariable):
         *args: BaseVariable | Any, 
         **kwargs: BaseVariable | Any,
     ):
+        # TODO
+        def valueof(o: BaseVariable | Any):
+            return o.value if isinstance(o, BaseVariable) else o
+
         def operator_(*args, **kwargs):
             return operator(
                 *(valueof(o) for o in args), 
@@ -182,18 +293,20 @@ class ComputedVariable(BaseVariable):
         return self._func(*self.__args__, **self.__kwargs__)
 
 
-class VariableProxyMeta(type(BaseVariable)):
+class ValueProxyMeta(type(BaseVariable)):
     def __new__(
         cls, name, bases, namespace, 
         proxy_attrs: Iterable[str] | Mapping[str, str] = [],
         **kwargs,
     ):
+        r"""TODO docs"""
+
 
         def make_method(attr):
             def method(self, *args, **kwargs):
                 class ProxyComputeVariable(
                     ComputedVariable, 
-                    metaclass=VariableProxyMeta, 
+                    metaclass=ValueProxyMeta, 
                     proxy_attrs=proxy_attrs,
                 ): 
                     pass
@@ -220,12 +333,12 @@ class VariableProxyMeta(type(BaseVariable)):
         )
 
 
-from .. import utils as _utils_
+from . import utils as _utils_
 
 
 class VariableNumOpsMixin(
     BaseVariable,
-    metaclass=VariableProxyMeta,
+    metaclass=ValueProxyMeta,
     proxy_attrs=(
         *_utils_.attrs.numeric.BINARY,
         *_utils_.attrs.numeric.RBINARY,
@@ -242,11 +355,11 @@ class VariableNumArrayOpsMixin(BaseVariable):
 
 
 from typing import Iterator
-from .refs import RefManager
+from .refs import BaseRefManager
 
 # TODO just valueof()? Iterator => StreamVariable?
 class VariableRefManager(
-    RefManager[None | BaseVariable | Iterator],
+    BaseRefManager[None | BaseVariable | Iterator, Any],
 ):
     r"""
     Variable reference manager.
@@ -261,7 +374,7 @@ class VariableRefManager(
 
         if isinstance(ref, BaseVariable):
             # TODO
-            from ..specs.exceptions import TemporaryUnavailableError
+            from .errors import TemporaryUnavailableError
             try: 
                 return ref.value
             except TemporaryUnavailableError: 
@@ -277,7 +390,9 @@ __all__ = [
     'BaseVariable',
     'BaseMutableVariable',
     'BaseVariableManager',
+    'Variable',
+    'MutableVariable',
     'VariableNumOpsMixin',
-    'RefType',
+    'VariableRefType',
     'VariableRefManager',
 ]

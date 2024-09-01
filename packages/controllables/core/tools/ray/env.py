@@ -6,185 +6,29 @@ TODO
 import abc as _abc_
 import functools as _functools_
 import threading as _threading_
+import warnings as _warnings_
 from typing import (
     Any, 
     Callable,
-    Generic, 
-    Protocol, 
-    TypeVar, 
     TypedDict, 
     Optional,
 )
 
-from ..gymnasium.core import ObsType, BaseSpaceVariableContainer
-from ..gymnasium.spaces import VariableSpace
-
-from ...specs.exceptions import OptionalImportError
+from ...errors import OptionalModuleNotFoundError
 try: 
     import ray.rllib.env as _rayrl_env_
-    import ray.rllib.utils.typing as _rayrl_typing_
 except ImportError as e:
-    raise OptionalImportError.suggest(['ray[rllib]']) from e
+    raise OptionalModuleNotFoundError.suggest(['ray[rllib]']) from e
 
-try:
-    from gymnasium.spaces import Space
-except ImportError as e:
-    raise OptionalImportError.suggest(['gymnasium']) from e
-
-
-from ...specs.systems import BaseSystem 
-from ...specs.exceptions import TemporaryUnavailableError
-from ...specs.components import BaseComponent
-from ...specs.variables import (
+from ...systems import BaseSystem 
+from ...errors import TemporaryUnavailableError
+from ...components import BaseComponent
+from ...variables import (
     BaseVariable, 
     BaseMutableVariable,
-    CompositeVariable, 
-    MutableCompositeVariable,
 )
-from ...specs.callbacks import Callback
-
-
-class Agent(
-    BaseSpaceVariableContainer,
-    BaseComponent[BaseSystem],
-):
-    r"""Agent for interfacing with :class:`BaseSystem`s."""
-
-    # TODO !!!!
-    class ContextFunction(
-        Protocol,
-        Generic[_ContextRetT := TypeVar('_ContextRetT')],
-    ):
-        def __call__(self, agent: 'Agent') -> 'Agent._ContextRetT':
-            ...
-
-    # TODO !!!!
-    class ContextVariable(
-        BaseVariable, 
-        BaseComponent['Agent'],
-        Generic[_ContextRetT],
-    ):
-        def __init__(self, ref: 'Agent.ContextFunction[Agent._ContextRetT]'):
-            super().__init__()
-            self.ref = ref
-        
-        @property
-        def value(self):
-            return self.ref(agent=self._manager)
-
-    class Config(TypedDict):
-        r"""
-        Configuration for the agent.
-        """
-
-        action_space: Space[VariableSpace]
-        r"""Action space."""
-        observation_space: Space[VariableSpace]
-        r"""Observation space."""
-
-        reward_function: Optional[
-            'Agent.ContextFunction[float]'
-        ]
-        r"""Reward function."""
-        info_function: Optional[
-            'Agent.ContextFunction[dict]'
-        ]
-        r"""Info function."""
-
-    def __init__(self, config: Config):
-        self.config = config
-
-    @property
-    def action_space(self):
-        return self.config['action_space']
-    
-    @property
-    def observation_space(self):
-        return self.config['observation_space']
-
-    @_functools_.cached_property
-    def reward(self):
-        reward_function = self.config.get('reward_function')
-        if reward_function is None:
-            return None
-        return self.ContextVariable(reward_function).__attach__(self)
-    
-    @_functools_.cached_property
-    def info(self):
-        info_function = self.config.get('info_function')
-        if info_function is None:
-            return None
-        return self.ContextVariable(info_function).__attach__(self)
-
-
-class AgentManager(
-    dict[_RefT := TypeVar('_RefT'), Agent],
-    BaseComponent[BaseSystem],
-    Generic[_RefT],
-):
-    r"""TODO"""
-
-    class Config(TypedDict):
-        action_space: dict[_RefT, Space[VariableSpace]]
-        r"""Action space."""
-        observation_space: dict[_RefT, Space[VariableSpace]]
-        r"""Observation space."""
-
-        reward_function: Optional[dict[_RefT, Agent.ContextFunction[float]]]
-        r"""Reward function."""
-        info_function: Optional[dict[_RefT, Agent.ContextFunction[dict]]]
-        r"""Info function."""
-
-    def __init__(self, config: Config):
-        super().__init__()
-
-        self.update({
-            agent_ref: Agent(config=Agent.Config(
-                action_space=config['action_space'][agent_ref],
-                observation_space=config['observation_space'][agent_ref],
-                reward_function=config['reward_function'].get(agent_ref)
-                    if config.get('reward_function') is not None else None,
-                info_function=config['info_function'].get(agent_ref)
-                    if config.get('info_function') is not None else None,
-            ))
-            for agent_ref in config['action_space']
-        })
-
-    def __attach__(self, manager):
-        super().__attach__(manager)
-
-        for agent in self.values():
-            agent.__attach__(self._manager)
-
-        return self
-
-    @property
-    def actions(self):
-        return MutableCompositeVariable({
-            agent_ref: agent.action
-            for agent_ref, agent in self.items()
-        })
-    
-    @property
-    def observations(self):
-        return MutableCompositeVariable({
-            agent_ref: agent.observation
-            for agent_ref, agent in self.items()
-        })
-
-    @property
-    def rewards(self):
-        return CompositeVariable({
-            agent_ref: agent.reward
-            for agent_ref, agent in self.items()
-        })
-
-    @property
-    def infos(self):
-        return CompositeVariable({
-            agent_ref: agent.info
-            for agent_ref, agent in self.items()
-        })
+from ...callbacks import Callback
+from ..gymnasium.env import Agent, AgentManager
 
 
 # TODO callback interface??
@@ -213,7 +57,6 @@ class BaseEnvEpisodeController(
         return self._episode_id is not None
 
     def start(self, training_enabled=True):
-
         if self._episode_id is not None:
             return 
         
@@ -314,7 +157,7 @@ class CommonEnv(
         r"""
         Reference to the system to attach to.
         Can either be a system instance or 
-        a callable that returns a system instance.
+        a :class:`callable` that returns a system instance.
         If not specified, the system must be 
         :meth:`__attach__`-ed manually
         before anything can be done with the environment.
@@ -327,7 +170,7 @@ class CommonEnv(
         If :class:`True`, the environment will `start`/`stop` the system
         automatically when the environment is `run`/`join`-ed.
 
-        Useful when the environment needs to be run in distributed settings,
+        Useful when the environment needs to run in distributed settings,
         where the system cannot be shared among the nodes/workers.
         """
 
@@ -387,7 +230,13 @@ class CommonEnv(
             if observation is None:
                 try: observation = self._manager.observation.value
                 # TODO panic?????
-                except TemporaryUnavailableError: pass
+                except TemporaryUnavailableError as e: 
+                    _warnings_.warn(
+                        f'Observation required to end the episode; got {e!r}',
+                        RuntimeWarning,
+                    )
+                    #raise ValueError('Observation required to end the episode; got none')
+                    return
             return super().end(observation=observation)
 
         def step(self):
@@ -409,9 +258,7 @@ class CommonEnv(
         
         def get_action(self, observation=None):
             if observation is None and self._manager.observation is not None:
-                try: observation = self._manager.observation.value
-                # TODO panic?????
-                except TemporaryUnavailableError: pass
+                observation = self._manager.observation.value
             return super().get_action(observation=observation)
 
     def episode_controller(self):
@@ -442,6 +289,7 @@ class CommonEnv(
                 )
             
             episode_events: CommonEnv.Config.EpisodeEvents = {
+                # TODO 'start': self._manager.events.get('start', None), ...
                 'start': self._manager.workflows['run:pre'],
                 'end': self._manager.workflows['run:post'],
                 'step': None,
@@ -500,7 +348,7 @@ class ExternalMultiAgentEnv(
             observation_space=config['observation_space'],
         )
         CommonEnv.__init__(self, config=config)
-        self._agents = AgentManager(config)
+        self._agents = AgentManager(config=config)
 
     def __attach__(self, manager):
         CommonEnv.__attach__(self, manager)
@@ -510,12 +358,15 @@ class ExternalMultiAgentEnv(
     @property
     def action(self): 
         return self._agents.actions
+    
     @property
     def observation(self): 
         return self._agents.observations
+    
     @property
     def reward(self): 
         return self._agents.rewards
+    
     @property
     def info(self): 
         return self._agents.infos
@@ -529,63 +380,10 @@ class ExternalEnv(
     r"""
     A Ray RLlib external environment for interfacing with worlds.
 
-    Examples:
+    TODO examples
 
-    .. code-block:: python
-
-        import numpy as _numpy_
-        import gymnasium as _gymnasium_
-
-        from energyplus.ooep.addons.rl.gymnasium.spaces import VariableBox
-        from energyplus.ooep.addons.rl.ray import ExternalEnv
-
-        from energyplus.ooep.components.variables import (
-            Actuator,
-            OutputVariable,
-        )
-
-        # NOTE create and start an `energyplus.ooep.World` instance here
-        world = ...
-
-        env = ExternalEnv(
-            ExternalEnv.Config(
-                action_space=_gymnasium_.spaces.Dict({
-                    'thermostat': VariableBox(
-                        low=15., high=16.,
-                        dtype=_numpy_.float32,
-                        shape=(),
-                    ).bind(Actuator.Ref(
-                        type='Zone Temperature Control',
-                        control_type='Heating Setpoint',
-                        key='CORE_MID',
-                    ))
-                }),
-                observation_space=_gymnasium_.spaces.Dict({
-                    'temperature': VariableBox(
-                        low=-_numpy_.inf, high=+_numpy_.inf,
-                        dtype=_numpy_.float32,
-                        shape=(),
-                    ).bind(OutputVariable.Ref(
-                        type='People Air Temperature',
-                        key='CORE_MID',
-                    )),
-                }),
-                reward_function=lambda agent: 1 / agent.observation.value['temperature'],
-                episode_events={
-                    # TODO
-                    'start': world.workflows['run:pre'],
-                    'end': world.workflows['run:post'],
-                    #'step': world.events['begin_zone_timestep_after_init_heat_balance'],
-                    'step': 'begin_zone_timestep_after_init_heat_balance',
-                },
-            )
-        ).__attach__(world)
-
-    TODO more examples
-
-    TODO
     .. seealso::
-        * `ray.rllib.ExternalEnv <https://docs.ray.io/en/latest/rllib/package_ref/env/external_env.html#rllib-env-external-env-externalenv>`_
+    * `ray.rllib.ExternalEnv <https://docs.ray.io/en/latest/rllib/package_ref/env/external_env.html#rllib-env-external-env-externalenv>`_
     """
 
     class Config(Agent.Config, CommonEnv.Config):
@@ -614,12 +412,15 @@ class ExternalEnv(
     @property
     def action(self): 
         return self._agents[None].action
+    
     @property
     def observation(self): 
         return self._agents[None].observation
+    
     @property
     def reward(self): 
         return self._agents[None].reward
+    
     @property
     def info(self): 
         return self._agents[None].info

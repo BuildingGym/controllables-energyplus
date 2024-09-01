@@ -3,28 +3,29 @@ TODO
 """
 
 
-from .core import (
-    ActType,
-    ObsType,
-    SpaceVariable,
-    MutableSpaceVariable,
-    BaseSpaceVariableContainer,
-    SpaceVariableContainer,
+from .env import (
+    BaseAgent,
+    Agent,
+    Env,
 )
 
+# TODO
 from .spaces import (
-    VariableSpace,
-    VariableBox,
+    Space,
+    BoxSpace,
+    DiscreteSpace,
+    DictSpace,
+    TupleSpace,
 )
 
 
 __all__ = [
-    'ActType',
-    'ObsType',
-    'SpaceVariable',
-    'MutableSpaceVariable',
-    'BaseSpaceVariableContainer',
-    'SpaceVariableContainer',
-    'VariableSpace',
-    'VariableBox',
+    'BaseAgent',
+    'Agent',
+    'Env',
+    'Space',
+    'BoxSpace',
+    'DiscreteSpace',
+    'DictSpace',
+    'TupleSpace',
 ]

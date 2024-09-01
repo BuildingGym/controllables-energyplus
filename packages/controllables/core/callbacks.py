@@ -4,18 +4,26 @@ Callbacks.
 
 
 import abc as _abc_
-import typing as _typing_
 import collections as _collections_
 import functools as _functools_
 import asyncio as _asyncio_
+import concurrent.futures as _concurrent_futures_
+from typing import (
+    Any, 
+    Callable, 
+    Generic, 
+    Mapping, 
+    Self, 
+    TypeAlias, 
+    TypeVar,
+)
 
-from typing import Any, Mapping, Self, Callable, Generic, TypeAlias
+from .components import BaseComponent
+from .refs import BaseRefManager
+from .utils.containers import OrderedSet
 
-from ..specs.components import BaseComponent
-from ..utils.containers import OrderedSet
 
-
-_CallableT = _typing_.TypeVar(
+_CallableT = TypeVar(
     '_CallableT', 
     bound=Callable,
 )
@@ -56,16 +64,16 @@ class CallablePipeline(
         Arguments are passed to callbacks in the pipeline.
 
         If a callback raises:
-        * :class:`ContinueOperation`: 
-            For the current call, the issuing callback is skipped 
-            and its result not recorded in the return value.
-            This is equivalent to a ``continue`` statement in a loop.
-        * :class:`StopOperation`: 
-            For the current call, all callbacks after 
-            the issuing callback are skipped 
-            and the return value contains only the results before
-            the issuing callback.
-            This is equivalent to a ``break`` statement in a loop.
+            * :class:`ContinueOperation`: 
+                For the current call, the issuing callback is skipped 
+                and its result not recorded in the return value.
+                This is equivalent to a ``continue`` statement in a loop.
+            * :class:`StopOperation`: 
+                For the current call, all callbacks after 
+                the issuing callback are skipped 
+                and the return value contains only the results before
+                the issuing callback.
+                This is equivalent to a ``break`` statement in a loop.
 
         :returns: 
             The results of each callback, 
@@ -95,6 +103,9 @@ class BaseCallback(
 ):
     r"""
     Callback base class.
+
+    A callback is a :class:`set`-like container 
+    for :class:`callable`s.
     """
 
     @_abc_.abstractmethod
@@ -142,10 +153,10 @@ class BaseCallback(
         r"""
         Create a new namespace under this callback.
         This namespace shall:
-        * have its own set of callables 
-            (accessible via :meth:`on` and :meth:`off`)
-        * emit when its parent callback emits 
-            (accessible via :meth:`__call__`)
+            * have its own set of callables 
+                (accessible via :meth:`on` and :meth:`off`)
+            * emit when its parent callback emits 
+                (accessible via :meth:`__call__`)
 
         :param transform:
             A function to transform the created callback instance.
@@ -158,31 +169,42 @@ class BaseCallback(
         ...
 
 
-
-_RefT = _typing_.TypeVar(
-    '_RefT', 
-    bound=_typing_.Hashable,
-)
+_RefT = TypeVar('_RefT')
 
 # TODO _CallbackT instead
 class BaseCallbackManager(
+    BaseRefManager[_RefT, BaseCallback[_CallableT]],
     _abc_.ABC,
-    _typing_.Generic[
+    Generic[
         _RefT, 
         _CallableT,
     ],
 ):
     r"""
     Callback manager base class.
+
+    A callback manager is a :class:`dict`-like container for 
+    :class:`BaseCallback` instances keyed by references.
     """
     
     @_abc_.abstractmethod
     def __getitem__(self, ref: _RefT) -> BaseCallback[_CallableT]:
         r"""
-        Access the callback for the reference.
+        Access the callback.
         
         :param ref: The reference.
         :returns: The callback.
+        """
+
+        ...
+
+    @_abc_.abstractmethod
+    def __contains__(self, ref: _RefT) -> bool:
+        r"""
+        Check if the reference exists in this manager.
+
+        :param ref: The reference.
+        :returns: Whether the reference exists.
         """
 
         ...
@@ -194,10 +216,11 @@ class BaseCallbackManager(
         *callables: _CallableT,
     ) -> Self:
         r"""
-        Enable the given callables for the reference.
+        Add callables for the provided reference.
 
         :param ref: The reference.
         :param callables: The callables to enable.
+        :returns: This manager.
         """
 
         ...
@@ -209,10 +232,11 @@ class BaseCallbackManager(
         *callables: _CallableT,
     ) -> Self:
         r"""
-        Disable the given callables for the reference.
+        Remove callables for the provided reference.
 
         :param ref: The reference.
         :param callables: The callables to disable.
+        :returns: This manager.
         """
 
         ...
@@ -242,59 +266,64 @@ import dataclasses as _dataclasses_
 import threading as _threading_
 
 
+# TODO typing generics
+class CallbackArguments:
+    r"""TODO"""
+
+    def __init__(self, *args, **kwargs):
+        self.__args__ = args
+        self.__kwargs__ = kwargs
+
+    def keys(self):
+        return _itertools_.chain(
+            range(len(self.__args__)),
+            self.__kwargs__.keys(),
+        )
+
+    def values(self):
+        return _itertools_.chain(
+            self.__args__, 
+            self.__kwargs__.values(),
+        )
+    
+    def __iter__(self):
+        return self.values()
+    
+    def __getitem__(self, key):
+        if key in self.__args__:
+            return self.__args__[key]
+        return self.__kwargs__[key]
+
+    def __repr__(self):
+        args_r = str.join(', ', (repr(arg) for arg in self.__args__))
+        kwargs_r = str.join(', ', 
+            (f'{k}={v!r}' for k, v in self.__kwargs__.items()))
+        return f'{self.__class__.__name__}({args_r}, {kwargs_r})'
+
+
+# TODO sync future?
+class CallbackResult(Generic[T := TypeVar('T')]):
+    def __init__(self, deferred: bool = False):
+        self.__result__: T | None = None
+        self.__done__ = _threading_.Event() if deferred else None
+
+    def __call__(self, value: T) -> Self:
+        if self.__done__ is not None:
+            self.__done__.set()
+        self.__result__ = value
+        return self
+    
+    def get(self, timeout: float | None = None) -> T:
+        if self.__done__ is not None:
+            self.__done__.wait(timeout=timeout)
+            self.__done__.clear()
+        return self.__result__
+
+
 @_dataclasses_.dataclass
-class CallbackContext:
-    class Input:
-        r"""TODO"""
-
-        def __init__(self, *args, **kwargs):
-            self.__args__ = args
-            self.__kwargs__ = kwargs
-
-        def keys(self):
-            return _itertools_.chain(
-                range(len(self.__args__)),
-                self.__kwargs__.keys(),
-            )
-
-        def values(self):
-            return _itertools_.chain(
-                self.__args__, 
-                self.__kwargs__.values(),
-            )
-        
-        def __iter__(self):
-            return self.values()
-        
-        def __getitem__(self, key):
-            if key in self.__args__:
-                return self.__args__[key]
-            return self.__kwargs__[key]
-
-        def __repr__(self):
-            args_r = str.join(', ', (repr(arg) for arg in self.__args__))
-            kwargs_r = str.join(', ', 
-                (f'{k}={v!r}' for k, v in self.__kwargs__.items()))
-            return f'{self.__class__.__name__}({args_r}, {kwargs_r})'
-        
-    class Output:
-        def __init__(self, deferred: bool = False):
-            self.__result__ = None
-            self.__done__ = _threading_.Event() if deferred else None
-
-        def __call__(self, value):
-            if self.__done__ is not None:
-                self.__done__.set()
-            self.__result__ = value
-            return self
-        
-        def get(self, timeout: float | None = None):
-            if self.__done__ is not None:
-                self.__done__.wait(timeout=timeout)
-            return self.__result__
-        
-    input: Input
-    output: Output
+class CallbackContext:        
+    input: CallbackArguments
+    output: CallbackResult
 
     @property
     def args(self):
@@ -303,6 +332,39 @@ class CallbackContext:
     def ack(self, value=None):
         self.output(value)
         return self.output
+
+
+class CallbackSyncOpsMixin(BaseCallback):
+    r"""
+    Synchronous operations mixin for callbacks.
+    TODO
+
+    """
+
+    class SyncOps(BaseComponent[BaseCallback]):
+        def __call__(self, deferred: bool = False) \
+            -> _concurrent_futures_.Future[CallbackContext]:
+            future = _concurrent_futures_.Future()
+            
+            # TODO
+            def _listener(*args, **kwargs):
+                self._manager.off(_listener)
+                ctx = CallbackContext(
+                    input=CallbackArguments(*args, **kwargs),
+                    output=CallbackResult(deferred=deferred),
+                )
+                future.set_result(ctx)
+                return ctx.output.get()
+            self._manager.on(_listener)
+
+            return future
+        
+    @_functools_.cached_property
+    def waitable(self):
+        return self.SyncOps().__attach__(self)
+    
+    def wait(self, deferred: bool = False) -> CallbackContext:
+        return self.waitable(deferred=deferred).result()
 
 
 class CallbackAsyncOpsMixin(BaseCallback):
@@ -359,10 +421,12 @@ class CallbackAsyncOpsMixin(BaseCallback):
             def _listener(*args, **kwargs):
                 self._manager.off(_listener)
                 ctx = CallbackContext(
-                    input=CallbackContext.Input(*args, **kwargs),
-                    output=CallbackContext.Output(deferred=deferred),
+                    input=CallbackArguments(*args, **kwargs),
+                    output=CallbackResult(deferred=deferred),
                 )
-                loop.call_soon_threadsafe(future.set_result, ctx)
+                loop.call_soon_threadsafe(
+                    future.set_result, ctx,
+                )
                 return ctx.output.get()
             self._manager.on(_listener)
 
@@ -409,19 +473,6 @@ class CallbackProxy(
         return self._target.fork(transform=transform)
 
 
-# TODO
-class _TODO_CompositeCallback:
-    def onto(self, *callbacks: BaseCallback):
-        raise NotImplementedError
-
-    def offto(self, *callbacks: BaseCallback):
-        raise NotImplementedError
-    
-    def __call__(self, *args, **kwargs):
-        # TODO
-        pass
-
-
 # TODO mv
 Predicate: TypeAlias = Callable[..., bool]
 
@@ -453,7 +504,7 @@ class CallbackOpsMixin(
     BaseCallback[_CallableT],
     Generic[_CallableT],
 ):
-    def __and__(self, other: BaseCallback[_CallableT]) -> 'Callback[_CallableT]':
+    def __or__(self, other: BaseCallback[_CallableT]) -> 'Callback[_CallableT]':
         # TODO
 
         raise NotImplementedError
@@ -491,7 +542,8 @@ class CallbackOpsMixin(
 
 class Callback(
     CallbackOpsMixin,
-    CallbackAsyncOpsMixin,    
+    CallbackSyncOpsMixin,
+    CallbackAsyncOpsMixin,
     BaseCallback[_CallableT],
     Generic[_CallableT],
 ):

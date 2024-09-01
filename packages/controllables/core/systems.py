@@ -1,5 +1,5 @@
 r"""
-Systems.
+Specs for systems.
 """
 
 
@@ -9,20 +9,18 @@ import asyncio as _asyncio_
 
 from typing import Self, Literal
 
-from .. import utils as _utils_
-
 from .workflows import WorkflowManager
 from .components import BaseComponent
 from .variables import BaseVariableManager
 from .callbacks import CallbackManager
+from .utils.awaitables import asyncify
 
 
 class BaseSystem(_abc_.ABC):
     r"""
     System base class.
 
-    A system is a collection of components 
-    that work together to achieve a goal.
+    A system is a group of components.
     """
 
     WorkflowManager = WorkflowManager[
@@ -56,13 +54,25 @@ class BaseSystem(_abc_.ABC):
 
         return WorkflowManager().__attach__(self)
 
+    # TODO deprecate
     @_abc_.abstractmethod
     def run(self) -> Self:
         r"""
         Run the system.
         
+        TODO Deprecated.
+        """
+
+        ...
+
+    # TODO
+    #@_abc_.abstractmethod
+    def start(self) -> Self:
+        r"""
+        Start the system.
+        
         :return: This system.
-        :raises RuntimeError: If the system is already running.
+        :raises RuntimeError: If the system is already started.
         """
 
         ...
@@ -78,14 +88,16 @@ class BaseSystem(_abc_.ABC):
             Otherwise, raises a :class:`TimeoutError` 
             if the system does not stop in time. (TODO)
         :return: This system.
-        :raises RuntimeError: If the system is not running.
+        :raises RuntimeError: If the system is not started.
         """
 
         ...
 
+    # TODO builtin vars (e.g. 'time')
     variables: BaseVariableManager
     r"""Root variable manager."""
 
+    # TODO builtin events (e.g. 'begin', 'step', 'end')
     events: CallbackManager
     r"""Root event manager."""
 
@@ -95,11 +107,13 @@ class BaseSystem(_abc_.ABC):
         """
 
         def __init__(self, loop: _asyncio_.AbstractEventLoop = None):
-            self.__asyncify__ = _utils_.awaitables.asyncify(loop=loop)
+            self.__asyncify__ = asyncify(loop=loop)
 
         def run(self, *args, **kwargs):
             r"""
             Run the system asynchronously.
+
+            .. seealso:: :meth:`BaseSystem.run`
             """
 
             return _asyncio_.create_task(
@@ -110,6 +124,8 @@ class BaseSystem(_abc_.ABC):
         def stop(self, *args, **kwargs):
             r"""
             Stop the system asynchronously.
+
+            .. seealso:: :meth:`BaseSystem.stop`
             """
 
             return _asyncio_.create_task(

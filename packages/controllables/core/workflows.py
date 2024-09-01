@@ -15,7 +15,7 @@ from typing import (
     Callable,
 )
 
-from .. import utils as _utils_
+from .callbacks import CallbackManager
 from .components import BaseComponent
 
 
@@ -32,7 +32,7 @@ class Workflow(
 
 class WorkflowManager(
     BaseComponent[_RefT := TypeVar('_RefT')],
-    _utils_.callbacks.CallbackManager[
+    CallbackManager[
         _RefT,
         Callable[
             [Workflow[_RefT, _ManT := TypeVar('_ManT')]],
@@ -48,6 +48,7 @@ class WorkflowManager(
         )
     
 
+# TODO necesito?
 import wrapt as _wrapt_
 
 from .callbacks import CallbackManager

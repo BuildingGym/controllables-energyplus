@@ -17,8 +17,8 @@ from typing import (
     Unpack,
 )
 
-from controllables.core import BaseSystem, SystemShortcutMixin
-from controllables.core.specs.components import BaseComponent
+from controllables.core.systems import BaseSystem, SystemShortcutMixin
+from controllables.core.components import BaseComponent
 
 from . import (
     _core as _core_,
@@ -172,11 +172,7 @@ class World(SystemShortcutMixin, BaseSystem):
             # NOTE state must be reset between runs
             self._core.reset()
 
-            self._core.api.runtime \
-                .set_console_output_status(
-                    self._core.state,
-                    print_output=False,
-                )
+            self._core.configure(print_output=False)
             
             args = [
                 # 0
@@ -214,11 +210,7 @@ class World(SystemShortcutMixin, BaseSystem):
             self.workflows.__call__('run:pre')
 
             self._state = World.State.RUNNING
-            status = self._core.api.runtime \
-                .run_energyplus(
-                    self._core.state,
-                    command_line_args=args,
-                )
+            status = self._core.run(args)
             if (self._state == World.State.STOPPING 
                     or not c['runtime'].get('recurring')):
                 keepalive = False
@@ -236,8 +228,7 @@ class World(SystemShortcutMixin, BaseSystem):
 
         self.workflows.__call__('stop:pre')
         self._state = World.State.STOPPING
-        self._core.api.runtime \
-            .stop_simulation(self._core.state)
+        self._core.stop()
         self.workflows.__call__('stop:post')
 
         return self

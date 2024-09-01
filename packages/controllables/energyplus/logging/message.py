@@ -6,7 +6,7 @@ Scope: Logging and presenting messages.
 
 
 
-from controllables.core import BaseComponent
+from controllables.core.components import BaseComponent
 from ..world import World
 
 

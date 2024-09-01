@@ -1,5 +1,5 @@
 r"""
-Exceptions
+Errors.
 """
 
 
@@ -18,7 +18,11 @@ class TemporaryUnavailableError(Exception):
 import sys as _sys_
 from typing import Collection
 
-class OptionalImportError(ImportError):
+class OptionalModuleNotFoundError(ModuleNotFoundError):
+    r"""
+    Exception raised when an optional dependency/module is not found.
+    """
+
     @classmethod
     def suggest(cls, package_names: Collection[str]):
         return cls(
@@ -26,10 +30,16 @@ class OptionalImportError(ImportError):
             f'''`{_sys_.executable} -m pip install {
                 str.join(' ', (f'"{s}"' for s in package_names))}`'''
         )
+    
+class OptionalModuleNotFoundWarning(RuntimeWarning, OptionalModuleNotFoundError):
+    r"""
+    Warning equivalent of :class:`OptionalImportError`.
+    """
 
+    pass
 
 
 __all__ = [
     'TemporaryUnavailableError',
-    'OptionalImportError',
+    'OptionalModuleNotFoundError',
 ]

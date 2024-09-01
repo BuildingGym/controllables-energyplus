@@ -1,4 +1,4 @@
-# EnergyPlus-OOEP
+# controllables-core
 
 ## Installation
 ```sh

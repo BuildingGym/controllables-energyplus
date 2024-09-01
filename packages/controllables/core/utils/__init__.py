@@ -1,5 +1,4 @@
 # TODO !!!!!!
-from ..specs import callbacks
 from . import (
     attrs,
     awaitables,
@@ -11,7 +10,6 @@ from . import (
 __all__ = [
     'attrs',
     'awaitables',
-    'callbacks',
     'containers',
     'mappings',
 ]

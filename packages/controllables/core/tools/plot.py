@@ -1,7 +1,7 @@
 r"""
 Plotting tools.
 
-Scope: Plotting tools for visualizing reference data.
+Scope: Plotting tools for visualizing realtime data.
 """
 
 
@@ -17,6 +17,8 @@ from typing import (
     TypeVar,
     Literal,
 )
+
+from ..errors import OptionalModuleNotFoundError
 
 
 class PlotSpec(
@@ -72,7 +74,7 @@ class PlotSpec(
     r"""The backend keyword arguments."""
 
 
-from ..specs.refs import RefManager
+from ..refs import BaseRefManager
 
 
 # TODO
@@ -83,7 +85,7 @@ class BasePlot(_abc_.ABC):
     """
 
     @_abc_.abstractmethod
-    def __init__(self, spec: PlotSpec, refs: RefManager | None = None):
+    def __init__(self, spec: PlotSpec, refs: BaseRefManager | None = None):
         r"""
         Create a plot per spec.
 
@@ -171,10 +173,14 @@ class PlotlyBackend(BasePlot):
     """
 
     def __init__(self, spec, refs=None):
+        try:
+            from plotly.graph_objects import FigureWidget
+        except ImportError as e:
+            raise OptionalModuleNotFoundError.suggest(['plotly']) from e
+
         self._spec = spec
         self._refs = refs
 
-        from plotly.graph_objects import FigureWidget
         self._figure = FigureWidget(
             **self._spec.get('backend_kwds', dict()),
         )
@@ -229,17 +235,19 @@ class MatplotlibBackend(BasePlot):
     """
 
     def __init__(self, spec, refs=None):
+        try:
+            from matplotlib.figure import Figure
+            from matplotlib.axes import Axes
+        except ImportError as e:
+            raise OptionalModuleNotFoundError.suggest(['matplotlib']) from e
+
         self._spec = spec
         self._refs = refs
 
-        from matplotlib.figure import Figure
         self._figure = Figure(
             **self._spec.get('backend_kwds', dict()),
         )
         #self._figure.subplots()
-
-        from matplotlib.axes import Axes
-
 
         self._figure.add_artist
         self._figure.add_axes

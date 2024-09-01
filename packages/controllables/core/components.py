@@ -8,7 +8,6 @@ import abc as _abc_
 import typing as _typing_
 import functools as _functools_ 
 
-from .. import utils as _utils_
 #from . import workflows as _workflows_
 
 
@@ -59,7 +58,7 @@ class BaseComponent(
     # TODO
     '''
 
-    __manager__: _BaseComponentManagerT = None
+    __manager__: _BaseComponentManagerT | None = None
     @property
     def _manager(self) -> _BaseComponentManagerT:
         return self.__manager__

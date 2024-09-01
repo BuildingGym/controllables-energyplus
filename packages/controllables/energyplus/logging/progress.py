@@ -5,9 +5,9 @@ Scope: Logging and presenting progress messages and values.
 """
 
 
-from controllables.core import (
+from controllables.core.errors import OptionalModuleNotFoundError
+from controllables.core.components import (
     BaseComponent,
-    OptionalImportError,
 )
 from ..world import World
 
@@ -24,7 +24,7 @@ class ProgressLogger(BaseComponent[World]):
         import tqdm as _tqdm_
         import tqdm.auto as _tqdm_auto_
     except ImportError as e:
-        raise OptionalImportError.suggest(['tqdm']) from e
+        raise OptionalModuleNotFoundError.suggest(['tqdm']) from e
 
     def __init__(self, progbar_ref: _tqdm_.tqdm | None = None):
         r"""

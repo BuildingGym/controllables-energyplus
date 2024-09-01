@@ -14,20 +14,23 @@ import abc as _abc_
 import dataclasses as _dataclasses_
 import itertools as _itertools_
 import contextlib as _contextlib_
-from typing import Callable
+from typing import Callable, Generic, TypeVar
 
 from . import (
     world as _world_,
 )
 
-# TODO rm dep
 from controllables.core import (
+    # TODO rm dep
     utils as _utils_,
-    BaseComponent,
+)
+from controllables.core.errors import (
     TemporaryUnavailableError,
 )
-
-from controllables.core.specs.variables import (
+from controllables.core.components import (
+    BaseComponent,
+)
+from controllables.core.variables import (
     BaseVariable,
     BaseMutableVariable,
     BaseVariableManager,
@@ -60,13 +63,17 @@ class CoreExceptionableMixin(
             if api.exchange.api_error_flag(state):
                 api.exchange.reset_api_error_flag(state)
                 raise TemporaryUnavailableError(
-                    'Core API data exchange error'
+                    f'Core API data exchange error: {self}'
                 )
 
 
+_ValT = TypeVar('_ValT')
+
+
 class Variable(
+    Generic[_ValT],
     VariableNumOpsMixin,
-    BaseVariable, 
+    BaseVariable[_ValT], 
     BaseComponent['VariableManager'],
 ):
     r"""
@@ -95,7 +102,8 @@ class Variable(
         return self._ref
     
 class MutableVariable(
-    Variable,
+    Generic[_ValT],
+    Variable[_ValT],
     BaseMutableVariable, 
     BaseComponent['VariableManager'],
 ):
@@ -108,7 +116,7 @@ class MutableVariable(
 
 import datetime as _datetime_
 
-class WallClock(Variable, CoreExceptionableMixin):
+class WallClock(Variable[_datetime_.datetime], CoreExceptionableMixin):
     r"""Wall clock variable class."""
 
     @_dataclasses_.dataclass(frozen=True)
@@ -133,28 +141,21 @@ class WallClock(Variable, CoreExceptionableMixin):
     def value(self):
         exchange = self._manager._core.api.exchange
         state = self._manager._core.state
-        try:
-            return _datetime_.datetime(
+
+        #with self._ensure_exception():
+        try: 
+            return _datetime_.datetime.min.replace(
                 year=(
                     exchange.calendar_year(state) 
                     if self.ref.calendar else 
                     exchange.year(state)
                 ),
-                month=exchange.month(state),
-                day=exchange.day_of_month(state),
-                # TODO
-                hour=exchange.hour(state),
-                # NOTE core api returns 1-60: datetime requires range(60)
-                minute=exchange.minutes(state) - 1,
-                # TODO
-                tzinfo=_datetime_.timezone(offset=_datetime_.timedelta(0)),
+            ) + _datetime_.timedelta(
+                days=exchange.day_of_year(state) - 1,
+                hours=exchange.current_time(state),
             )
-        except ValueError as e:
-            # 
-            # TODO better handling!!!!!!!!!!!!!
-            # TODO err flag temp unavailable!!!!!!!!!!!
+        except ValueError:
             raise TemporaryUnavailableError()
-
 
 
 class Actuator(
@@ -347,26 +348,21 @@ class OutputVariable(
     def __attach__(self, engine):
         super().__attach__(manager=engine)
 
-        world = self._manager._manager
+        core = self._manager._core
 
-        @world.workflows['run:pre'].use
+        @core.workflows['run:pre'].use
         def request_var(_=None):
-            world._core.api.exchange \
+            # TODO once? or only when __detach__ed?
+            #core.workflows['run:pre'].off(request_var)
+            core.api.exchange \
                 .request_variable(
-                    world._core.state,
+                    core.state,
                     variable_name=self.ref.type,
                     variable_key=self.ref.key,
                 )
             
         # TODO
         request_var()
-
-        match world._state:
-            case world.State.IDLE:
-                #request_var()
-                pass
-            case _:
-                pass
             
         return self
 
@@ -392,6 +388,7 @@ class OutputVariable(
                 )
 
 
+
 class VariableManager(
     dict[str | Variable.Ref, Variable],
     BaseVariableManager, 
@@ -406,27 +403,30 @@ class VariableManager(
     @property
     def _core(self):
         return self._manager._core
-        
+    
+    _symbols: dict[str, Callable[[], Variable]] = {
+        # std
+        'time': lambda: WallClock(WallClock.Ref(calendar=True)),
+        # ...
+        'wallclock': lambda: WallClock(WallClock.Ref()),
+        'wallclock:calendar': lambda: WallClock(WallClock.Ref(calendar=True)),
+    }
+
+    _constructors: dict[Variable.Ref, Variable] = {
+        WallClock.Ref: WallClock,
+        Actuator.Ref: Actuator,
+        InternalVariable.Ref: InternalVariable,
+        OutputMeter.Ref: OutputMeter,
+        OutputVariable.Ref: OutputVariable,
+    }
+                
     # TODO
     def __missing__(self, ref):
         def build(ref: str | Variable.Ref) -> Variable:
-            symbols: dict[str, Callable[[], Variable]] = {
-                'wallclock': lambda: WallClock(WallClock.Ref()),
-                'wallclock:calendar': lambda: WallClock(WallClock.Ref(calendar=True)),
-            }
-
-            constructors: dict[Variable.Ref, Variable] = {
-                WallClock.Ref: WallClock,
-                Actuator.Ref: Actuator,
-                InternalVariable.Ref: InternalVariable,
-                OutputMeter.Ref: OutputMeter,
-                OutputVariable.Ref: OutputVariable,
-            }
-
-            if ref in symbols:
-                return symbols[ref]()            
+            if ref in self._symbols:
+                return self._symbols[ref]()            
             
-            for ref_cls, constructor in constructors.items():
+            for ref_cls, constructor in self._constructors.items():
                 if isinstance(ref, ref_cls):
                     return constructor(ref=ref)
                 
@@ -435,6 +435,12 @@ class VariableManager(
         self[ref] = build(ref).__attach__(self)
 
         return self[ref]
+    
+    def __contains__(self, ref):
+        return any((
+            ref in self._symbols, 
+            isinstance(ref, tuple(self._constructors.keys())),
+        ))
 
     def __delitem__(self, ref):
         return super(dict).__delitem__(ref)
@@ -442,9 +448,65 @@ class VariableManager(
     def __repr__(self):
         return object.__repr__(self)
 
-    # TODO
     class KeysView(_utils_.mappings.GroupableIterator):
-        pass
+        r"""TODO"""
+
+        def dataframes(self, **pandas_kwds):
+            # TODO
+            from controllables.core.errors import (
+                OptionalModuleNotFoundError,
+            )
+                        
+            try: import pandas as _pandas_
+            except ImportError as e:
+                raise OptionalModuleNotFoundError.suggest(['pandas']) from e
+            
+            return {
+                ref_type: _pandas_.DataFrame(refs, **pandas_kwds)
+                for ref_type, refs in self.group(type).items()
+            }
+
+        def _repr_html_(self):
+            import warnings as _warnings_
+
+            from controllables.core.errors import (
+                OptionalModuleNotFoundError,
+                OptionalModuleNotFoundWarning,
+            )
+            from controllables.core.utils.ipy import repr_html
+
+            try: import pandas as _pandas_
+            except ImportError as e:
+                raise OptionalModuleNotFoundError.suggest(['pandas']) from e
+
+            def repr_htmltable(df: _pandas_.DataFrame):                
+                try: import itables as _itables_
+                except ImportError:
+                    _warnings_.warn(
+                        OptionalModuleNotFoundWarning.suggest(['itables'])
+                    )
+                    return df.to_html()
+
+                return _itables_.to_html_datatable(
+                    df, 
+                    classes='display',
+                    layout={'bottom': 'searchPanes'},
+                    searchPanes={'initCollapsed': True},
+                    maxBytes=0,
+                )
+
+            return (
+                # TODO BUG itables wont render if first hidden?
+                ''.join(
+                    rf'''
+                    <details open>
+                        <summary>{repr_html(ref_type)}</summary>
+                        <figure>{repr_htmltable(refs_df)}</figure>
+                    </details>
+                    '''
+                    for ref_type, refs_df in self.dataframes().items()
+                )
+            )
     
     def available_keys(self) -> KeysView:
         # TODO ??

@@ -4,128 +4,229 @@ TODO
 
 
 import abc as _abc_
-import builtins as _builtins_
-import typing as _typing_
+from typing import (
+    Generic, 
+    Protocol, 
+    TypeAlias, 
+    TypeVar, 
+    runtime_checkable,
+)
 
-from .zippers import IterableZipper, MappingZipper
+from .zippers import zip_iterable, zip_mapping
 
 
-class BaseMapper(_abc_.ABC):
+@runtime_checkable
+class MapperFunction(
+    Generic[
+        InT := TypeVar('InT'), 
+        OutT := TypeVar('OutT'),
+    ],
+    Protocol,
+):
+    @_abc_.abstractmethod
+    def __call__(self, *objs: InT) -> OutT:
+        r"""
+        Transform the input objects.
+
+        :param *objs: The objects to transform. TODO NOTE
+        :return: The transformed objects.
+        :raises TypeError: If the input objects are not supported.
+        """
+
+        ...
+
+
+class BaseMapper(
+    Generic[
+        InT := TypeVar('InT'), 
+        OutT := TypeVar('OutT'),
+    ],
+    MapperFunction[InT, OutT],
+    _abc_.ABC,
+):
     r"""
     Base class for :func:`builtins.map`-like mappers.
     This standardizes the interface for mapping functions 
     that operate on custom data types.
     """
 
-    @_abc_.abstractmethod
-    def __call__(
-        self, 
-        *objs: _typing_.Any,
-    ) -> _typing_.Any:
+    _MapperTypes: TypeAlias = '''
+        BaseMapper[Any, OutT] 
+        | MapperFunction[Any, OutT] 
+        | None
+    '''
+
+    __next_mapper__: _MapperTypes
+    r"""
+    The next mapper to use for elements of the input objects.
+    """
+
+    def __init__(self, next_mapper: _MapperTypes = None):
         r"""
-        Transform the input objects.
+        Initialize the mapper.
+
+        :param next_mapper: 
+            The next mapper to use.
+
+        .. seealso:: :attr:`__next_mapper__`
+        """
+
+        super().__init__()
+        self.__next_mapper__ = next_mapper
+
+    @property
+    def next_mapper(self) -> 'BaseMapper':
+        return MapperProxy(self.__next_mapper__)
+
+    @_abc_.abstractmethod
+    def maps(self, *objs: InT) -> bool:
+        r"""
+        Check if the input objects can be mapped.
+
+        :param *objs: The objects to check.
+        :return: Whether the objects can be mapped.
         """
 
         ...
 
-# TODO typing
-# TODO generics [T, TransT]
-class StructureMapper(BaseMapper):
-    r"""
-    :func:`builtins.map`-like mapper for structured data types.
-    "Structured" refers to objects composed of 
-    multiple, primitive elements, such as mappings and collections.
-    
-    .. seealso::
-        * https://foldoc.org/aggregate+type
-        * https://wikipedia.org/wiki/Composite_data_type
-    """
-
-    _struct_types: _typing_.Mapping[
-        _typing_.Callable[[], _typing_.Any], 
-        _typing_.Tuple[_typing_.Type],
-    ] = {
-        # mappings
-        _builtins_.dict: (_builtins_.dict, _typing_.Mapping, ),
-        # collections
-        _builtins_.tuple: (_builtins_.tuple, _typing_.Tuple, ),
-        _builtins_.list: (_builtins_.list, _typing_.List,),
-        _builtins_.set: (_builtins_.set, _typing_.Set, ),
-    }
-    r"""
-    Supported structured types keyed by their constructors.
-
-    This is used to make the mapper "structurally aware," such that
-    it knows how to discover the primitive elements of a structured object
-    and transform them accordingly using :attr:`_base_mapper`.
-    
-    .. note::
-        * The supported key fields shall be of built-in types.
-            Only mappings and collections are supported by default.
-        * Override the value fields to add support for custom structured types.
-    """
-
-    def __init__(self, base_mapper: BaseMapper | None = None):
+    def _ensure_maps(self, *objs: InT) -> None:
         r"""
-        Initialize the mapper.
+        Ensure that the input objects can be mapped.
 
-        :param base_mapper: 
-            The base mapper to use for any types 
-            other than the specified structured types
-            in :attr:`_struct_types`.
+        :param *objs: The objects to check.
+        :raises TypeError: If the input objects are not supported.
         """
 
-        super().__init__()
-        self._base_mapper = base_mapper
-
-    def __call__(
-        self, 
-        *objs: _typing_.Iterable | _typing_.Mapping | _typing_.Any, 
-    ):
-        r"""
-        Map the input objects.
-
-        :param *objs: The objects to map. Rules follow:
-
-            * All objects shall of the same type, bearing the same structure.
-            * Objects of different lengths are truncated to the shortest length.
-            * Non-structured objects are passed to :attr:`_base_mapper`.
-            * Mapping applies ONLY to values, not keys or indices.
-        
-        :return: The mapped object.
-        """
-
-        isinstance_it = lambda it, cls: all(
-            isinstance(el, cls) for el in it
-        )
-
-        for map_cls in (_builtins_.dict, ):
-            if not isinstance_it(objs, self._struct_types[map_cls]):
-                continue
-            return map_cls(
-                (index, self.__call__(*subobjs))
-                for index, subobjs in MappingZipper(*objs)
-            )
-
-        for coll_cls in (_builtins_.tuple, _builtins_.list, _builtins_.set):
-            if not isinstance_it(objs, self._struct_types[coll_cls]):
-                continue
-            return coll_cls(
-                self.__call__(*subobjs)
-                for subobjs in IterableZipper(*objs)
-            )
-
-        if self._base_mapper is not None:
-            return self._base_mapper(*objs)
-
+        if self.maps(*objs):
+            return
         raise TypeError(
             f'Type of objects unknown: '
-            f'expected any of {list(self._struct_types)}, '
             f'got {list(type(o) for o in objs)} (content: {objs})'
+        )
+
+
+class MapperProxy(BaseMapper):
+    def maps(self, *objs):
+        if self.__next_mapper__ is None:
+            return False
+        if isinstance(self.__next_mapper__, BaseMapper):
+            return self.__next_mapper__.maps(*objs)
+        if isinstance(self.__next_mapper__, MapperFunction):
+            return True
+        raise TypeError(self.__next_mapper__)
+    
+    def __call__(self, *objs):
+        if self.__next_mapper__ is None:
+            raise ValueError(
+                f'No mappers present for {objs}'
+            )
+        if isinstance(self.__next_mapper__, MapperFunction):
+            return self.__next_mapper__.__call__(*objs)
+        raise TypeError(self.__next_mapper__)
+
+
+from typing import Any, Callable, Mapping, Dict, Type, Iterable, Iterator
+
+def isallinstance(it: tuple, cls: Any | tuple[Any]) -> bool:
+    return all(isinstance(el, cls) for el in it)
+
+
+class MappingMapper(BaseMapper[Mapping, Dict]):
+    def maps(self, *objs):
+        return isallinstance(objs, (dict, Mapping, ))
+
+    def __call__(self, *objs):
+        self._ensure_maps(*objs)
+        return dict(
+            (index, self.next_mapper(*subobjs))
+            for index, subobjs in zip_mapping(*objs)
+        )
+
+
+class IterableMapper(BaseMapper[Iterable, Iterator]):
+    def maps(self, *objs):
+        return isallinstance(objs, (Iterable, ))
+    
+    def __call__(self, *objs):
+        self._ensure_maps(*objs)
+        return iter(
+            self.next_mapper(*subobjs)
+            for subobjs in zip_iterable(*objs)
+        )
+    
+
+class CompositeMapper(MapperProxy):
+    def __init__(
+        self, 
+        next_mapper: BaseMapper | None = None,
+        mappers: Iterable[BaseMapper] = [],
+    ):
+        super().__init__(next_mapper=next_mapper)
+        self._mappers = list(mappers)
+
+    def add(self, *mappers: BaseMapper):
+        self._mappers.extend(mappers)
+
+    def maps(self, *objs):
+        return any(
+            mapper.maps(*objs) 
+            for mapper in self._mappers
+        ) or super().maps(*objs)
+    
+    def __call__(self, *objs):    
+        self._ensure_maps(*objs)
+        for mapper in self._mappers:
+            if not mapper.maps(*objs):
+                continue
+            return mapper(*objs)
+        return super().__call__(*objs)
+
+
+from typing import Tuple, List, Set
+
+class DictMapper(MappingMapper):
+    pass
+
+class TupleMapper(IterableMapper):
+    def maps(self, *objs):
+        return isallinstance(objs, (tuple, Tuple))
+    
+    def __call__(self, *objs):
+        return tuple(super().__call__(*objs))
+    
+class ListMapper(IterableMapper):
+    def maps(self, *objs):
+        return isallinstance(objs, (list, List))
+    
+    def __call__(self, *objs):
+        return list(super().__call__(*objs))
+    
+class SetMapper(IterableMapper):
+    def maps(self, *objs):
+        return isallinstance(objs, (set, Set))
+    
+    def __call__(self, *objs):
+        return set(super().__call__(*objs))
+
+class CollectionMapper(CompositeMapper):
+    def __init__(self, next_mapper: BaseMapper | None = None):
+        super().__init__(next_mapper=next_mapper)
+        self.add(
+            DictMapper(self),
+            TupleMapper(self),
+            ListMapper(self),
+            SetMapper(self),
         )
 
 
 __all__ = [
     'BaseMapper',
-    'StructureMapper',
+    'MappingMapper',
+    'IterableMapper',
+    'CompositeMapper',
+    'DictMapper',
+    'TupleMapper',
+    'ListMapper',
+    'SetMapper',
+    'CollectionMapper',
 ]

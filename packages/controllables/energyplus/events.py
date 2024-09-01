@@ -3,7 +3,7 @@ Events.
 
 Scope: Event management for the world.
 
-.. seealso:: :mod:`..specs.callbacks`
+.. seealso:: :mod:`controllables.core.callbacks`
 """
 
 
@@ -11,14 +11,14 @@ import functools as _functools_
 import dataclasses as _dataclasses_
 from typing import Any, Callable, NamedTuple
 
-from controllables.core import (
+from controllables.core.callbacks import (
     Callback,
     CallbackManager,
     BaseComponent,
 )
 
 from . import world as _world_
-
+from .world import World
 
 @_dataclasses_.dataclass
 class Context:
@@ -107,7 +107,7 @@ class EventManager(
         Event.RefT, 
         EventCallable,
     ],
-    BaseComponent[_world_.World],
+    BaseComponent[World],
 ):
     r"""
     Event manager.
@@ -128,7 +128,7 @@ class EventManager(
         return self._manager._core
     
     # TODO assoc defaultdict!!!!!!!
-    @property
+    @_functools_.cached_property
     def _core_callback_setters(self):
         r"""
         Callback setters for the core.
@@ -261,6 +261,20 @@ class EventManager(
     def available_keys(self):
         return self._core_callback_setters.keys()
     
+    @property
+    def _symbols(self):
+        return {
+            # TODO 
+            # std
+            #'begin': lambda ref: self._core.workflows.on('start', lambda _: ...),
+            #'end': lambda ref: self._core.core.workflows.on('end', lambda _: ...),
+            #'step': lambda ref: self._core_callback_setters['begin_zone_timestep_after_init_heat_balance'],
+        }
+    
+    def __contains__(self, key: object) -> bool:
+        # TODO or in symbols?
+        return key in self._core_callback_setters
+    
     def __missing__(self, ref):
         r"""
         TODO doc
@@ -268,15 +282,19 @@ class EventManager(
         This synchronizes the event manager with the core.
         """
 
+        # TODO
+        if ref in self._symbols:
+            raise NotImplementedError
+
         self[ref] = Event(ref=ref).__attach__(self)
 
+        @self._core.workflows['run:pre'].use
         def setup(_=None):
             # TODO 
             self._core_callback_setters[Event.Ref.copyof(ref).name](ref)
 
         setup()
-        self._manager.workflows.on('run:pre', setup)
-
+        
         return self[ref]
 
     def __delitem__(self, ref):

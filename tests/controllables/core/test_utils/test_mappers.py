@@ -1,13 +1,12 @@
-from controllables.core.tools.gymnasium import utils as _target_ 
+from controllables.core.utils import mappers as _target_
 
-
-class Test_StructureMapper:
+class Test_CollectionMapper:
     # TODO more cases
 
     def test_same_struct(self):
         assert (
-            _target_.StructureMapper(
-                base_mapper=lambda f0, f1: (f0, f1)
+            _target_.CollectionMapper(
+                next_mapper=(lambda f0, f1: (f0, f1)),
             )
         )(
             dict(
@@ -31,8 +30,8 @@ class Test_StructureMapper:
 
     def test_diff_struct(self):
         assert (
-            _target_.StructureMapper(
-                base_mapper=lambda f0, f1: (f0, f1)
+            _target_.CollectionMapper(
+                next_mapper=(lambda f0, f1: (f0, f1)),
             )
         )(
             dict(

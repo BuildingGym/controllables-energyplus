@@ -1,109 +1,143 @@
-import typing as _typing_
+r"""
+TODO
+"""
 
-from ...specs.exceptions import OptionalImportError
-try: 
-    import gymnasium as _gymnasium_
+
+from typing import Any, Generic, Mapping, Tuple, TypeVar
+
+from ...errors import OptionalModuleNotFoundError
+try: import gymnasium as _gymnasium_
 except ImportError as e:
-    raise OptionalImportError.suggest(['gymnasium']) from e
+    raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
+try: import numpy as _numpy_
+except ImportError as e:
+    raise OptionalModuleNotFoundError.suggest(['numpy']) from e
 
-from . import utils as _utils_
+from ...components import (
+    BaseComponent,
+)
+from ...variables import (
+    BaseVariable, 
+    BaseVariableManager,
+)
+from ...refs import (
+    BaseRefManager,
+    Derefable,
+    deref,
+)
+from ...utils.mappers import (
+    DictMapper,
+    TupleMapper,    
+    CompositeMapper,
+    # TODO mv?
+    isallinstance,
+)
 
 
-# TODO more types
-class SpaceStructureMapper(_utils_.StructureMapper):
+class Space(
+    Generic[T := TypeVar('T', covariant=True)],
+    _gymnasium_.spaces.Space[T],
+):
+    # TODO default None
+    __ref__: BaseVariable | Derefable[BaseVariable] | None
+
+    def bind(self, ref: Derefable[BaseVariable]):
+        self.__ref__ = ref
+        return self
+
+    def deref(self, manager: BaseRefManager | None = None) -> BaseVariable:
+        # TODO
+        if self.__ref__ is None:
+            raise ValueError('TODO')
+        return (
+            self.__ref__ 
+            if isinstance(self.__ref__, BaseVariable) else 
+            deref(manager, self.__ref__)
+        )
+
+
+class BoxSpace(Space, _gymnasium_.spaces.Box):
+    pass
+
+
+class DiscreteSpace(Space, _gymnasium_.spaces.Discrete):
+    pass
+
+
+class SequenceSpace(Space, _gymnasium_.spaces.Sequence):
+    pass
+
+
+# TODO support passthru?? (use DictSpace.__ref__ when present??)
+class DictSpace(Space, _gymnasium_.spaces.Dict):
+    pass
+
+class DictSpaceMapper(DictMapper):
+    def maps(self, *objs):
+        # TODO map(lambda x: x.__ref__ is not None, objs)
+        return isallinstance(objs, (DictSpace, dict, Mapping, ))
+    
+
+class TupleSpace(Space, _gymnasium_.spaces.Tuple):
+    pass
+
+class TupleSpaceMapper(TupleMapper):
+    def maps(self, *objs):
+        return isallinstance(objs, (TupleSpace, tuple, Tuple, ))    
+    
+
+class SpaceCompositeMapper(CompositeMapper):
+    def __init__(self, next_mapper=None, mappers=[]):
+        super().__init__(
+            next_mapper=next_mapper,
+            mappers=[
+                DictSpaceMapper(self),
+                TupleSpaceMapper(self),
+                *mappers,
+            ],
+        )
+
+
+class SpaceVariable(
+    BaseVariable, 
+    BaseComponent[BaseVariableManager],
+):
     r"""
-    Mapper for composite spaces.
-
     TODO
     """
-  
-    _struct_types = {
-        dict: (dict, _gymnasium_.spaces.Dict, ),
-        **{
-            t: (t, _gymnasium_.spaces.Tuple, )
-            for t in (tuple, list, set)
-        },
-    }
 
+    def __init__(self, space: Space):
+        super().__init__()
+        self.space = space
 
-# TODO mv _RefT
-T = _typing_.TypeVar('T')
-
-class VariableSpace(
-    _gymnasium_.spaces.Space, 
-    _typing_.Generic[T],
-):
-    r"""
-    A Gymnasium space that can have a variable bound to it.
-    
-    This allows for the association of additional metadata or identifiers 
-    with the space, which can be useful in environments where spaces 
-    need to carry extra information or context.
-
-    .. seealso::
-        * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
-    """
-    
-    # TODO Composite Spaces structural [Ref, Ref] {Ref: Ref}
-    def bind(self, var: T) -> _typing_.Self:
-        r"""
-        Bind a variable to this space.
-
-        :param var: Variable to be associated with the current space.
-        :return: This space itself.
-        """
-        self._binding = var
-        return self
-    
-    # TODO err
     @property
-    def binding(self) -> T:
-        r"""Variable bound to this space."""
-        return self._binding
-
-class VariableBox(
-    _gymnasium_.spaces.Box, 
-    _typing_.Generic[T], VariableSpace[T],
-):
-    r"""
-    A Gymnasium Box space that can have a variable bound to it.
+    def value(self):
+        def getter(space: Space):
+            # TODO check isinstance space
+            return _numpy_.array(
+                # TODO
+                space.deref(self.__manager__).value,
+                dtype=space.dtype,
+            ).reshape(space.shape)
+        return SpaceCompositeMapper(getter)(self.space)
     
-    This allows for the association of additional metadata or identifiers 
-    with the space, which can be useful in environments where spaces 
-    need to carry extra information or context.
 
-    Examples:
-
-    .. code-block:: python
-
-        # TODO
-
-    .. seealso::
-        * `gymnasium.spaces.Box <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Box>`_
-    """
-
-    # TODO binding: [Ref, Ref, ...]
-    # TODO type Ref: oneof [callable, Variable.Ref]
-
-    pass
-
-class VariableDiscrete(
-    _gymnasium_.spaces.Discrete, 
-    VariableSpace[T],
-    _typing_.Generic[T],
-):
+class MutableSpaceVariable(SpaceVariable):
     r"""
-    A Gymnasium Discrete space that can have a variable bound to it.
-
-    .. seealso::
-        * `gymnasium.spaces.Discrete <https://gymnasium.farama.org/api/spaces/fundamental/#gymnasium.spaces.Discrete>`_
+    TODO
     """
 
-    pass
-
+    @SpaceVariable.value.setter
+    def value(self, v):
+        def setter(space: Space, v: Any):
+            space.deref(self.__manager__).value = v
+        return SpaceCompositeMapper(setter)(self.space, v)
+    
 
 __all__ = [
-    'VariableSpace',
-    'VariableBox',
-    'VariableDiscrete',
+    'BoxSpace',
+    'DiscreteSpace',
+    'DictSpace',
+    #'SequenceSpace',
+    'TupleSpace',
 ]
