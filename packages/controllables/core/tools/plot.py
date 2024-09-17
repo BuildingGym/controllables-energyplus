@@ -13,19 +13,18 @@ from typing import (
     Optional,
     Self,
     TypedDict,
-    Generic,
-    TypeVar,
+    Unpack,
     Literal,
 )
 
+from ..callbacks import BaseCallback
+from ..components import BaseComponent
 from ..errors import OptionalModuleNotFoundError
+from ..variables import BaseVariable, BaseVariableManager
+from ..refs import Derefable, deref
 
 
-class PlotSpec(
-    TypedDict,
-    Generic[_RefT := TypeVar('_RefT')],
-    total=False,
-):
+class PlotSpec(TypedDict, total=False):
     r"""
     The plot specification.
     Plot refers to a single figure with traces.
@@ -38,12 +37,6 @@ class PlotSpec(
         The trace specification.
         """
 
-        x: Optional[_RefT]
-        r"""The reference for x data."""
-        y: Optional[_RefT]
-        r"""The reference for y data."""
-        z: Optional[_RefT]
-        r"""The reference for z data."""
         kind: Optional[Literal['scatter']]
         r"""
         The trace kind. Supported options:
@@ -55,7 +48,15 @@ class PlotSpec(
         * `lines`: Lines.
         * `markers`: Markers.
         * `lines+markers`: Lines and markers.
-        """
+        """        
+
+        x: Optional[BaseVariable | Derefable[BaseVariable]]
+        r"""The reference to x data."""
+        y: Optional[BaseVariable | Derefable[BaseVariable]]
+        r"""The reference to y data."""
+        z: Optional[BaseVariable | Derefable[BaseVariable]]
+        r"""The reference to z data."""
+
         label: Optional[Any]
         r"""The trace label to display."""
         backend_kwds: Optional[Mapping[str, Any]]
@@ -74,23 +75,22 @@ class PlotSpec(
     r"""The backend keyword arguments."""
 
 
-from ..refs import BaseRefManager
-
-
-# TODO
-class BasePlot(_abc_.ABC):
+# TODO support for snapshots
+class BasePlot(
+    BaseComponent[BaseVariableManager], 
+    _abc_.ABC,
+):
     r"""
     Plot backend.
     
     """
 
     @_abc_.abstractmethod
-    def __init__(self, spec: PlotSpec, refs: BaseRefManager | None = None):
+    def __init__(self, spec: PlotSpec):
         r"""
         Create a plot per spec.
 
-        :param spec: The plot spec.
-        :param refs: The reference manager.
+        :param spec: The plot specification.
         """
 
         ...
@@ -107,6 +107,14 @@ class BasePlot(_abc_.ABC):
 
         ...
 
+    def watch(self, event: BaseCallback) -> Self:
+        # TODO !!!!!!
+        @event.on
+        def _(*args, **kwargs):
+            self.poll()
+
+        return self
+
     def _repr_mimebundle_(self, *args, **kwargs):
         r"""
         MIME bundle representation for rich display.
@@ -114,7 +122,13 @@ class BasePlot(_abc_.ABC):
         .. seealso:: https://ipython.readthedocs.io/en/stable/config/integrating.html#rich-display
         """
 
-        ...
+        pass
+
+    figure: Any | Self
+    r"""
+    The underlying figure object.
+    This is implementation-specific.
+    """
 
 
 class Plot(BasePlot):
@@ -126,7 +140,7 @@ class Plot(BasePlot):
     """
 
     backends = dict[Any, BasePlot]()
-    
+
     @classmethod
     def backend(cls, name: Any):
         r"""
@@ -139,27 +153,50 @@ class Plot(BasePlot):
             cls.backends[name] = v
             return v
         return setter
-    
-    def __init__(self, spec, refs=None):
+
+    def __init__(self, spec):
         self._base: BasePlot = self.backends[
             spec.get('backend', 'default')
-        ](spec, refs)
-        
+        ](spec)
+
+    def __attach__(self, manager) -> Self:
+        super().__attach__(manager)
+        self._base.__attach__(self._manager)
+        return self
+
     def poll(self):
         return self._base.poll()
-    
+
+    def watch(self, event):
+        return self._base.watch(event)
+
     def _repr_mimebundle_(self, *args, **kwargs):
         return self._base._repr_mimebundle_(*args, **kwargs)
+    
+    @property
+    def figure(self):
+        return self._base.figure
+
+
+# TODO BaseComponent for events
 
 
 # TODO
-class PlotConstructor:
-    def __call__(self, spec, refs=None):
-        return Plot(spec, refs)
-    
-    # TODO
-    def scatter(self, x, y, z):
+class PlotConstructor(BaseComponent[BaseVariableManager]):
+    def __watch__(self, event: BaseCallback):
         pass
+    
+    def __call__(self, spec):
+        return Plot(spec=spec).__attach__(self._manager).poll()
+    
+    # TODO !!!!!
+    def scatter(self, **trace_spec: Unpack[PlotSpec.Trace]):
+        return self.__call__({
+            'traces': [{
+                'kind': 'scatter',
+                **trace_spec,
+            }],
+        })
 
 
 @Plot.backend('default')
@@ -172,14 +209,13 @@ class PlotlyBackend(BasePlot):
 
     """
 
-    def __init__(self, spec, refs=None):
+    def __init__(self, spec):
         try:
-            from plotly.graph_objects import FigureWidget
-        except ImportError as e:
+            from plotly.graph_objects import FigureWidget # Figure
+        except ModuleNotFoundError as e:
             raise OptionalModuleNotFoundError.suggest(['plotly']) from e
 
         self._spec = spec
-        self._refs = refs
 
         self._figure = FigureWidget(
             **self._spec.get('backend_kwds', dict()),
@@ -199,25 +235,33 @@ class PlotlyBackend(BasePlot):
                     })
                 case _:
                     raise ValueError(
-                        f'''Unsupported trace kind: {trace_spec.get('kind')}'''
+                        f'''Unsupported trace kind: {trace_spec.get('kind')}. See {PlotSpec.Trace}'''
                     )
 
     def poll(self):
-        if self._refs is None:
-            return self
+        def _deref(ref: BaseVariable | Derefable[BaseVariable]):
+            return (
+                ref 
+                if isinstance(ref, BaseVariable) else 
+                deref(self._manager, ref)
+            )
+
+        def _ensure_data(data: Iterable | Any):
+            return list(data) if isinstance(data, Iterable) else data
 
         self._figure.update({
             'data': [
                 {
-                    prop: list(self._refs[trace_spec.get(ref_prop)])
+                    prop: _ensure_data(
+                        _deref(trace_spec.get(ref_prop)).value
+                    )
                     for prop, ref_prop in [
                         ('x', 'x'),
                         ('y', 'y'),
                         ('z', 'z'),
                     ]
                     if ref_prop in trace_spec
-                }
-                for trace_spec in self._spec['traces']
+                } for trace_spec in self._spec['traces']
             ],
         })
 
@@ -225,6 +269,10 @@ class PlotlyBackend(BasePlot):
 
     def _repr_mimebundle_(self, *args, **kwargs):
         return self._figure._repr_mimebundle_(*args, **kwargs)
+    
+    @property
+    def figure(self):
+        return self._figure
 
 
 @Plot.backend('_TODO_mpl')
@@ -234,15 +282,14 @@ class MatplotlibBackend(BasePlot):
 
     """
 
-    def __init__(self, spec, refs=None):
+    def __init__(self, spec):
         try:
             from matplotlib.figure import Figure
             from matplotlib.axes import Axes
-        except ImportError as e:
+        except ModuleNotFoundError as e:
             raise OptionalModuleNotFoundError.suggest(['matplotlib']) from e
 
         self._spec = spec
-        self._refs = refs
 
         self._figure = Figure(
             **self._spec.get('backend_kwds', dict()),
@@ -254,19 +301,17 @@ class MatplotlibBackend(BasePlot):
 
         raise NotImplementedError
 
-
     def poll(self):
-        if self._refs is None:
-            return self
-        
         #self._figure.artists
         
         raise NotImplementedError
+    
+        _deref = lambda x: deref(self._manager, x)
 
         for trace_spec in self._spec.get('traces', []):
             if trace_spec.get('kind') == 'scatter':
-                x = self._refs[trace_spec.get('x')]
-                y = self._refs[trace_spec.get('y')]
+                x = _deref(trace_spec.get('x')).value
+                y = _deref(trace_spec.get('y')).value
                 self._axes.collections.clear()
                 self._axes.scatter(x, y)
 
@@ -276,9 +321,15 @@ class MatplotlibBackend(BasePlot):
         raise NotImplementedError
 
         return self._figure._repr_mimebundle_(*args, **kwargs)
+    
+    @property
+    def figure(self):
+        return self._figure
 
 
 __all__ = [
     'PlotSpec',
+    'BasePlot',
     'Plot',
+    'PlotConstructor',
 ]

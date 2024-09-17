@@ -1,5 +1,5 @@
 r"""
-TODO
+Environments.
 """
 
 
@@ -8,13 +8,13 @@ import functools as _functools_
 from typing import (
     Any, 
     Generic, 
-    Protocol, 
-    TypeAlias,
-    TypeVar, 
-    TypedDict, 
     NamedTuple,
     Optional,
+    Protocol, 
     SupportsFloat,
+    TypeAlias,
+    TypeVar, 
+    TypedDict,     
 )
 
 from ...systems import BaseSystem 
@@ -36,7 +36,7 @@ try:
         ActType, 
         ObsType,
     )
-except ImportError as e:
+except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 
 
@@ -180,6 +180,7 @@ class Agent(
     RewardFunction: TypeAlias = ContextFunction[float]
     RewardVariable: TypeAlias = ContextVariable[float]
 
+    # TODO ComputedVariable
     @_functools_.cached_property
     def reward(self):
         reward_function = self.config.get('reward_function')
@@ -344,23 +345,29 @@ class Env(_TypedEnv, Agent):
                 .get('events', {})
                 .get('step', None)
         )
-        ack = None
+        finalize = None
+        
         if event_ref is not None:
             event = (
                 event_ref 
                 if isinstance(event_ref, Callback) else 
                 deref(self.__manager__.events, event_ref)
             )
-            ack = event.wait(deferred=True).ack
+            finalize = event.wait(deferred=True).ack
 
-        res = self.StepResult(
-            observation=self.observation.value,
-            reward=self.reward.value,
-            terminated=self.termination.value, # TODO when?
-            truncated=self.truncation.value,
-            info=self.info.value if self.info is not None else dict(),
-        )
-        if ack is not None: ack()
+        try:
+            res = self.StepResult(
+                observation=self.observation.value,
+                reward=self.reward.value,
+                terminated=self.termination.value, # TODO when?
+                truncated=self.truncation.value,
+                info=self.info.value if self.info is not None else dict(),
+            )
+        except Exception as e:
+            raise e
+        finally:
+            if finalize is not None: 
+                finalize()
         return res
 
     def reset(self, *, seed=None, options=None):

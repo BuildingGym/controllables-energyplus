@@ -33,7 +33,7 @@ class OptionalModuleNotFoundError(ModuleNotFoundError):
     
 class OptionalModuleNotFoundWarning(RuntimeWarning, OptionalModuleNotFoundError):
     r"""
-    Warning equivalent of :class:`OptionalImportError`.
+    Warning equivalent of :class:`OptionalModuleNotFoundError`.
     """
 
     pass
@@ -42,4 +42,5 @@ class OptionalModuleNotFoundWarning(RuntimeWarning, OptionalModuleNotFoundError)
 __all__ = [
     'TemporaryUnavailableError',
     'OptionalModuleNotFoundError',
+    'OptionalModuleNotFoundWarning',
 ]

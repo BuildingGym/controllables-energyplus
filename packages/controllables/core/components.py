@@ -61,6 +61,7 @@ class BaseComponent(
     __manager__: _BaseComponentManagerT | None = None
     @property
     def _manager(self) -> _BaseComponentManagerT:
+        # TODO err if not attached???
         return self.__manager__
     
     @_functools_.cached_property
@@ -69,7 +70,7 @@ class BaseComponent(
 
         callbacks = CallbackManager()
 
-        @callbacks['attach'].use
+        @callbacks['attach'].on
         def _(manager: _BaseComponentManagerT):
             if getattr(self, '__manager__', None) is not None:
                 if manager == self.__manager__:
@@ -80,7 +81,7 @@ class BaseComponent(
             
             setattr(self, '__manager__', manager)
 
-        @callbacks['detach'].use
+        @callbacks['detach'].on
         def _(manager: _BaseComponentManagerT):
             raise NotImplementedError
             if self.__engine is None:
@@ -115,6 +116,7 @@ class BaseComponent(
         return self
     
     #@_workflows_.observable
+    # TODO __detach__ when __del__!!!!
     def __detach__(self, manager: _BaseComponentManagerT) -> _typing_.Self:
         raise NotImplementedError
         if self.__engine is None:

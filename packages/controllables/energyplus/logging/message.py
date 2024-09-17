@@ -10,7 +10,6 @@ from controllables.core.components import BaseComponent
 from ..world import World
 
 
-# TODO mv adapters/energyplus
 class MessageLogger(BaseComponent[World]):
     r"""
     A logger that logs messages to a `logging.Logger`.

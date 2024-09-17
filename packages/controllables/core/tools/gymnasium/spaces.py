@@ -1,5 +1,5 @@
 r"""
-TODO
+Spaces.
 """
 
 
@@ -7,10 +7,10 @@ from typing import Any, Generic, Mapping, Tuple, TypeVar
 
 from ...errors import OptionalModuleNotFoundError
 try: import gymnasium as _gymnasium_
-except ImportError as e:
+except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 try: import numpy as _numpy_
-except ImportError as e:
+except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['numpy']) from e
 
 from ...components import (
@@ -19,6 +19,9 @@ from ...components import (
 from ...variables import (
     BaseVariable, 
     BaseVariableManager,
+    VariableNumOpsMixin,
+    VariableNumArrayOpsMixin,
+    VariableContainerOpsMixin,
 )
 from ...refs import (
     BaseRefManager,
@@ -99,6 +102,9 @@ class SpaceCompositeMapper(CompositeMapper):
 
 
 class SpaceVariable(
+    VariableNumOpsMixin,
+    VariableNumArrayOpsMixin,
+    VariableContainerOpsMixin,    
     BaseVariable, 
     BaseComponent[BaseVariableManager],
 ):

@@ -4,16 +4,11 @@ Specs for systems.
 
 
 import abc as _abc_
-import functools as _functools_
-import asyncio as _asyncio_
-
 from typing import Self, Literal
 
-from .workflows import WorkflowManager
 from .components import BaseComponent
-from .variables import BaseVariableManager
-from .callbacks import CallbackManager
-from .utils.awaitables import asyncify
+from .variables import BaseVariable, BaseVariableManager
+from .callbacks import Callback, CallbackManager
 
 
 class BaseSystem(_abc_.ABC):
@@ -23,50 +18,8 @@ class BaseSystem(_abc_.ABC):
     A system is a group of components.
     """
 
-    WorkflowManager = WorkflowManager[
-        Literal[
-            'run:pre', 
-            'run:post', 
-            'stop:pre', 
-            'stop:post',
-        ], 
-        Self,
-    ]
-    r"""
-    Workflow manager class.
-    
-    Implementations shall, at minimum, emit the following workflows:
-    * `run:pre`: emitted before running the system.
-    * `run:post`: emitted after running the system.
-    * `stop:pre`: emitted before stopping the system.
-    * `stop:post`: emitted after stopping the system.
-
-    Override this attribute to add custom workflows.
-    """
-
-    @_functools_.cached_property
-    def workflows(self) -> WorkflowManager:
-        r"""
-        Workflows for the system.
-
-        :return: The workflow manager.
-        """
-
-        return WorkflowManager().__attach__(self)
-
-    # TODO deprecate
-    @_abc_.abstractmethod
-    def run(self) -> Self:
-        r"""
-        Run the system.
-        
-        TODO Deprecated.
-        """
-
-        ...
-
     # TODO
-    #@_abc_.abstractmethod
+    @_abc_.abstractmethod
     def start(self) -> Self:
         r"""
         Start the system.
@@ -77,6 +30,26 @@ class BaseSystem(_abc_.ABC):
 
         ...
 
+    started: bool
+    r"""Whether the system is started."""
+
+    @_abc_.abstractmethod
+    def wait(self, timeout: float | None = None) -> Self:
+        r"""
+        Wait for the system to finish.
+        TODO Returns immediately if the system is not started.
+
+        :param timeout:
+            The maximum time to wait for the system to finish.
+            If :class:`None`, waits indefinitely..
+        :raises TimeoutError: If the system does not finish in time.
+        :return: This system.
+        """
+
+        ...
+
+    # TODO __await__?
+
     @_abc_.abstractmethod
     def stop(self, timeout: float | None = None) -> Self:
         r"""
@@ -84,62 +57,36 @@ class BaseSystem(_abc_.ABC):
 
         :param timeout: 
             The maximum time to wait for the system to stop.
-            If :class:`None`, waits indefinitely;
-            Otherwise, raises a :class:`TimeoutError` 
-            if the system does not stop in time. (TODO)
-        :return: This system.
+            If :class:`None`, waits indefinitely. (TODO)
+        :raises TimeoutError: If the system does not stop in time.
         :raises RuntimeError: If the system is not started.
+        :return: This system.
         """
 
         ...
 
-    # TODO builtin vars (e.g. 'time')
-    variables: BaseVariableManager
-    r"""Root variable manager."""
+    variables: BaseVariableManager[Literal['time'], BaseVariable]
+    r"""
+    Root variable manager.
 
-    # TODO builtin events (e.g. 'begin', 'step', 'end')
-    events: CallbackManager
-    r"""Root event manager."""
+    TODO doc builtin vars (e.g. 'time')
+    """
 
-    class AsyncOps(BaseComponent['BaseSystem']):
-        r"""
-        Asynchronous operations for the system.
-        """
+    events: CallbackManager[Literal['begin', 'step', 'end'], Callback]
+    r"""
+    Root event manager.
 
-        def __init__(self, loop: _asyncio_.AbstractEventLoop = None):
-            self.__asyncify__ = asyncify(loop=loop)
+    TODO doc builtin events (e.g. 'begin', 'step', 'end')
+    """
 
-        def run(self, *args, **kwargs):
-            r"""
-            Run the system asynchronously.
+    # ############
+    # TODO deprecate
+    def run(self) -> Self:
+        raise DeprecationWarning('Deprecated!!! use `start` instead')
 
-            .. seealso:: :meth:`BaseSystem.run`
-            """
-
-            return _asyncio_.create_task(
-                self.__asyncify__(self._manager.run)
-                (*args, **kwargs)
-            )
-
-        def stop(self, *args, **kwargs):
-            r"""
-            Stop the system asynchronously.
-
-            .. seealso:: :meth:`BaseSystem.stop`
-            """
-
-            return _asyncio_.create_task(
-                self.__asyncify__(self._manager.stop)
-                (*args, **kwargs)
-            )
-        
-    @_functools_.cached_property
+    @property
     def awaitable(self):
-        r"""
-        Asynchronous interface.
-        """
-
-        return self.AsyncOps().__attach__(self)
+        raise DeprecationWarning('Deprecated!!! use `start` directly')
     
 
 class SystemShortcutMixin(BaseSystem):

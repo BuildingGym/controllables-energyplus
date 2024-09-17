@@ -9,7 +9,7 @@ Scope: Event management for the world.
 
 import functools as _functools_
 import dataclasses as _dataclasses_
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, NamedTuple, TypeAlias
 
 from controllables.core.callbacks import (
     Callback,
@@ -17,8 +17,8 @@ from controllables.core.callbacks import (
     BaseComponent,
 )
 
-from . import world as _world_
 from .world import World
+
 
 @_dataclasses_.dataclass
 class Context:
@@ -35,6 +35,7 @@ class MessageContext(Context):
 
     :param message: The message.
     """
+
     message: 'str | None' = None
 
 @_dataclasses_.dataclass
@@ -44,14 +45,12 @@ class ProgressContext(Context):
 
     :param progress: The progress of the event as a percentage between 0 and 1.
     """
+
     progress: 'float | None' = None
     
 
-EventCallable = Callable[[Context], Any]
-
-@_dataclasses_.dataclass
 class Event(
-    Callback[EventCallable],
+    Callback[[Context], Any],
     BaseComponent['EventManager'],
 ):
     r"""
@@ -84,28 +83,32 @@ class Event(
     RefT = Ref | str
     r"""The type of the reference to an event."""
 
-    ref: RefT | None = None
+    ref: Ref | None
     r"""The reference to an event."""
 
-    def __call__(self, *args, **kwargs):
+    def __init__(self, ref: Ref | None = None):
+        super().__init__()
+        self.ref = ref
+
+    def __call__(self, context: Context):
         if self.ref is not None:
-            if not Event.Ref.copyof(self.ref).include_warmup:
+            if not self.ref.include_warmup:
                 if self._manager is None:
                     raise RuntimeError(
-                        f'`include_warmup` specified in {self.ref} '
-                        f'but no manager {self.__attach__}-ed'
+                        f'"include_warmup" specified in {self.ref} '
+                        f'without an {EventManager} {self.__attach__}-ed'
                     )
                 if self._manager._core.api \
                     .exchange.warmup_flag(self._manager._core.state):
                     return None
 
-        return super().__call__(*args, **kwargs)
+        return super().__call__(context)
 
 
 class EventManager(
     CallbackManager[
         Event.RefT, 
-        EventCallable,
+        Event,
     ],
     BaseComponent[World],
 ):
@@ -113,94 +116,21 @@ class EventManager(
     Event manager.
 
     TODOs:
-        * TODO sync w core; 
         * TODO child subeventmanager
     """
 
-    def __getstate__(self) -> object:
-        return super().__getstate__()
-    
-    def __setstate__(self, state: object):
-        return super().__setstate__(state)
-    
     @property
     def _core(self):
         return self._manager._core
+
+    _CallbackSetters: TypeAlias = dict[str, Callable[[Event], None]]
     
     # TODO assoc defaultdict!!!!!!!
     @_functools_.cached_property
-    def _core_callback_setters(self):
+    def _core_callback_setters(self) -> _CallbackSetters:
         r"""
         Callback setters for the core.
         """
-
-        runtime = self._core.api.runtime
-        state = self._core.state
-
-        class _Dispatcher(BaseComponent[EventManager]):
-            r"""
-            Dispatcher for a reference in this event manager.
-            All methods here are designed to be called by the core,
-            which in turn would emit the respective events 
-            in the event manager.
-            """
-
-            def __init__(self, ref: Event.RefT):
-                r"""
-                Initialize the dispatcher.
-                
-                :param ref: The reference to the event.
-                """
-
-                super().__init__()
-                self._ref = ref
-
-            def _message(self, m):
-                r"""
-                Callback for :class:`MessageContext`s.
-
-                :param m: The message.
-
-                .. seealso:: 
-                    https://energyplus.readthedocs.io/en/latest/runtime.html#runtime.Runtime.callback_message
-                """
-
-                self._manager.__call__(
-                    self._ref, 
-                    MessageContext(message=bytes.decode(m)),
-                )
-
-            def _progress(self, p):
-                r"""
-                Callback for :class:`ProgressContext`s.
-
-                :param p: The progress.
-
-                .. seealso::
-                    https://energyplus.readthedocs.io/en/latest/runtime.html#runtime.Runtime.callback_progress
-                """
-
-                self._manager.__call__(
-                    self._ref, 
-                    ProgressContext(progress=p / 100),
-                )
-
-            def _state(self, _):
-                r"""
-                Callback for :class:`Context`s.
-
-                :param _: The core state, currently unused.
-                :param ref: The reference to the event.
-
-                .. seealso::
-                    https://energyplus.readthedocs.io/en/latest/runtime.html
-                """
-
-                # TODO use the _ to identify the dispatcher
-                self._manager.__call__(
-                    self._ref, 
-                    Context(),
-                )
 
         def _ensure_exc(cb: Callable):
             @_functools_.wraps(cb)
@@ -212,27 +142,55 @@ class EventManager(
                     raise e
             return cb_
 
-        dispatch_for = lambda ref: _Dispatcher(ref=ref).__attach__(self)
+        class _Dispatcher:
+            def __init__(self, event: Event):
+                self._event = event
+
+            def _message(self, m):
+                self._event.__call__(
+                    MessageContext(
+                        event=self._event,
+                        message=bytes.decode(m),
+                    ),
+                )
+
+            def _progress(self, p):
+                self._event.__call__(
+                    ProgressContext(
+                        event=self._event,
+                        progress=p / 100,
+                    ),
+                )
+
+            def _state(self, _):
+                self._event.__call__(
+                    Context(
+                        event=self._event,
+                    ),
+                )
+
+        runtime = self._core.api.runtime
+        state = self._core.state
 
         return {
             # message
-            'message': lambda ref: 
+            'message': lambda event: 
                 runtime.callback_message(
                     state, 
-                    _ensure_exc(dispatch_for(ref)._message),
+                    _ensure_exc(_Dispatcher(event)._message),
                 ),
             # progress
-            'progress': lambda ref: 
+            'progress': lambda event: 
                 runtime.callback_progress(
                     state, 
-                    _ensure_exc(dispatch_for(ref)._progress),
+                    _ensure_exc(_Dispatcher(event)._progress),
                 ),
             # state
             **{
-                ref: lambda ref, callback_setter=callback_setter: 
+                ref: lambda event, callback_setter=callback_setter: 
                     callback_setter(
                         state, 
-                        _ensure_exc(dispatch_for(ref)._state),
+                        _ensure_exc(_Dispatcher(event)._state),
                     )
                 for ref, callback_setter in {
                     'after_component_get_input': runtime.callback_after_component_get_input,
@@ -257,23 +215,37 @@ class EventManager(
             },
         }
     
-    # TODO rich format
-    def available_keys(self):
-        return self._core_callback_setters.keys()
-    
-    @property
-    def _symbols(self):
+    @_functools_.cached_property
+    def _std_callback_setters(self):
+        class _Dispatcher:
+            def __init__(self, event: Event):
+                self._event = event
+
+            def _state(self, *args, **kwargs):
+                self._event.__call__(
+                    Context(
+                        event=self._event,
+                    ),
+                )
+
         return {
-            # TODO 
-            # std
-            #'begin': lambda ref: self._core.workflows.on('start', lambda _: ...),
-            #'end': lambda ref: self._core.core.workflows.on('end', lambda _: ...),
-            #'step': lambda ref: self._core_callback_setters['begin_zone_timestep_after_init_heat_balance'],
+            'begin': lambda event: self._core.hooks['run:pre'].on(
+                _Dispatcher(event)._state,
+            ),
+            'end': lambda event: self._core.hooks['run:post'].on(
+                _Dispatcher(event)._state,
+            ),
         }
     
-    def __contains__(self, key: object) -> bool:
-        # TODO or in symbols?
-        return key in self._core_callback_setters
+    # TODO rich format
+    # TODO this is available names???
+    def available_keys(self):
+        return self._core_callback_setters.keys() | self._std_callback_setters.keys()
+    
+    def __contains__(self, ref):
+        # TODO accept Event.Refs!!!!!
+        name = Event.Ref.copyof(ref).name
+        return name in self.available_keys()
     
     def __missing__(self, ref):
         r"""
@@ -281,20 +253,26 @@ class EventManager(
 
         This synchronizes the event manager with the core.
         """
-
-        # TODO
-        if ref in self._symbols:
-            raise NotImplementedError
-
-        self[ref] = Event(ref=ref).__attach__(self)
-
-        @self._core.workflows['run:pre'].use
-        def setup(_=None):
-            # TODO 
-            self._core_callback_setters[Event.Ref.copyof(ref).name](ref)
-
-        setup()
         
+        match ref:
+            case 'step':
+                return self['begin_zone_timestep_after_init_heat_balance']
+            
+        event = Event(ref=Event.Ref.copyof(ref))
+
+        if event.ref.name in self._std_callback_setters:
+            self._std_callback_setters[event.ref.name](event)
+        elif event.ref.name in self._core_callback_setters:
+            # TODO !!!!!!
+            @self._core.hooks['run:pre'].on
+            def _core_setup(*args, **kwargs):
+                # TODO 
+                self._core_callback_setters[event.ref.name](event)
+            _core_setup()
+        else:
+            raise KeyError(f'Unknown event: {event.ref.name}')
+        
+        self[ref] = event.__attach__(self)
         return self[ref]
 
     def __delitem__(self, ref):
@@ -314,9 +292,14 @@ class EventManager(
             ),
         )
 
+    def __getstate__(self) -> object:
+        return super().__getstate__()
+    
+    def __setstate__(self, state: object):
+        return super().__setstate__(state)
+
 
 __all__ = [
-    'EventCallable',
     'Event',
     'EventManager',
 ]

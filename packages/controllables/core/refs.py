@@ -7,12 +7,12 @@ import abc as _abc_
 from typing import Any, Callable, Generic, TypeAlias, TypeVar
 
 
-_RefT = TypeVar('_RefT')
-_ValT = TypeVar('_ValT')
+RefT = TypeVar('RefT')
+ValT = TypeVar('ValT')
 
 
 # TODO
-Derefable: TypeAlias = _RefT | Any | Callable[['BaseRefManager'], _RefT]
+Derefable: TypeAlias = RefT | Any | Callable[['BaseRefManager'], RefT]
 r"""
 Any type that can be dereferenced.
 
@@ -22,14 +22,14 @@ Any type that can be dereferenced.
 
 class BaseRefManager(
     _abc_.ABC, 
-    Generic[_RefT, _ValT],
+    Generic[RefT, ValT],
 ):
     r"""
     Reference manager base class.
     """
 
     @_abc_.abstractmethod
-    def __getitem__(self, ref: _RefT) -> _ValT:
+    def __getitem__(self, ref: RefT) -> ValT:
         r"""
         Retrieve the value of a reference.
 
@@ -40,7 +40,7 @@ class BaseRefManager(
         ...
 
     @_abc_.abstractmethod
-    def __contains__(self, ref: _RefT) -> bool:
+    def __contains__(self, ref: RefT) -> bool:
         r"""
         Check if a reference exists in this manager.
 
@@ -51,14 +51,14 @@ class BaseRefManager(
         ...
 
 
-def deref(manager: BaseRefManager, ref: Derefable[_RefT]) -> _ValT:
+def deref(manager: BaseRefManager, ref: Derefable[RefT]) -> ValT:
     r"""
     Dereference a reference using the provided reference manager.
 
     :param manager: The reference manager.
     :param ref: The reference.
     :return: The dereferenced value.
-    :raises TypeError: If any below occur:
+    :raises TypeError: If any of the below occur:
         * reference NOT exists in the manager provided,
         * reference NOT as specified in :var:`Derefable`.
     """
@@ -78,6 +78,8 @@ def deref(manager: BaseRefManager, ref: Derefable[_RefT]) -> _ValT:
 
 
 __all__ = [
+    'RefT',
+    'ValT',
     'Derefable',
     'BaseRefManager',
     'deref',

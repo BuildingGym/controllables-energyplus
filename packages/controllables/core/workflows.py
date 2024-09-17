@@ -53,7 +53,7 @@ import wrapt as _wrapt_
 
 from .callbacks import CallbackManager
 
-# TODO
+# TODO rm????
 class CallableObserver(_wrapt_.ObjectProxy):
     """
     TODO FIXME should __events__ be stored in the instance or the class?

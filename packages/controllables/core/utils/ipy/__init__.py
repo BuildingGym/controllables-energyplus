@@ -25,7 +25,7 @@ def repr_html(obj: object):
 
     try:
         from IPython.core.formatters import format_display_data
-    except ImportError as e:
+    except ModuleNotFoundError as e:
         raise OptionalModuleNotFoundError.suggest(['ipython']) from e
 
     import html as _html_

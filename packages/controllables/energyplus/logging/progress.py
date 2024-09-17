@@ -23,7 +23,7 @@ class ProgressLogger(BaseComponent[World]):
     try: 
         import tqdm as _tqdm_
         import tqdm.auto as _tqdm_auto_
-    except ImportError as e:
+    except ModuleNotFoundError as e:
         raise OptionalModuleNotFoundError.suggest(['tqdm']) from e
 
     def __init__(self, progbar_ref: _tqdm_.tqdm | None = None):
@@ -62,13 +62,14 @@ class ProgressLogger(BaseComponent[World]):
                 if isinstance(self._progbar_ref, self._tqdm_.tqdm) else
                 self._tqdm_auto_.tqdm(total=100)
             )
-            _events \
-                .on(Event.Ref('message', include_warmup=True), 
-                    lambda ctx, progbar=progbar: 
-                        progbar.set_postfix_str(ctx.message)) \
-                .on(Event.Ref('progress', include_warmup=True), 
-                    lambda ctx, progbar=progbar: 
-                        progbar.update(ctx.progress * progbar.total - progbar.n))
+            _events[Event.Ref('message', include_warmup=True)].on(
+                lambda ctx, progbar=progbar: 
+                    progbar.set_postfix_str(ctx.message)
+            )
+            _events[Event.Ref('progress', include_warmup=True)].on(
+                lambda ctx, progbar=progbar: 
+                    progbar.update(ctx.progress * progbar.total - progbar.n)
+            )
 
         setup()
 

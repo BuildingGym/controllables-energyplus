@@ -4,9 +4,9 @@ TODO adapters/energyplus ?
 
 
 import functools as _functools_
-from typing import Literal, Self
+from typing import Literal
 
-from controllables.core.workflows import WorkflowManager
+from controllables.core.callbacks import Callback, CallbackManager
 
 
 class Core:
@@ -15,20 +15,17 @@ class Core:
     This is typically used internally by the higher-level classes.
     """
 
-    # TODO use something else
-    WorkflowManager = WorkflowManager[
-        Literal[
-            'reset:pre', 
-            'reset:post', 
-            'run:pre',
-            'run:post',
-        ],
-        Self,
-    ]
-
     @_functools_.cached_property
-    def workflows(self) -> WorkflowManager:
-        return self.WorkflowManager().__attach__(self)
+    def hooks(self):
+        return CallbackManager[
+            Literal[
+                'reset:pre', 
+                'reset:post', 
+                'run:pre',
+                'run:post',
+            ],
+            Callback,
+        ]()
 
     def __init__(self):
         r"""
@@ -74,6 +71,8 @@ class Core:
         )
         self.state = self.api.state_manager.new_state()
 
+        self.__running__ = False
+
     def configure(self, print_output: bool | None = None):
         if print_output is not None:
             self.api.runtime.set_console_output_status(
@@ -83,12 +82,18 @@ class Core:
 
     def run(self, args: list[str]) -> int:
         # TODO pass args to workflows
-        self.workflows.__call__('run:pre')
+        self.hooks.__call__('run:pre')
+        self.__running__ = True
         res = self.api.runtime.run_energyplus(
             self.state, command_line_args=args,
         )
-        self.workflows.__call__('run:post')
+        self.__running__ = False
+        self.hooks.__call__('run:post')
         return res
+    
+    @property
+    def running(self) -> bool:
+        return self.__running__
     
     def stop(self):
         self.api.runtime.stop_simulation(self.state)
@@ -98,9 +103,9 @@ class Core:
         Reset the state of the :class:`Core` object.
         """
 
-        self.workflows.__call__('reset:pre')
+        self.hooks.__call__('reset:pre')
         self.api.state_manager.reset_state(self.state)
-        self.workflows.__call__('reset:post')
+        self.hooks.__call__('reset:post')
 
     def __del__(self):
         r"""

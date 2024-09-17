@@ -14,6 +14,7 @@ import abc as _abc_
 import dataclasses as _dataclasses_
 import itertools as _itertools_
 import contextlib as _contextlib_
+import warnings as _warnings_
 from typing import Callable, Generic, TypeVar
 
 from . import (
@@ -350,10 +351,8 @@ class OutputVariable(
 
         core = self._manager._core
 
-        @core.workflows['run:pre'].use
-        def request_var(_=None):
-            # TODO once? or only when __detach__ed?
-            #core.workflows['run:pre'].off(request_var)
+        @core.hooks['run:pre'].on
+        def request(*args, **kwargs):
             core.api.exchange \
                 .request_variable(
                     core.state,
@@ -361,11 +360,16 @@ class OutputVariable(
                     variable_key=self.ref.key,
                 )
             
-        # TODO
-        request_var()
+        request()
+        if core.running:
+            _warnings_.warn(
+                f'{self} requested while {core} is running; '
+                f'It may not be available until the next run',
+                RuntimeWarning,
+            )
             
         return self
-
+    
     @property
     def _core_handle(self):
         res = self._manager._core.api.exchange \
@@ -386,7 +390,6 @@ class OutputVariable(
                     self._manager._core.state,
                     variable_handle=self._core_handle,
                 )
-
 
 
 class VariableManager(
@@ -431,6 +434,9 @@ class VariableManager(
                     return constructor(ref=ref)
                 
             raise TypeError(f'Unknown symbol or reference: {ref}')
+        
+            # TODO attach here
+            # ...
 
         self[ref] = build(ref).__attach__(self)
 
@@ -458,7 +464,7 @@ class VariableManager(
             )
                         
             try: import pandas as _pandas_
-            except ImportError as e:
+            except ModuleNotFoundError as e:
                 raise OptionalModuleNotFoundError.suggest(['pandas']) from e
             
             return {
@@ -476,12 +482,12 @@ class VariableManager(
             from controllables.core.utils.ipy import repr_html
 
             try: import pandas as _pandas_
-            except ImportError as e:
+            except ModuleNotFoundError as e:
                 raise OptionalModuleNotFoundError.suggest(['pandas']) from e
 
             def repr_htmltable(df: _pandas_.DataFrame):                
                 try: import itables as _itables_
-                except ImportError:
+                except ModuleNotFoundError:
                     _warnings_.warn(
                         OptionalModuleNotFoundWarning.suggest(['itables'])
                     )

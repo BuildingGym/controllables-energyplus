@@ -17,7 +17,7 @@ from typing import (
 from ...errors import OptionalModuleNotFoundError
 try: 
     import ray.rllib.env as _rayrl_env_
-except ImportError as e:
+except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['ray[rllib]']) from e
 
 from ...systems import BaseSystem 
@@ -288,11 +288,12 @@ class CommonEnv(
                     f'Cannot run without a `{BaseSystem}` `{self.__attach__}`-ed'
                 )
             
+            events = self._manager.events
+            
             episode_events: CommonEnv.Config.EpisodeEvents = {
-                # TODO 'start': self._manager.events.get('start', None), ...
-                'start': self._manager.workflows['run:pre'],
-                'end': self._manager.workflows['run:post'],
-                'step': None,
+                'start': events['begin'] if 'begin' in events else None,
+                'end': events['end'] if 'end' in events else None,                
+                'step': events['step'] if 'step' in events else None,                
                 **self._config.get('episode_events', dict()),
             }
 
@@ -304,9 +305,9 @@ class CommonEnv(
             # TODO bridge callbacks: .on(<Callback instance>)
             tracker = self.episode_controller()
             for key, callback in [
-                ('start', lambda _, tracker=tracker: tracker.start()),
-                ('end', lambda _, tracker=tracker: tracker.end()),
-                ('step', lambda _, tracker=tracker: tracker.step()),
+                ('start', lambda *args, **kwargs: tracker.start()),
+                ('end', lambda *args, **kwargs: tracker.end()),
+                ('step', lambda *args, **kwargs: tracker.step()),
             ]:
                 if episode_events.get(key) is not None:
                     _get_callback(episode_events[key]).on(callback)

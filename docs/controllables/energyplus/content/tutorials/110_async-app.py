@@ -90,13 +90,13 @@ async def main():
     # enable progress reporting for the world
     world.add('logging:progress')
     # run the world
-    world.awaitable.run()
+    world.start()
 
     # make the controller run in background
     control_task = _asyncio_.create_task(controller())
 
     # (optional) cancel the controller after a run of the world
-    await world.workflows['run:post']
+    await world.events['end']
     control_task.cancel()
 
 _asyncio_.run(main())

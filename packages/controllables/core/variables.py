@@ -9,10 +9,18 @@ from typing import (
     Callable, 
     Generic, 
     Iterable, 
+    Literal,
     Mapping,
     TypeAlias,
     TypeVar,
 )
+
+from .callbacks import (
+    BaseCallback, 
+    BaseCallbackManager,
+    CallbackManager,
+)
+from .refs import RefT, BaseRefManager
 
 
 _ValT = TypeVar('_ValT')
@@ -39,6 +47,17 @@ class BaseVariable(
 ):
     r"""
     Variable base class.
+    """
+
+    # TODO stdize!!!!!
+    events: BaseCallbackManager[
+        Literal['change'],
+        BaseCallback,
+    ] | None = None
+    r"""
+    Events associated with this variable.
+
+    TODO :class:`Observable`?
     """
 
     @property
@@ -72,20 +91,13 @@ class BaseMutableVariable(
         ...
 
 
-VariableRefType = str | Any
-r"""
-Reference type.
+VarT = TypeVar('VarT', bound=BaseVariable)
 
-This can be a string or a reference object.
-Strings shall be used as "symbols" for 
-predefined shortcut variables.
-"""
-
-from .refs import BaseRefManager
 
 # TODO generics?
 class BaseVariableManager(
-    BaseRefManager[VariableRefType, BaseVariable],
+    Generic[RefT, VarT],
+    BaseRefManager[RefT, VarT],
     _abc_.ABC,
 ):
     r"""
@@ -93,7 +105,7 @@ class BaseVariableManager(
     """
 
     @_abc_.abstractmethod
-    def __contains__(self, ref: VariableRefType) -> bool:
+    def __contains__(self, ref: RefT) -> bool:
         r"""
         Check if a variable is enabled.
 
@@ -104,7 +116,7 @@ class BaseVariableManager(
         ...
 
     @_abc_.abstractmethod
-    def __getitem__(self, ref: VariableRefType) -> BaseVariable:
+    def __getitem__(self, ref: RefT) -> VarT:
         r"""
         Access a variable by its reference.
 
@@ -115,7 +127,7 @@ class BaseVariableManager(
         ...
 
     @_abc_.abstractmethod
-    def __delitem__(self, ref: VariableRefType) -> None:
+    def __delitem__(self, ref: RefT) -> None:
         r"""
         Delete a variable by its reference.
         Implementation shall remove access to the variable,
@@ -128,6 +140,8 @@ class BaseVariableManager(
         ...
 
 
+
+import functools as _functools_
 
 from .utils.mappers import BaseMapper, CollectionMapper
 
@@ -167,11 +181,29 @@ class BaseCompositeVariable(
     .. note:: This MUST be overridden in subclasses.
     """
 
+    @_functools_.cached_property
+    def events(self):
+        # TODO
+        m = CallbackManager()
+
+        @self.__mapper__
+        def setup(o):
+            if not isinstance(o, BaseVariable):
+                return
+            if o.events is None:
+                return
+            if 'change' in o.events:
+                o.events['change'].on(m['change'])
+        setup(self.__variables__)
+
+        return m
+
     @property
     def value(self):
-        def getter(o):
+        @self.__mapper__
+        def get(o):
             return o.value if isinstance(o, BaseVariable) else o
-        return self.__mapper__(getter)(self.__variables__)
+        return get(self.__variables__)
 
 
 class BaseMutableCompositeVariable(
@@ -180,7 +212,7 @@ class BaseMutableCompositeVariable(
     _abc_.ABC,
 ):
     r"""
-    TODO
+    The mutable version of :class:`BaseCompositeVariable`.
     """
 
     @property
@@ -189,13 +221,14 @@ class BaseMutableCompositeVariable(
 
     @value.setter
     def value(self, o):
-        def setter(o, val):
+        @self.__mapper__
+        def set(o, val):
             if isinstance(o, BaseVariable):
                 o.value = val
                 return val
             # TODO raise?
             return None
-        return self.__mapper__(setter)(self.__variables__, o)
+        return set(self.__variables__, o)
 
 
 class Variable(
@@ -217,9 +250,19 @@ class MutableVariable(
     Variable[_ValT],
     _abc_.ABC,
 ):
-    @Variable.value.setter
+    @_functools_.cached_property
+    def events(self):
+        return CallbackManager()
+
+    @property
+    def value(self):
+        return super().value    
+
+    @value.setter
     def value(self, o: _ValT):
         self.__value__ = o
+        # TODO !!!!!
+        self.events['change']()
 
 
 # TODO typing
@@ -251,6 +294,7 @@ class MutableCompositeVariable(
     pass
 
 
+# TODO events
 # TODO metaclass=VariableProxyMeta
 class ComputedVariable(BaseVariable):
     r"""
@@ -260,7 +304,7 @@ class ComputedVariable(BaseVariable):
         vars: BaseVariableManager = ...
         ComputedVariable(
             lambda a, b: a.value + b.value, 
-            a=vars['a'], b=vars['b']
+            a=vars['a'], b=vars['b'],
         )
     """
 
@@ -300,7 +344,6 @@ class ValueProxyMeta(type(BaseVariable)):
         **kwargs,
     ):
         r"""TODO docs"""
-
 
         def make_method(attr):
             def method(self, *args, **kwargs):
@@ -350,40 +393,23 @@ class VariableNumOpsMixin(
     pass
 
 
-class VariableNumArrayOpsMixin(BaseVariable):
+class VariableNumArrayOpsMixin(
+    BaseVariable,
+):
+    r"""TODO"""
+
+class VariableContainerOpsMixin(
+    BaseVariable,
+    metaclass=ValueProxyMeta,
+    # TODO
+    proxy_attrs=(
+        '__getitem__',
+    )
+):
     r"""TODO"""
 
 
-from typing import Iterator
-from .refs import BaseRefManager
-
-# TODO just valueof()? Iterator => StreamVariable?
-class VariableRefManager(
-    BaseRefManager[None | BaseVariable | Iterator, Any],
-):
-    r"""
-    Variable reference manager.
-    """
-
-    def __contains__(self, ref):
-        return isinstance(ref, (type(None), BaseVariable, Iterator))
-
-    def __getitem__(self, ref):
-        if ref is None:
-            return None
-
-        if isinstance(ref, BaseVariable):
-            # TODO
-            from .errors import TemporaryUnavailableError
-            try: 
-                return ref.value
-            except TemporaryUnavailableError: 
-                return None        
-        
-        if isinstance(ref, Iterator):
-            return next(ref)
-
-        raise TypeError(f'Unsupported reference: {ref}')
+# TODO valueof()? Iterator => StreamVariable?
 
 
 __all__ = [
@@ -393,6 +419,4 @@ __all__ = [
     'Variable',
     'MutableVariable',
     'VariableNumOpsMixin',
-    'VariableRefType',
-    'VariableRefManager',
 ]

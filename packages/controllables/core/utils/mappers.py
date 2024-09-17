@@ -1,5 +1,7 @@
 r"""
-TODO 
+Mappers.
+
+
 """
 
 
@@ -23,6 +25,10 @@ class MapperFunction(
     ],
     Protocol,
 ):
+    r"""
+    Mapper function protocol.
+    """
+
     @_abc_.abstractmethod
     def __call__(self, *objs: InT) -> OutT:
         r"""
@@ -209,6 +215,13 @@ class SetMapper(IterableMapper):
         return set(super().__call__(*objs))
 
 class CollectionMapper(CompositeMapper):
+    r"""
+    Composite mapper for builtin container types.
+
+    TODO
+    .. seealso: https://docs.python.org/3/library/collections
+    """
+
     def __init__(self, next_mapper: BaseMapper | None = None):
         super().__init__(next_mapper=next_mapper)
         self.add(

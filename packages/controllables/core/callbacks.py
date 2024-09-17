@@ -4,7 +4,6 @@ Callbacks.
 
 
 import abc as _abc_
-import collections as _collections_
 import functools as _functools_
 import asyncio as _asyncio_
 import concurrent.futures as _concurrent_futures_
@@ -13,93 +12,23 @@ from typing import (
     Callable, 
     Generic, 
     Mapping, 
-    Self, 
     TypeAlias, 
     TypeVar,
 )
 
+from .callables import (
+    ArgsT,
+    RetT,
+    CallablePipeline, 
+    ExecutionContext,
+)
 from .components import BaseComponent
 from .refs import BaseRefManager
-from .utils.containers import OrderedSet
 
 
-_CallableT = TypeVar(
-    '_CallableT', 
-    bound=Callable,
-)
-
-
-class ContinueOperation(Exception):
-    r"""
-    Signal that the current operation be continued.
-    """
-
-    pass
-
-class StopOperation(Exception):
-    r"""
-    Signal that the current operation be stopped.
-    """
-
-    pass
-
-
-class CallablePipeline(
-    OrderedSet[_CallableT],
-    Callable,
-    Generic[_CallableT],
-):
-    """
-    A "multiplexing" callable for executing a sequence of callables.
-
-    Examples:
-
-    TODO
-    """
-
-    # TODO check ret Exception?
-    def __call__(self, *args, **kwargs) -> Mapping[_CallableT, Any]:
-        r"""
-        Execute the callback pipeline.
-        Arguments are passed to callbacks in the pipeline.
-
-        If a callback raises:
-            * :class:`ContinueOperation`: 
-                For the current call, the issuing callback is skipped 
-                and its result not recorded in the return value.
-                This is equivalent to a ``continue`` statement in a loop.
-            * :class:`StopOperation`: 
-                For the current call, all callbacks after 
-                the issuing callback are skipped 
-                and the return value contains only the results before
-                the issuing callback.
-                This is equivalent to a ``break`` statement in a loop.
-
-        :returns: 
-            The results of each callback, 
-            keyed by the respective callback.
-        """
-
-        res = _collections_.OrderedDict()
-
-        for f in self:
-            try: 
-                res[f] = f(*args, **kwargs)
-            except ContinueOperation: continue
-            except StopOperation: break
-
-        return res
-    
-piped = CallablePipeline
-r"""
-Shortcut for creating a :class:`CallablePipeline`.
-"""
-
-
-# TODO generic should be ArgsT
 class BaseCallback(
     _abc_.ABC,
-    Generic[_CallableT],
+    Generic[ArgsT, RetT],
 ):
     r"""
     Callback base class.
@@ -109,31 +38,32 @@ class BaseCallback(
     """
 
     @_abc_.abstractmethod
-    def on(self, *callables: _CallableT) -> Self:
+    def on(self, func: Callable[ArgsT, RetT]) -> Callable[ArgsT, RetT]:
         r"""
-        Add the given callables to the callback.
+        Add a :class:`callable`.
         This may be used as a decorator.
 
-        :param callables: The callables to add.
-        :returns: This callback.
+        :param func: The :class:`callable` to add.
+        :returns: The callable added.
         """
 
         ...
 
     @_abc_.abstractmethod
-    def off(self, *callables: _CallableT) -> Self:
+    def off(self, func: Callable[ArgsT, RetT]) -> Callable[ArgsT, RetT]:
         r"""
-        Remove the given callables from the callback.
+        Remove a :class:`callable`.
         This may be used as a decorator.
 
-        :param callables: The callables to remove.
-        :returns: This callback.
+        :param func: The :class:`callable` to remove.
+        :returns: The callable removed.
         """
 
         ...
 
     @_abc_.abstractmethod
-    def __call__(self, *args, **kwargs) -> Mapping[_CallableT, Any]:
+    def __call__(self, *args: ArgsT.args, **kwargs: ArgsT.kwargs) \
+        -> Mapping[Callable[ArgsT, RetT], RetT]:
         r"""
         Emit the callback with the given arguments.
         This will execute all enabled callables.
@@ -149,7 +79,7 @@ class BaseCallback(
     def fork(
         self, 
         transform: Callable[['BaseCallback'], 'BaseCallback'] | None = None,
-    ) -> 'BaseCallback[_CallableT]':
+    ) -> 'BaseCallback':
         r"""
         Create a new namespace under this callback.
         This namespace shall:
@@ -170,15 +100,15 @@ class BaseCallback(
 
 
 _RefT = TypeVar('_RefT')
+_CallbackT = TypeVar(
+    '_CallbackT', 
+    bound=BaseCallback,
+)
 
-# TODO _CallbackT instead
 class BaseCallbackManager(
-    BaseRefManager[_RefT, BaseCallback[_CallableT]],
+    BaseRefManager[_RefT, _CallbackT],
     _abc_.ABC,
-    Generic[
-        _RefT, 
-        _CallableT,
-    ],
+    Generic[_RefT, _CallbackT],
 ):
     r"""
     Callback manager base class.
@@ -188,7 +118,7 @@ class BaseCallbackManager(
     """
     
     @_abc_.abstractmethod
-    def __getitem__(self, ref: _RefT) -> BaseCallback[_CallableT]:
+    def __getitem__(self, ref: _RefT) -> _CallbackT:
         r"""
         Access the callback.
         
@@ -209,129 +139,47 @@ class BaseCallbackManager(
 
         ...
     
-    @_abc_.abstractmethod
-    def on(
-        self, 
-        ref: _RefT, 
-        *callables: _CallableT,
-    ) -> Self:
+    def on(self, ref: _RefT, func: Callable) -> Callable:
         r"""
-        Add callables for the provided reference.
+        Add a :class:`callable`.
 
-        :param ref: The reference.
-        :param callables: The callables to enable.
-        :returns: This manager.
+        :param ref: The reference to use for `func`.
+        :param func: The :class:`callable` to add.
+        :returns: The added :class:`callable`.
         """
 
-        ...
+        self[ref].on(func)
+        return func
     
-    @_abc_.abstractmethod
-    def off(
-        self, 
-        ref: _RefT, 
-        *callables: _CallableT,
-    ) -> Self:
+    def off(self, ref: _RefT, func: Callable) -> Callable:
         r"""
-        Remove callables for the provided reference.
+        Remove a :class:`callable`.
 
         :param ref: The reference.
-        :param callables: The callables to disable.
-        :returns: This manager.
+        :param func: The :class:`callable` to remove.
+        :returns: The removed :class:`callable`.
         """
-
-        ...
+                
+        self[ref].off(func)
+        return func
     
-    @_abc_.abstractmethod
     def __call__(
         self,
         ref: _RefT,
         *args, **kwargs,
-    ) -> Mapping[_CallableT, Any]:
+    ) -> Mapping[Callable, Any]:
         r"""
-        Emit the reference with the given arguments.
-        This will execute all enabled callables for 
+        Call the reference with the given arguments.
+        This will execute all enabled :class:`callable`s for 
         the reference specified.
 
         :param ref: The reference.
         :returns: 
-            The return values of each callable, 
-            keyed by their respective callables.
+            The return values of each :class:`callable`, 
+            keyed by their respective :class:`callable`s.
         """
 
-        ...
-
-
-import itertools as _itertools_
-import dataclasses as _dataclasses_
-import threading as _threading_
-
-
-# TODO typing generics
-class CallbackArguments:
-    r"""TODO"""
-
-    def __init__(self, *args, **kwargs):
-        self.__args__ = args
-        self.__kwargs__ = kwargs
-
-    def keys(self):
-        return _itertools_.chain(
-            range(len(self.__args__)),
-            self.__kwargs__.keys(),
-        )
-
-    def values(self):
-        return _itertools_.chain(
-            self.__args__, 
-            self.__kwargs__.values(),
-        )
-    
-    def __iter__(self):
-        return self.values()
-    
-    def __getitem__(self, key):
-        if key in self.__args__:
-            return self.__args__[key]
-        return self.__kwargs__[key]
-
-    def __repr__(self):
-        args_r = str.join(', ', (repr(arg) for arg in self.__args__))
-        kwargs_r = str.join(', ', 
-            (f'{k}={v!r}' for k, v in self.__kwargs__.items()))
-        return f'{self.__class__.__name__}({args_r}, {kwargs_r})'
-
-
-# TODO sync future?
-class CallbackResult(Generic[T := TypeVar('T')]):
-    def __init__(self, deferred: bool = False):
-        self.__result__: T | None = None
-        self.__done__ = _threading_.Event() if deferred else None
-
-    def __call__(self, value: T) -> Self:
-        if self.__done__ is not None:
-            self.__done__.set()
-        self.__result__ = value
-        return self
-    
-    def get(self, timeout: float | None = None) -> T:
-        if self.__done__ is not None:
-            self.__done__.wait(timeout=timeout)
-            self.__done__.clear()
-        return self.__result__
-
-
-@_dataclasses_.dataclass
-class CallbackContext:        
-    input: CallbackArguments
-    output: CallbackResult
-
-    @property
-    def args(self):
-        return self.input
-    
-    def ack(self, value=None):
-        self.output(value)
-        return self.output
+        return self[ref].__call__(*args, **kwargs)
 
 
 class CallbackSyncOpsMixin(BaseCallback):
@@ -343,19 +191,18 @@ class CallbackSyncOpsMixin(BaseCallback):
 
     class SyncOps(BaseComponent[BaseCallback]):
         def __call__(self, deferred: bool = False) \
-            -> _concurrent_futures_.Future[CallbackContext]:
+            -> _concurrent_futures_.Future[ExecutionContext]:
             future = _concurrent_futures_.Future()
             
-            # TODO
+            @self._manager.on
             def _listener(*args, **kwargs):
                 self._manager.off(_listener)
-                ctx = CallbackContext(
-                    input=CallbackArguments(*args, **kwargs),
-                    output=CallbackResult(deferred=deferred),
+                ctx = ExecutionContext(
+                    vars=ExecutionContext.Arguments(*args, **kwargs),
+                    ack=ExecutionContext.Ack(deferred=deferred),
                 )
                 future.set_result(ctx)
-                return ctx.output.get()
-            self._manager.on(_listener)
+                return ctx.ack.get()
 
             return future
         
@@ -363,8 +210,12 @@ class CallbackSyncOpsMixin(BaseCallback):
     def waitable(self):
         return self.SyncOps().__attach__(self)
     
-    def wait(self, deferred: bool = False) -> CallbackContext:
-        return self.waitable(deferred=deferred).result()
+    def wait(
+        self, 
+        deferred: bool = False, 
+        timeout: float | None = None,
+    ):
+        return self.waitable(deferred=deferred).result(timeout=timeout)
 
 
 class CallbackAsyncOpsMixin(BaseCallback):
@@ -378,16 +229,17 @@ class CallbackAsyncOpsMixin(BaseCallback):
         
         callback = Callback()
         # meanwhile, in another thread, probably...
-        # callback.emit(...)
+        # callback(...)
 
         while True:
             # if acknolwedgement is NOT necessary...
-            res = await callback        
+            ctx = await callback        
 
             # otherwise...
-            res = await callback.awaitable(deferred=True)
-            # ... do some processing and have the callback thread wait for it
-            res.ack('roger!')
+            ctx = await callback.awaitable(deferred=True)
+            # do some processing and have the callback caller wait for it
+            # signal the caller with a return value
+            ctx.ack('roger!')
     """
     
     class AsyncOps(BaseComponent[BaseCallback]):
@@ -408,7 +260,7 @@ class CallbackAsyncOpsMixin(BaseCallback):
             self._loop = loop
 
         def __call__(self, deferred: bool = False) \
-            -> _asyncio_.Future[CallbackContext]:
+            -> _asyncio_.Future[ExecutionContext]:
             r"""
             Create an awaitable for the callback.
 
@@ -418,17 +270,17 @@ class CallbackAsyncOpsMixin(BaseCallback):
             loop = self._loop or _asyncio_.get_event_loop()
             future = loop.create_future()
             
+            @self._manager.on
             def _listener(*args, **kwargs):
                 self._manager.off(_listener)
-                ctx = CallbackContext(
-                    input=CallbackArguments(*args, **kwargs),
-                    output=CallbackResult(deferred=deferred),
+                ctx = ExecutionContext(
+                    vars=ExecutionContext.Arguments(*args, **kwargs),
+                    ack=ExecutionContext.Ack(deferred=deferred),
                 )
                 loop.call_soon_threadsafe(
                     future.set_result, ctx,
                 )
-                return ctx.output.get()
-            self._manager.on(_listener)
+                return ctx.ack.get()
 
             return future
                 
@@ -452,19 +304,15 @@ class CallbackAsyncOpsMixin(BaseCallback):
         return self.awaitable().__await__()
     
 
-class CallbackProxy(
-    BaseCallback,
-):
+class CallbackProxy(BaseCallback):
     def __init__(self, target: BaseCallback):
         self._target = target
     
-    def on(self, *callables):
-        self._target.on(*callables)
-        return self
+    def on(self, func):
+        return self._target.on(func)
     
-    def off(self, *callables):
-        self._target.off(*callables)
-        return self
+    def off(self, func):
+        return self._target.off(func)
     
     def __call__(self, *args, **kwargs):
         return self._target.__call__(*args, **kwargs)
@@ -500,16 +348,11 @@ class FilteredCallback(CallbackProxy):
         return super().__call__(*args, **kwargs)
 
 
-class CallbackOpsMixin(
-    BaseCallback[_CallableT],
-    Generic[_CallableT],
-):
-    def __or__(self, other: BaseCallback[_CallableT]) -> 'Callback[_CallableT]':
-        # TODO
+class CallbackOpsMixin(BaseCallback):
+    r"""TODO"""
 
-        raise NotImplementedError
-
-    def use(self, callable: _CallableT) -> _CallableT:
+    # TODO !!!!
+    def use(self, callable: Callable) -> Callable:
         r"""
         TODO
         """
@@ -538,26 +381,34 @@ class CallbackOpsMixin(
     @property
     def sample(self):
         return self.SamplerConstructor(parent=self)
+    
+    def __or__(self, other: BaseCallback) -> 'Callback':
+        # TODO
+
+        raise NotImplementedError
+    
+    def __mod__(self, interval: int) -> 'Callback':
+        return self.sample.uniform(interval=interval)
 
 
 class Callback(
     CallbackOpsMixin,
     CallbackSyncOpsMixin,
     CallbackAsyncOpsMixin,
-    BaseCallback[_CallableT],
-    Generic[_CallableT],
+    BaseCallback[ArgsT, RetT],
+    Generic[ArgsT, RetT],
 ):
     @_functools_.cached_property
     def _callables(self):
-        return CallablePipeline[_CallableT]()
+        return CallablePipeline()
 
-    def on(self, *callables):
-        self._callables.update(callables)
-        return self
+    def on(self, func):
+        self._callables.add(func)
+        return func
     
-    def off(self, *callables):
-        self._callables.difference_update(callables)
-        return self
+    def off(self, func):
+        self._callables.discard(func)
+        return func
     
     def __call__(self, *args, **kwargs):
         return self._callables.__call__(*args, **kwargs)
@@ -571,17 +422,15 @@ class Callback(
 
 
 class CallbackManager(
-    dict[_RefT, Callback[_CallableT]],
-    BaseCallbackManager[
-        _RefT, 
-        _CallableT,
-    ],
+    dict[_RefT, _CallbackT],
+    BaseCallbackManager[_RefT, _CallbackT],
 ):
     r"""
     A manager for callbacks.
     """
 
-    def __missing__(self, ref: _RefT):
+    # TODO mv to __getitem__ and DO NOT RELY ON DICT!!!!
+    def __missing__(self, ref):
         r"""
         TODO doc
         """
@@ -595,33 +444,13 @@ class CallbackManager(
     def __repr__(self):
         return object.__repr__(self)
     
-    def on(
-        self, 
-        ref: _RefT, 
-        *callables: _CallableT,
-    ):
-        self[ref].on(*callables)
-        return self
-    
-    def off(
-        self, 
-        ref: _RefT, 
-        *callables: _CallableT,
-    ):
-        self[ref].off(*callables)
-        return self
-    
-    def __call__(
-        self,
-        ref: _RefT,
-        *args, **kwargs,
-    ):
+    def __call__(self, ref, *args, **kwargs):
         return self[ref].__call__(*args, **kwargs)
 
 
 __all__ = [
-    'CallablePipeline',
-    'piped',
+    'BaseCallback',
+    'BaseCallbackManager',
     'Callback',
     'CallbackManager',
 ]
