@@ -18,6 +18,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+examples = [
+    'energyplus-datasets',
+]
 test = [
     'pytest', 
     'pytest-asyncio',

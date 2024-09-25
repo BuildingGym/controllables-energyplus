@@ -5,12 +5,12 @@ Scope: Logging and presenting messages.
 """
 
 
-
 from controllables.core.components import BaseComponent
-from ..world import World
+
+from ..systems import System
 
 
-class MessageLogger(BaseComponent[World]):
+class MessageLogger(BaseComponent[System]):
     r"""
     A logger that logs messages to a `logging.Logger`.
 

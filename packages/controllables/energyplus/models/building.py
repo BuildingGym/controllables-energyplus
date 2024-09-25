@@ -1,43 +1,32 @@
-import abc as _abc_
-import os as _os_
+r"""
+TODO
+"""
 
 
-class FileBacked(_abc_.ABC):
-    def __init__(self, path: _os_.PathLike = None):
-        self._path = None
-        if path is not None:
-            self.open(path)
-
-    def open(self, path: _os_.PathLike) -> 'FileBacked':
-        self._path = path
-        return self
-
-    @property
-    def path(self) -> _os_.PathLike:
-        if self._path is None:
-            raise ValueError('Not `open`ed')
-        return self._path
-
-
-
-import typing as _typing_
 import collections as _collections_
-
 import json as _json_
 import os as _os_
 import tempfile as _tempfile_
-
+from typing import Self
 
 from .. import _core as _core_
 
 
-class WorldModel(_collections_.UserDict):
+class BuildingModel(_collections_.UserDict):
     r"""
-    The input model.
+    The building model.
     This represents an epJSON object.
 
     .. seealso:: https://energyplus.readthedocs.io/en/latest/schema.html
     """
+
+    @classmethod
+    def from_buffer(cls, buffer: bytes):
+        return cls().load(buffer)
+
+    @classmethod
+    def from_file(cls, path: _os_.PathLike):
+        return cls().loadf(path)
 
     Formats = _core_.Formats
 
@@ -53,7 +42,7 @@ class WorldModel(_collections_.UserDict):
         self, 
         path: _os_.PathLike, 
         format: Formats = None,
-    ) -> _typing_.Self:
+    ) -> Self:
         format = (
             format if format is not None else 
             _core_.infer_format_from_path(path)
@@ -97,18 +86,8 @@ class WorldModel(_collections_.UserDict):
             self.dump(fp)
 
         return path
-
-
-class WeatherModel(FileBacked):
-    pass
-
-# TODO
-class Report(FileBacked):
-    pass
-
+    
 
 __all__ = [
-    'WorldModel',
-    'WeatherModel',
-    'Report',
+    'BuildingModel',
 ]

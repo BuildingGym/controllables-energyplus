@@ -44,7 +44,7 @@ class BaseCallback(
         This may be used as a decorator.
 
         :param func: The :class:`callable` to add.
-        :returns: The callable added.
+        :returns: The :class:`callable` added.
         """
 
         ...
@@ -56,7 +56,7 @@ class BaseCallback(
         This may be used as a decorator.
 
         :param func: The :class:`callable` to remove.
-        :returns: The callable removed.
+        :returns: The :class:`callable` removed.
         """
 
         ...
@@ -65,12 +65,13 @@ class BaseCallback(
     def __call__(self, *args: ArgsT.args, **kwargs: ArgsT.kwargs) \
         -> Mapping[Callable[ArgsT, RetT], RetT]:
         r"""
-        Emit the callback with the given arguments.
-        This will execute all enabled callables.
+        Call this callback with arguments.
+        This shall execute all :class:`callable`s 
+        added through :meth:`on`.
 
         :returns: 
-            The return values of each callable, 
-            keyed by their respective callables.
+            The return values of each :class:`callable`, 
+            keyed by their respective :class:`callable`s.
         """
 
         ...
@@ -89,11 +90,11 @@ class BaseCallback(
                 (accessible via :meth:`__call__`)
 
         :param transform:
-            A function to transform the created callback instance.
+            A function to transform the created callback.
             This can be used to wrap the new callback 
             with additional functionality.
         :returns: 
-            A child callback instance attached to this callback.
+            A child callback attached to this callback.
         """
 
         ...
@@ -422,12 +423,19 @@ class Callback(
 
 
 class CallbackManager(
-    dict[_RefT, _CallbackT],
+    #dict[_RefT, _CallbackT],
     BaseCallbackManager[_RefT, _CallbackT],
 ):
     r"""
     A manager for callbacks.
     """
+
+    @_functools_.cached_property
+    def _callbacks(self) -> dict[_RefT, _CallbackT]:
+        return dict()
+    
+    def __contains__(self, ref):
+        return ref in self._callbacks
 
     # TODO mv to __getitem__ and DO NOT RELY ON DICT!!!!
     def __missing__(self, ref):
@@ -435,14 +443,16 @@ class CallbackManager(
         TODO doc
         """
 
-        self[ref] = Callback()
-        return self[ref]
+        self._callbacks[ref] = Callback()
+        return self._callbacks[ref]
     
-    def __getitem__(self, ref: _RefT):
-        return super().__getitem__(ref)
+    def __getitem__(self, ref):
+        if ref not in self._callbacks:
+            return self.__missing__(ref)
+        return self._callbacks[ref]
     
-    def __repr__(self):
-        return object.__repr__(self)
+    # def __repr__(self):
+    #     return object.__repr__(self)
     
     def __call__(self, ref, *args, **kwargs):
         return self[ref].__call__(*args, **kwargs)

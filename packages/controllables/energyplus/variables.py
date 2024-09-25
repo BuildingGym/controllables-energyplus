@@ -17,10 +17,6 @@ import contextlib as _contextlib_
 import warnings as _warnings_
 from typing import Callable, Generic, TypeVar
 
-from . import (
-    world as _world_,
-)
-
 from controllables.core import (
     # TODO rm dep
     utils as _utils_,
@@ -37,6 +33,8 @@ from controllables.core.variables import (
     BaseVariableManager,
     VariableNumOpsMixin,
 )
+
+from .systems import System
 
 
 class CoreExceptionableMixin(
@@ -78,7 +76,7 @@ class Variable(
     BaseComponent['VariableManager'],
 ):
     r"""
-    Base variable for all variables in this module.
+    Common class for all variables in this module.
     Managed by :class:`VariableManager`.
     """
 
@@ -137,12 +135,12 @@ class WallClock(Variable[_datetime_.datetime], CoreExceptionableMixin):
 
     ref: Ref
 
-    # TODO FIXME .minute
     @property
     def value(self):
         exchange = self._manager._core.api.exchange
         state = self._manager._core.state
 
+        # TODO
         #with self._ensure_exception():
         try: 
             return _datetime_.datetime.min.replace(
@@ -364,7 +362,10 @@ class OutputVariable(
         if core.running:
             _warnings_.warn(
                 f'{self} requested while {core} is running; '
-                f'It may not be available until the next run',
+                f'It may not be available until the next run. '
+                f'More info: https://energyplus.readthedocs.io'
+                f'/en/latest/datatransfer.html'
+                f'#datatransfer.DataExchange.request_variable',
                 RuntimeWarning,
             )
             
@@ -392,16 +393,25 @@ class OutputVariable(
                 )
 
 
+# TODO
+import functools as _functools_
+
+
 class VariableManager(
-    dict[str | Variable.Ref, Variable],
-    BaseVariableManager, 
-    BaseComponent[_world_.World],
+    #dict[str | Variable.Ref, Variable],
+    BaseVariableManager[str | Variable.Ref, Variable], 
+    BaseComponent[System],
 ):
     r"""
     Variable manager.
 
     TODO
     """
+
+    # TODO mv VariableManager to core
+    @_functools_.cached_property
+    def _variables(self):
+        return dict()
 
     @property
     def _core(self):
@@ -424,7 +434,7 @@ class VariableManager(
     }
                 
     # TODO
-    def __missing__(self, ref):
+    def __getitem__(self, ref):
         def build(ref: str | Variable.Ref) -> Variable:
             if ref in self._symbols:
                 return self._symbols[ref]()            
@@ -438,9 +448,11 @@ class VariableManager(
             # TODO attach here
             # ...
 
-        self[ref] = build(ref).__attach__(self)
+        if ref in self._variables:
+            return self._variables[ref]
 
-        return self[ref]
+        self._variables[ref] = build(ref).__attach__(self)
+        return self._variables[ref]
     
     def __contains__(self, ref):
         return any((
@@ -449,6 +461,7 @@ class VariableManager(
         ))
 
     def __delitem__(self, ref):
+        # TODO detach
         return super(dict).__delitem__(ref)
     
     def __repr__(self):
@@ -550,11 +563,12 @@ class VariableManager(
             ),
         )
     
-    def __getstate__(self) -> object:
-        return super().__getstate__()
+    # TODO
+    # def __getstate__(self) -> object:
+    #     return super().__getstate__()
     
-    def __setstate__(self, state: object):
-        return super().__setstate__(state)
+    # def __setstate__(self, state: object):
+    #     return super().__setstate__(state)
 
 
 __all__ = [

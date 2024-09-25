@@ -5,8 +5,10 @@ Environments.
 
 import abc as _abc_
 import functools as _functools_
+import warnings as _warnings_
 from typing import (
     Any, 
+    Callable,
     Generic, 
     NamedTuple,
     Optional,
@@ -15,18 +17,23 @@ from typing import (
     TypeAlias,
     TypeVar, 
     TypedDict,     
+    Unpack,
 )
 
 from ...systems import BaseSystem 
 from ...components import BaseComponent
 from ...variables import (
+    # TODO
+    _ValT,
     BaseVariable, 
+    BaseMutableVariable,
     CompositeVariable, 
+    ComputedVariable,
     MutableCompositeVariable,
     MutableVariable,
 )
 from ...callbacks import Callback
-from ...refs import Derefable, deref
+from ...refs import Derefable, deref, BaseRefManager
 from .spaces import Space, SpaceVariable, MutableSpaceVariable
 
 from ...errors import OptionalModuleNotFoundError
@@ -39,83 +46,12 @@ try:
 except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 
-
-class BaseAgent(
-    BaseComponent[BaseSystem],
-    _abc_.ABC,
-):
-    r"""
-    Minimal abstract class for interfacing between 
-    :class:`BaseSystem`s and :class:`gymnasium.spaces.Space`s. 
-
-    .. note::
-        * Implementations shall have `action_space` and `observation_space` defined.
-        * Any `fundamental space <https://gymnasium.farama.org/api/spaces/fundamental/#fundamental-spaces>`_
-            within the defined `action_space` and `observation_space` 
-            must be associated with a variable (i.e. :class:`BaseVariable` and :class:`BaseMutableVariable`) 
-            or a variable reference (TODO link) from an engine.
-
-    .. note:: TODO FIXME
-        This class cannot be used as a `gymnasium.Env` alone; 
-        rather, it's designed to be integrated with 
-        a Gymnasium-compliant environment (e.g. `gymnasium.Env`) 
-        as a "mixin" to ensure compatibility with EnergyPlus OOEP engines.
-
-    .. seealso::
-        * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
-        * `gymnasium.Env.action_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.action_space>`_
-        * `gymnasium.Env.observation_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.observation_space>`_
-    """
-
-    action_space: Space[ActType]
-    r"""(IMPLEMENT) All possible actions."""
-    observation_space: Space[ObsType]
-    r"""(IMPLEMENT) All possible observations."""
-
-    # TODO !!!!!
-    def __attach__(self, manager):
-        super().__attach__(manager=manager)
-
-        # TODO impl
-        if self.action.__manager__ is None:
-            self.action.__attach__(self._manager.variables)
-        if self.observation.__manager__ is None:
-            self.observation.__attach__(self._manager.variables)
-
-        return self
-    
-    @_functools_.cached_property
-    def action(self):
-        r"""TODO"""
-        return MutableSpaceVariable(self.action_space)
-
-    @_functools_.cached_property
-    def observation(self):
-        r"""TODO"""
-        return SpaceVariable(self.observation_space)
-
-    def act(self, action: ActType) -> ActType:
-        r"""
-        Submit an action to the attached engine.
-        
-        :param action: An action within the action space :attr:`action_space`.
-        :return: The action seen by the enviornment. Identical to the `action` submitted.
-        """
-
-        self.action.value = action
-        return action
-
-    def observe(self) -> ObsType:
-        r"""
-        Obtain an observation from the attached engine.
-        
-        :return: An observation from the observation space :attr:`observation_space`.
-        """
-
-        return self.observation.value
+# TODO rm
+from .agent import *
 
 
-class Agent(
+# TODO rm
+class _TODO_rm_Agent(
     BaseAgent,
     BaseComponent[BaseSystem],
 ):
@@ -130,7 +66,7 @@ class Agent(
         Protocol,
         Generic[_ContextRetT := TypeVar('_ContextRetT')],
     ):
-        def __call__(self, agent: 'Agent') -> 'Agent._ContextRetT':
+        def __call__(self, agent: '_TODO_rm_Agent') -> '_TODO_rm_Agent._ContextRetT':
             ...
 
     # TODO !!!!
@@ -139,7 +75,7 @@ class Agent(
         BaseComponent['Agent'],
         Generic[_ContextRetT],
     ):
-        def __init__(self, ref: 'Agent.ContextFunction[Agent._ContextRetT]'):
+        def __init__(self, ref: '_TODO_rm_Agent.ContextFunction[_TODO_rm_Agent._ContextRetT]'):
             super().__init__()
             self.ref = ref
         
@@ -158,11 +94,11 @@ class Agent(
         r"""Observation space."""
 
         reward_function: Optional[
-            'Agent.RewardFunction'
+            '_TODO_rm_Agent.RewardFunction'
         ]
         r"""Reward function."""
         info_function: Optional[
-            'Agent.InfoFunction'
+            '_TODO_rm_Agent.InfoFunction'
         ]
         r"""Info function."""
 
@@ -199,8 +135,9 @@ class Agent(
         return self.InfoVariable(info_function).__attach__(self)
 
 
-class AgentManager(
-    dict[_RefT := TypeVar('_RefT'), Agent],
+# TODO dynamic agents
+class _TODO_rm_AgentManager(
+    dict[_RefT := TypeVar('_RefT'), _TODO_rm_Agent],
     BaseComponent[BaseSystem],
     Generic[_RefT],
 ):
@@ -212,16 +149,16 @@ class AgentManager(
         observation_space: dict[_RefT, Space[ObsType]]
         r"""Observation space."""
 
-        reward_function: Optional[dict[_RefT, Agent.ContextFunction[float]]]
+        reward_function: Optional[dict[_RefT, _TODO_rm_Agent.ContextFunction[float]]]
         r"""Reward function."""
-        info_function: Optional[dict[_RefT, Agent.ContextFunction[dict]]]
+        info_function: Optional[dict[_RefT, _TODO_rm_Agent.ContextFunction[dict]]]
         r"""Info function."""
 
     def __init__(self, config: Config):
         super().__init__()
 
         self.update({
-            agent_ref: Agent(config=Agent.Config(
+            agent_ref: _TODO_rm_Agent(config=_TODO_rm_Agent.Config(
                 action_space=config['action_space'][agent_ref],
                 observation_space=config['observation_space'][agent_ref],
                 reward_function=config['reward_function'].get(agent_ref)
@@ -296,12 +233,12 @@ class _TypedEnv(_gymnasium_.Env):
     
 
 # TODO NOTE gymnasium.Env is single-agent
-class Env(_TypedEnv, Agent):
+class Env(_TypedEnv, _TODO_rm_Agent):
     r"""
     Gymnasium-compliant environment for interfacing with :class:`BaseSystem`s.
     """
 
-    class Config(Agent.Config):
+    class Config(_TODO_rm_Agent.Config):
         r"""
         Environment configuration class.
         """
@@ -311,8 +248,19 @@ class Env(_TypedEnv, Agent):
 
             step: Optional[Callback | Derefable[Callback] | None]
             r"""
-            Reference to an event that 
-            triggers a step within this environment.
+            Reference to an event in the :class:`BaseSystem` that 
+            corresponds to a step (state transition) in this environment.
+
+            This can be:
+                * A :class:`Callback` object.
+                * A reference to a :class:`Callback` object,
+                    valid inside the attached :class:`BaseSystem`.
+                * :class:`None`, indicating no event to wait for.
+            
+            If unspecified, the :class:`BaseSystem`'s `step` event 
+            is used when present.
+
+            .. seealso: :meth:`Env.step`
             """
 
         events: Optional[Events | None]
@@ -332,6 +280,11 @@ class Env(_TypedEnv, Agent):
         return MutableVariable(value=False)
 
     def step(self, action):
+        r"""
+        TODO doc
+        Every call to :meth:`step` will wait for this event to be triggered.
+        """
+
         if self.reward is None:
             raise RuntimeError(
                 f'Reward (function) MUST be defined for {self} '
@@ -343,7 +296,12 @@ class Env(_TypedEnv, Agent):
         event_ref = (
             self.config
                 .get('events', {})
-                .get('step', None)
+                .get(
+                    'step',
+                    'timestep' 
+                    if 'timestep' in self._manager.events else 
+                    None,
+                )
         )
         finalize = None
         
@@ -379,7 +337,7 @@ class Env(_TypedEnv, Agent):
 
 __all__ = [
     'BaseAgent',
-    'Agent',
-    'AgentManager',
+    '_TODO_rm_Agent',
+    '_TODO_rm_AgentManager',
     'Env',
 ]

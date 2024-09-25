@@ -6,14 +6,13 @@ Scope: Logging and presenting progress messages and values.
 
 
 from controllables.core.errors import OptionalModuleNotFoundError
-from controllables.core.components import (
-    BaseComponent,
-)
-from ..world import World
+from controllables.core.components import BaseComponent
+
+from ..systems import System
 
 
 # TODO mv adapters/energyplus
-class ProgressLogger(BaseComponent[World]):
+class ProgressLogger(BaseComponent[System]):
     r"""
     A logger that logs message and progress to a `tqdm.tqdm` progress bar.
 

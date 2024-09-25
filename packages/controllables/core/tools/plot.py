@@ -183,6 +183,7 @@ class Plot(BasePlot):
 
 # TODO
 class PlotConstructor(BaseComponent[BaseVariableManager]):
+    # TODO !!!!!!
     def __watch__(self, event: BaseCallback):
         pass
     
@@ -197,6 +198,8 @@ class PlotConstructor(BaseComponent[BaseVariableManager]):
                 **trace_spec,
             }],
         })
+    
+plot = PlotConstructor()
 
 
 @Plot.backend('default')
@@ -332,4 +335,5 @@ __all__ = [
     'BasePlot',
     'Plot',
     'PlotConstructor',
+    'plot',
 ]

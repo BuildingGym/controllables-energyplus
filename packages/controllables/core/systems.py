@@ -15,14 +15,16 @@ class BaseSystem(_abc_.ABC):
     r"""
     System base class.
 
-    A system is a group of components.
+    This class may be used to implement a 
+    `discrete-event <https://wikipedia.org/wiki/Discrete-event_simulation>`_
+    control interface.
     """
 
     # TODO
     @_abc_.abstractmethod
     def start(self) -> Self:
         r"""
-        Start the system.
+        (IMPLEMENT) Start the system and return _immediately_.
         
         :return: This system.
         :raises RuntimeError: If the system is already started.
@@ -31,13 +33,13 @@ class BaseSystem(_abc_.ABC):
         ...
 
     started: bool
-    r"""Whether the system is started."""
+    r"""(IMPLEMENT) Whether the system is started."""
 
     @_abc_.abstractmethod
     def wait(self, timeout: float | None = None) -> Self:
         r"""
-        Wait for the system to finish.
-        TODO Returns immediately if the system is not started.
+        (IMPLEMENT) Wait for the system to finish.
+        Returns immediately if the system is not started.
 
         :param timeout:
             The maximum time to wait for the system to finish.
@@ -51,14 +53,10 @@ class BaseSystem(_abc_.ABC):
     # TODO __await__?
 
     @_abc_.abstractmethod
-    def stop(self, timeout: float | None = None) -> Self:
+    def stop(self) -> Self:
         r"""
-        Stop the system.
+        (IMPLEMENT) Stop the system and return _immediately_.
 
-        :param timeout: 
-            The maximum time to wait for the system to stop.
-            If :class:`None`, waits indefinitely. (TODO)
-        :raises TimeoutError: If the system does not stop in time.
         :raises RuntimeError: If the system is not started.
         :return: This system.
         """
@@ -67,16 +65,21 @@ class BaseSystem(_abc_.ABC):
 
     variables: BaseVariableManager[Literal['time'], BaseVariable]
     r"""
-    Root variable manager.
+    (IMPLEMENT) Root variable manager.
 
-    TODO doc builtin vars (e.g. 'time')
+    Implementaions may, optionally, provide these builtin variables:
+        * `'time'`: The current time inside the system.
     """
 
-    events: CallbackManager[Literal['begin', 'step', 'end'], Callback]
+    events: CallbackManager[Literal['begin', 'timestep', 'end'], Callback]
     r"""
-    Root event manager.
+    (IMPLEMENT) Root event manager.
 
-    TODO doc builtin events (e.g. 'begin', 'step', 'end')
+    Implementaions may, optionally, provide these builtin events:
+        * `'begin'`: Called when the system starts.
+        * `'timestep'`: Called at each timestep of the system, 
+            analogus to a clock tick.
+        * `'end'`: Called when the system ends.
     """
 
     # ############

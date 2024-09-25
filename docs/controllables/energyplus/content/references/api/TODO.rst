@@ -1,8 +1,5 @@
 TODO
 =================
 
-.. inheritance-diagram:: energyplus.ooep.specs.callbacks.Callback
-   :parts: 1
-
-.. inheritance-diagram:: energyplus.ooep.components.world.World
+.. inheritance-diagram:: controllables.energyplus.System
    :parts: 1

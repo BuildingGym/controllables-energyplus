@@ -1,25 +1,25 @@
 import pytest as _pytest_
 
-from controllables.energyplus import world as _world_
+from controllables.energyplus.systems import System
 from energyplus.dataset.basic import dataset
 
 
 class TestWorld:
     @_pytest_.fixture(autouse=True)
     def world(self):
-        self._world = _world_.World({'input': {
-            'world': dataset.models / '1ZoneUncontrolled.idf',
+        self._world = System(config={
+            'building': dataset.models / '1ZoneUncontrolled.idf',
             'weather': dataset.weathers / 'USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw'
-        }})
+        })
 
     def test_workflows(self):
         # TODO
         pass
 
     def test___getstate____setstate__(self):
-        world_ = _world_.World()
+        world_ = System()
         world_.__setstate__(self._world.__getstate__())
-        assert self._world._specs == world_._specs
+        assert self._world._config == world_._config
 
     def test_start_stop(self):
         self._world.start().wait()

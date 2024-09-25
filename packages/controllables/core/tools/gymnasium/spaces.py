@@ -17,6 +17,7 @@ from ...components import (
     BaseComponent,
 )
 from ...variables import (
+    _ValT,
     BaseVariable, 
     BaseVariableManager,
     VariableNumOpsMixin,
@@ -32,8 +33,6 @@ from ...utils.mappers import (
     DictMapper,
     TupleMapper,    
     CompositeMapper,
-    # TODO mv?
-    isallinstance,
 )
 
 
@@ -78,7 +77,7 @@ class DictSpace(Space, _gymnasium_.spaces.Dict):
 class DictSpaceMapper(DictMapper):
     def maps(self, *objs):
         # TODO map(lambda x: x.__ref__ is not None, objs)
-        return isallinstance(objs, (DictSpace, dict, Mapping, ))
+        return all(isinstance(obj, (DictSpace, dict, Mapping)) for obj in objs)
     
 
 class TupleSpace(Space, _gymnasium_.spaces.Tuple):
@@ -86,7 +85,7 @@ class TupleSpace(Space, _gymnasium_.spaces.Tuple):
 
 class TupleSpaceMapper(TupleMapper):
     def maps(self, *objs):
-        return isallinstance(objs, (TupleSpace, tuple, Tuple, ))    
+        return all(isinstance(obj, (TupleSpace, tuple, Tuple)) for obj in objs)
     
 
 class SpaceCompositeMapper(CompositeMapper):
@@ -105,8 +104,9 @@ class SpaceVariable(
     VariableNumOpsMixin,
     VariableNumArrayOpsMixin,
     VariableContainerOpsMixin,    
-    BaseVariable, 
+    BaseVariable[_ValT], 
     BaseComponent[BaseVariableManager],
+    Generic[_ValT],
 ):
     r"""
     TODO
@@ -128,7 +128,10 @@ class SpaceVariable(
         return SpaceCompositeMapper(getter)(self.space)
     
 
-class MutableSpaceVariable(SpaceVariable):
+class MutableSpaceVariable(
+    SpaceVariable[_ValT],
+    Generic[_ValT],
+):
     r"""
     TODO
     """

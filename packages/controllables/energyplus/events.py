@@ -17,7 +17,7 @@ from controllables.core.callbacks import (
     BaseComponent,
 )
 
-from .world import World
+from .systems import System
 
 
 @_dataclasses_.dataclass
@@ -106,11 +106,8 @@ class Event(
 
 
 class EventManager(
-    CallbackManager[
-        Event.RefT, 
-        Event,
-    ],
-    BaseComponent[World],
+    CallbackManager[Event.RefT, Event],
+    BaseComponent[System],
 ):
     r"""
     Event manager.
@@ -138,8 +135,11 @@ class EventManager(
                 try:
                     return cb(*args, **kwargs)
                 except Exception as e:
-                    self._manager.stop()
-                    raise e
+                    @self._core.hooks['run:post'].on
+                    def _raise_exc(*args, __exc__=e, **kwargs):
+                        self._core.hooks['run:post'].off(_raise_exc)
+                        raise Exception from __exc__
+                    self._core.stop()
             return cb_
 
         class _Dispatcher:
@@ -255,7 +255,8 @@ class EventManager(
         """
         
         match ref:
-            case 'step':
+            # TODO deprecate 'step'!!!!!
+            case 'step' | 'timestep':
                 return self['begin_zone_timestep_after_init_heat_balance']
             
         event = Event(ref=Event.Ref.copyof(ref))
@@ -272,8 +273,13 @@ class EventManager(
         else:
             raise KeyError(f'Unknown event: {event.ref.name}')
         
-        self[ref] = event.__attach__(self)
-        return self[ref]
+        self._callbacks[ref] = event.__attach__(self)
+        return self._callbacks[ref]
+    
+    def __getitem__(self, ref):
+        if ref not in self._callbacks:
+            return self.__missing__(ref)
+        return self._callbacks[ref]
 
     def __delitem__(self, ref):
         raise NotImplementedError
@@ -292,11 +298,12 @@ class EventManager(
             ),
         )
 
-    def __getstate__(self) -> object:
-        return super().__getstate__()
+    # TODO
+    # def __getstate__(self) -> object:
+    #     return super().__getstate__()
     
-    def __setstate__(self, state: object):
-        return super().__setstate__(state)
+    # def __setstate__(self, state: object):
+    #     return super().__setstate__(state)
 
 
 __all__ = [

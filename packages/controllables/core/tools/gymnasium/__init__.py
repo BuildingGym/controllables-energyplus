@@ -3,10 +3,17 @@ TODO
 """
 
 
-from .env import (
+from .agent import (
     BaseAgent,
+    BaseAgentManager,
     Agent,
+    AgentManager,
+)
+
+from .env import (
     Env,
+    # TODO rm
+    _TODO_rm_Agent,
 )
 
 # TODO
@@ -21,7 +28,9 @@ from .spaces import (
 
 __all__ = [
     'BaseAgent',
+    'BaseAgentManager',
     'Agent',
+    'AgentManager',
     'Env',
     'Space',
     'BoxSpace',

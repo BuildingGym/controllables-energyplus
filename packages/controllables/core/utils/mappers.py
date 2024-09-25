@@ -7,10 +7,18 @@ Mappers.
 
 import abc as _abc_
 from typing import (
+    Any, 
     Generic, 
     Protocol, 
     TypeAlias, 
     TypeVar, 
+    Mapping, 
+    Dict, 
+    Iterable, 
+    Iterator,    
+    Tuple, 
+    List, 
+    Set,
     runtime_checkable,
 )
 
@@ -131,15 +139,9 @@ class MapperProxy(BaseMapper):
         raise TypeError(self.__next_mapper__)
 
 
-from typing import Any, Callable, Mapping, Dict, Type, Iterable, Iterator
-
-def isallinstance(it: tuple, cls: Any | tuple[Any]) -> bool:
-    return all(isinstance(el, cls) for el in it)
-
-
 class MappingMapper(BaseMapper[Mapping, Dict]):
     def maps(self, *objs):
-        return isallinstance(objs, (dict, Mapping, ))
+        return all(isinstance(obj, (dict, Mapping)) for obj in objs)
 
     def __call__(self, *objs):
         self._ensure_maps(*objs)
@@ -151,7 +153,7 @@ class MappingMapper(BaseMapper[Mapping, Dict]):
 
 class IterableMapper(BaseMapper[Iterable, Iterator]):
     def maps(self, *objs):
-        return isallinstance(objs, (Iterable, ))
+        return all(isinstance(obj, (Iterator, Iterable)) for obj in objs)
     
     def __call__(self, *objs):
         self._ensure_maps(*objs)
@@ -188,28 +190,26 @@ class CompositeMapper(MapperProxy):
         return super().__call__(*objs)
 
 
-from typing import Tuple, List, Set
-
 class DictMapper(MappingMapper):
     pass
 
 class TupleMapper(IterableMapper):
     def maps(self, *objs):
-        return isallinstance(objs, (tuple, Tuple))
+        return all(isinstance(obj, (tuple, Tuple)) for obj in objs)
     
     def __call__(self, *objs):
         return tuple(super().__call__(*objs))
     
 class ListMapper(IterableMapper):
     def maps(self, *objs):
-        return isallinstance(objs, (list, List))
+        return all(isinstance(obj, (list, List)) for obj in objs)
     
     def __call__(self, *objs):
         return list(super().__call__(*objs))
     
 class SetMapper(IterableMapper):
     def maps(self, *objs):
-        return isallinstance(objs, (set, Set))
+        return all(isinstance(obj, (set, Set)) for obj in objs)
     
     def __call__(self, *objs):
         return set(super().__call__(*objs))

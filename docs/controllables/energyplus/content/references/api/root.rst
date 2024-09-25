@@ -5,4 +5,4 @@
    :toctree: _autosummary
    :recursive:
    
-   energyplus.ooep
+   controllables.energyplus

@@ -28,7 +28,7 @@ from ...variables import (
     BaseMutableVariable,
 )
 from ...callbacks import Callback
-from ..gymnasium.env import Agent, AgentManager
+from ..gymnasium.env import _TODO_rm_Agent, _TODO_rm_AgentManager
 
 
 # TODO callback interface??
@@ -293,7 +293,7 @@ class CommonEnv(
             episode_events: CommonEnv.Config.EpisodeEvents = {
                 'start': events['begin'] if 'begin' in events else None,
                 'end': events['end'] if 'end' in events else None,                
-                'step': events['step'] if 'step' in events else None,                
+                'step': events['timestep'] if 'timestep' in events else None,                
                 **self._config.get('episode_events', dict()),
             }
 
@@ -338,7 +338,7 @@ class ExternalMultiAgentEnv(
     CommonEnv,
     _rayrl_env_.ExternalMultiAgentEnv,
 ):
-    class Config(AgentManager.Config, CommonEnv.Config):
+    class Config(_TODO_rm_AgentManager.Config, CommonEnv.Config):
         pass
         
     # TODO
@@ -349,7 +349,7 @@ class ExternalMultiAgentEnv(
             observation_space=config['observation_space'],
         )
         CommonEnv.__init__(self, config=config)
-        self._agents = AgentManager(config=config)
+        self._agents = _TODO_rm_AgentManager(config=config)
 
     def __attach__(self, manager):
         CommonEnv.__attach__(self, manager)
@@ -387,7 +387,7 @@ class ExternalEnv(
     * `ray.rllib.ExternalEnv <https://docs.ray.io/en/latest/rllib/package_ref/env/external_env.html#rllib-env-external-env-externalenv>`_
     """
 
-    class Config(Agent.Config, CommonEnv.Config):
+    class Config(_TODO_rm_Agent.Config, CommonEnv.Config):
         pass
         
     # TODO
@@ -398,7 +398,7 @@ class ExternalEnv(
             observation_space=config['observation_space'],
         )
         CommonEnv.__init__(self, config=config)
-        self._agents = AgentManager(AgentManager.Config(
+        self._agents = _TODO_rm_AgentManager(_TODO_rm_AgentManager.Config(
             action_space={None: config['action_space']},
             observation_space={None: config['observation_space']},
             reward_function={None: config.get('reward_function')},

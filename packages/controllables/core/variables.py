@@ -11,6 +11,7 @@ from typing import (
     Iterable, 
     Literal,
     Mapping,
+    ParamSpec,
     TypeAlias,
     TypeVar,
 )
@@ -237,6 +238,12 @@ class Variable(
     _abc_.ABC,
 ):
     def __init__(self, value: _ValT):
+        r"""
+        Initialize the variable.
+
+        :param value: The initial value of the variable.
+        """
+
         super().__init__()
         self.__value__ = value
 
@@ -250,9 +257,13 @@ class MutableVariable(
     Variable[_ValT],
     _abc_.ABC,
 ):
+    class EventManager(CallbackManager):
+        def __contains__(self, ref):
+            return ref in ('change', )
+
     @_functools_.cached_property
     def events(self):
-        return CallbackManager()
+        return self.EventManager()
 
     @property
     def value(self):
@@ -296,7 +307,10 @@ class MutableCompositeVariable(
 
 # TODO events
 # TODO metaclass=VariableProxyMeta
-class ComputedVariable(BaseVariable):
+class ComputedVariable(
+    BaseVariable[_ValT],
+    Generic[_ParamT := ParamSpec('_ParamT', bound=BaseVariable | Any), _ValT],
+):
     r"""
     TODO update when any of `BaseVariable` passed is updated!!!!
 
@@ -308,12 +322,13 @@ class ComputedVariable(BaseVariable):
         )
     """
 
+    # TODO necesito?
     @classmethod
     def from_operator(
         cls, 
-        operator: Callable, 
-        *args: BaseVariable | Any, 
-        **kwargs: BaseVariable | Any,
+        operator: Callable[_ParamT, _ValT], 
+        *args: _ParamT.args, 
+        **kwargs: _ParamT.kwargs,
     ):
         # TODO
         def valueof(o: BaseVariable | Any):
@@ -327,14 +342,19 @@ class ComputedVariable(BaseVariable):
         
         return cls(operator_, *args, **kwargs)
 
-    def __init__(self, func: Callable, *args, **kwargs):
-        self._func = func
+    def __init__(
+        self, 
+        func: Callable[_ParamT, _ValT], 
+        *args: _ParamT.args, 
+        **kwargs: _ParamT.kwargs,
+    ):
+        self.__func__ = func
         self.__args__ = args
         self.__kwargs__ = kwargs
 
     @property
     def value(self):
-        return self._func(*self.__args__, **self.__kwargs__)
+        return self.__func__(*self.__args__, **self.__kwargs__)
 
 
 class ValueProxyMeta(type(BaseVariable)):
@@ -347,13 +367,13 @@ class ValueProxyMeta(type(BaseVariable)):
 
         def make_method(attr):
             def method(self, *args, **kwargs):
-                class ProxyComputeVariable(
+                class ProxyComputedVariable(
                     ComputedVariable, 
                     metaclass=ValueProxyMeta, 
                     proxy_attrs=proxy_attrs,
                 ): 
                     pass
-                return ProxyComputeVariable.from_operator(
+                return ProxyComputedVariable.from_operator(
                     lambda self_v, *args, **kwargs:
                         getattr(self_v, attr)(*args, **kwargs), 
                     self, *args, **kwargs,
