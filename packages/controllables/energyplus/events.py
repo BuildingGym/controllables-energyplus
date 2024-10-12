@@ -1,8 +1,6 @@
 r"""
 Events.
 
-Scope: Event management for the world.
-
 .. seealso:: :mod:`controllables.core.callbacks`
 """
 
@@ -118,7 +116,7 @@ class EventManager(
 
     @property
     def _core(self):
-        return self._manager._core
+        return self._manager._kernel
 
     _CallbackSetters: TypeAlias = dict[str, Callable[[Event], None]]
     
@@ -242,10 +240,11 @@ class EventManager(
     def available_keys(self):
         return self._core_callback_setters.keys() | self._std_callback_setters.keys()
     
+    # TODO this sucks!!!!!
     def __contains__(self, ref):
         # TODO accept Event.Refs!!!!!
         name = Event.Ref.copyof(ref).name
-        return name in self.available_keys()
+        return name in set(self.available_keys()) | set(['begin', 'end', 'timestep'])
     
     def __missing__(self, ref):
         r"""
@@ -255,8 +254,7 @@ class EventManager(
         """
         
         match ref:
-            # TODO deprecate 'step'!!!!!
-            case 'step' | 'timestep':
+            case 'timestep':
                 return self['begin_zone_timestep_after_init_heat_balance']
             
         event = Event(ref=Event.Ref.copyof(ref))

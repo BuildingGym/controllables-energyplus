@@ -1,5 +1,5 @@
 r"""
-TODO adapters/energyplus ?
+Low-level API for interfacing with EnergyPlus.
 """
 
 
@@ -9,9 +9,9 @@ from typing import Literal
 from controllables.core.callbacks import Callback, CallbackManager
 
 
-class Core:
+class Kernel:
     r"""
-    The wrapper class for interfacing with the EnergyPlus kernel (core).
+    The wrapper class for interfacing with the EnergyPlus kernel.
     This is typically used internally by the higher-level classes.
     """
 
@@ -29,7 +29,7 @@ class Core:
 
     def __init__(self):
         r"""
-        Initialize the :class:`Core` object.
+        Initialize the :class:`Kernel` object.
         """
 
         def _hotfix10447_monkey():
@@ -73,7 +73,16 @@ class Core:
 
         self.__running__ = False
 
+    def __repr__(self):
+        return f'{type(self).__name__}()'
+
     def configure(self, print_output: bool | None = None):
+        r"""
+        Configure the simulation.
+
+        :param print_output: Whether to print the output to `stdout`.
+        """
+
         if print_output is not None:
             self.api.runtime.set_console_output_status(
                 self.state,
@@ -81,7 +90,14 @@ class Core:
             )
 
     def run(self, args: list[str]) -> int:
-        # TODO pass args to workflows
+        r"""
+        Run the simulation.
+
+        :param args: The command-line arguments to pass to the kernel.
+        :returns: The exit status code of the kernel.
+        """
+
+        # TODO pass args to hooks
         self.hooks.__call__('run:pre')
         self.__running__ = True
         res = self.api.runtime.run_energyplus(
@@ -93,14 +109,22 @@ class Core:
     
     @property
     def running(self) -> bool:
+        r"""
+        Whether the simulation is currently running.
+        """
+
         return self.__running__
     
     def stop(self):
+        r"""
+        Stop the current simulation.
+        """
+
         self.api.runtime.stop_simulation(self.state)
 
     def reset(self):
         r"""
-        Reset the state of the :class:`Core` object.
+        Reset the state of the :class:`Kernel` object.
         """
 
         self.hooks.__call__('reset:pre')
@@ -109,7 +133,7 @@ class Core:
 
     def __del__(self):
         r"""
-        Delete the state of the :class:`Core` object.
+        Delete the state of the :class:`Kernel` object.
         This releases the resources used by the state.
         """
 
@@ -117,7 +141,7 @@ class Core:
 
     def __getstate__(self) -> object:
         r"""
-        Get the state of the :class:`Core` object for pickling.
+        Get the state of the :class:`Kernel` object for pickling.
 
         .. note:: 
             No states to save as of now, 
@@ -128,7 +152,7 @@ class Core:
 
     def __setstate__(self, _: object):
         r"""
-        Set the state of the :class:`Core` object from a pickle.
+        Set the state of the :class:`Kernel` object from a pickle.
 
         :param state: The state to set.
 
@@ -146,10 +170,10 @@ def convert_common(
     output_directory: _os_.PathLike,
     verbose: bool = False,
 ):
-    core = Core()
+    kernel = Kernel()
     # shush
-    core.configure(print_output=verbose)
-    res = core.run([
+    kernel.configure(print_output=verbose)
+    res = kernel.run([
         '--convert-only', 
         '--output-directory', str(output_directory),
         str(input_file),
@@ -176,9 +200,9 @@ def convert_epjson_to_idf(input_file, output_directory):
 
 import pathlib as _pathlib_
 
-Formats = Literal['json', 'idf']
+InputFormats = Literal['json', 'idf']
 
-def infer_format_from_path(path: _os_.PathLike) -> Formats | None:
+def infer_format_from_path(path: _os_.PathLike) -> InputFormats | None:
     match _pathlib_.Path(path).suffix.lower():
         case '.json':
             return 'json'
@@ -190,9 +214,9 @@ def infer_format_from_path(path: _os_.PathLike) -> Formats | None:
 
 
 __all__ = [
-    'Core',
+    'Kernel',
     'convert_idf_to_epjson',
     'convert_epjson_to_idf',
-    'Formats',
+    'InputFormats',
     'infer_format_from_path',
 ]

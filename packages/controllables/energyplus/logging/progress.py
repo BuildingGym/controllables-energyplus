@@ -5,24 +5,23 @@ Scope: Logging and presenting progress messages and values.
 """
 
 
-from controllables.core.errors import OptionalModuleNotFoundError
 from controllables.core.components import BaseComponent
 
 from ..systems import System
 
 
-# TODO mv adapters/energyplus
 class ProgressLogger(BaseComponent[System]):
     r"""
     A logger that logs message and progress to a `tqdm.tqdm` progress bar.
 
-    ..seealso:: https://tqdm.github.io/
+    .. seealso:: https://tqdm.github.io
     """
 
     try: 
         import tqdm as _tqdm_
         import tqdm.auto as _tqdm_auto_
     except ModuleNotFoundError as e:
+        from controllables.core.errors import OptionalModuleNotFoundError
         raise OptionalModuleNotFoundError.suggest(['tqdm']) from e
 
     def __init__(self, progbar_ref: _tqdm_.tqdm | None = None):

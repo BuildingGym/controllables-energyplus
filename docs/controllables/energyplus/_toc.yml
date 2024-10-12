@@ -3,16 +3,8 @@ root: content/root
 parts:
 - caption: 📚 Tutorials
   chapters:
-  - file: content/tutorials/000_setup
-  - file: content/tutorials/001_models
-  - file: content/tutorials/002_systems
-  - file: content/tutorials/003_variables
-  - file: content/tutorials/004_events
-  - file: content/tutorials/101_app-rl
+  - glob: content/tutorials/TUT*
 - caption: 📇 References
   chapters:
-  - file: content/references/architecture/root
-    sections:
-    - file: content/references/architecture/addons/rl
   - file: content/references/api/root
   - file: content/references/api/TODO

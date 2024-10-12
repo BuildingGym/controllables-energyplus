@@ -1,5 +1,7 @@
 r"""
 Specs for systems.
+
+"And-God-said"s, "Let-there-be"s. (Genesis 1)
 """
 
 
@@ -18,9 +20,10 @@ class BaseSystem(_abc_.ABC):
     This class may be used to implement a 
     `discrete-event <https://wikipedia.org/wiki/Discrete-event_simulation>`_
     control interface.
+
+    .. seealso:: https://wikipedia.org/wiki/Dynamical_system
     """
 
-    # TODO
     @_abc_.abstractmethod
     def start(self) -> Self:
         r"""
@@ -42,7 +45,7 @@ class BaseSystem(_abc_.ABC):
         Returns immediately if the system is not started.
 
         :param timeout:
-            The maximum time to wait for the system to finish.
+            The maximum time (seconds) to wait for the system to finish.
             If :class:`None`, waits indefinitely..
         :raises TimeoutError: If the system does not finish in time.
         :return: This system.
@@ -68,7 +71,7 @@ class BaseSystem(_abc_.ABC):
     (IMPLEMENT) Root variable manager.
 
     Implementaions may, optionally, provide these builtin variables:
-        * `'time'`: The current time inside the system.
+    * `'time'`: The current time inside the system.
     """
 
     events: CallbackManager[Literal['begin', 'timestep', 'end'], Callback]
@@ -76,10 +79,10 @@ class BaseSystem(_abc_.ABC):
     (IMPLEMENT) Root event manager.
 
     Implementaions may, optionally, provide these builtin events:
-        * `'begin'`: Called when the system starts.
-        * `'timestep'`: Called at each timestep of the system, 
-            analogus to a clock tick.
-        * `'end'`: Called when the system ends.
+    * `'begin'`: Called when the system starts.
+    * `'timestep'`: Called at each timestep of the system, 
+        analogus to a clock tick.
+    * `'end'`: Called when the system ends.
     """
 
     # ############
@@ -104,6 +107,7 @@ class SystemShortcutMixin(BaseSystem):
         Shortcut for :meth:`BaseComponent.__attach__`.
 
         :param component: The component to add.
+        :return: This system.
         """
 
         component.__attach__(self)
@@ -115,6 +119,7 @@ class SystemShortcutMixin(BaseSystem):
         Shortcut for :meth:`BaseComponent.__detach__`.
 
         :param component: The component to remove.
+        :return: This system.
         """
 
         component.__detach__(self)
@@ -128,6 +133,9 @@ class SystemShortcutMixin(BaseSystem):
         :param event_ref: The event reference.
         :param listener: The event listener;
             If `None`, returns a `on` function/decorator for the event.
+        :return: 
+        * If :param:`listener` is `None`, a `on` function/decorator for the event.
+        * Otherwise, this system.
         """
 
         if listener is None:
@@ -145,8 +153,10 @@ class SystemShortcutMixin(BaseSystem):
         Shortcut for `self.events.off`.
 
         :param event_ref: The event reference.
-        :param listener: The event listener;
-            If `None`, returns a `off` function/decorator for the event.
+        :param listener: The event listener.
+        :return: 
+        * If :param:`listener` is `None`, a `off` function/decorator for the event.
+        * Otherwise, this system.
         """
 
         if listener is None:

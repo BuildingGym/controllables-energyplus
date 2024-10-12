@@ -1,8 +1,6 @@
 r"""
 Variables.
 
-Scope: Variable management.
-
 .. note:: 
     :class:`Variable`-s within this module
     are not meant to be instantiated directly by users. 
@@ -37,35 +35,6 @@ from controllables.core.variables import (
 from .systems import System
 
 
-class CoreExceptionableMixin(
-    BaseComponent['VariableManager'],
-):
-    r"""
-    Exception handling mixin for core API calls.
-    """
-
-    @_contextlib_.contextmanager
-    def _ensure_exception(self):
-        r"""
-        Ensure that core API exceptions are caught and relevant errors raised.
-
-        :raises: :class:`TemporaryUnavailableError` if an error has occurred.
-
-        .. seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.api_error_flag
-        """
-        
-        try:
-            yield
-        finally:
-            api = self._manager._core.api
-            state = self._manager._core.state
-            if api.exchange.api_error_flag(state):
-                api.exchange.reset_api_error_flag(state)
-                raise TemporaryUnavailableError(
-                    f'Core API data exchange error: {self}'
-                )
-
-
 _ValT = TypeVar('_ValT')
 
 
@@ -82,6 +51,7 @@ class Variable(
 
     class Ref(_abc_.ABC):
         r"""Variable reference."""
+
         ...
 
     def __init__(self, ref: Ref):
@@ -94,12 +64,42 @@ class Variable(
         super().__init__()
         self._ref = ref
 
+    def __repr__(self):
+        return f'{type(self).__name__}({self.ref!r})'
+
     @property
     def ref(self) -> Ref:
         r"""Get the reference to this variable."""
 
         return self._ref
     
+    @property
+    def _kernel(self):
+        return self._manager._kernel
+    
+    @_contextlib_.contextmanager
+    def _ensure_exception(self):
+        r"""
+        Ensure kernel API exceptions caught and relevant errors raised.
+
+        :raises: :class:`TemporaryUnavailableError` if an error has occurred.
+
+        .. seealso:: 
+        https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.api_error_flag
+        """
+        
+        try:
+            yield
+        finally:
+            api = self._kernel.api
+            state = self._kernel.state
+            if api.exchange.api_error_flag(state):
+                api.exchange.reset_api_error_flag(state)
+                raise TemporaryUnavailableError(
+                    f'Kernel API data exchange error: {self!r}'
+                )
+
+
 class MutableVariable(
     Generic[_ValT],
     Variable[_ValT],
@@ -115,7 +115,7 @@ class MutableVariable(
 
 import datetime as _datetime_
 
-class WallClock(Variable[_datetime_.datetime], CoreExceptionableMixin):
+class WallClock(Variable[_datetime_.datetime]):
     r"""Wall clock variable class."""
 
     @_dataclasses_.dataclass(frozen=True)
@@ -137,30 +137,27 @@ class WallClock(Variable[_datetime_.datetime], CoreExceptionableMixin):
 
     @property
     def value(self):
-        exchange = self._manager._core.api.exchange
-        state = self._manager._core.state
+        exchange = self._kernel.api.exchange
+        state = self._kernel.state
 
         # TODO
-        #with self._ensure_exception():
-        try: 
-            return _datetime_.datetime.min.replace(
-                year=(
-                    exchange.calendar_year(state) 
-                    if self.ref.calendar else 
-                    exchange.year(state)
-                ),
-            ) + _datetime_.timedelta(
-                days=exchange.day_of_year(state) - 1,
-                hours=exchange.current_time(state),
-            )
-        except ValueError:
-            raise TemporaryUnavailableError()
+        with self._ensure_exception():
+            try: 
+                return _datetime_.datetime.min.replace(
+                    year=(
+                        exchange.calendar_year(state) 
+                        if self.ref.calendar else 
+                        exchange.year(state)
+                    ),
+                ) + _datetime_.timedelta(
+                    days=exchange.day_of_year(state) - 1,
+                    hours=exchange.current_time(state),
+                )
+            except ValueError as e:
+                raise TemporaryUnavailableError(f'{self!r}') from e
 
 
-class Actuator(
-    MutableVariable,
-    CoreExceptionableMixin,
-):
+class Actuator(MutableVariable):
     r"""
     Actuator variable class.
     """
@@ -194,24 +191,25 @@ class Actuator(
     ref: Ref
 
     @property
-    def _core_handle(self):
+    def _kernel_handle(self):
         r"""
         Get the internal handle of the actuator.
 
         :raises: :class:`TemporaryUnavailableError` if the handle is not available.
 
-        ...seealso:: 
+        .. seealso:: 
             * https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.get_actuator_handle
         """
-        res = self._manager._core.api.exchange \
+
+        res = self._kernel.api.exchange \
             .get_actuator_handle(
-                self._manager._core.state,
+                self._kernel.state,
                 component_type=self.ref.type,
                 control_type=self.ref.control_type,
                 actuator_key=self.ref.key,
             )
         if res == -1:
-            raise TemporaryUnavailableError() 
+            raise TemporaryUnavailableError(f'{self!r}') 
         return res
 
     @property
@@ -221,11 +219,12 @@ class Actuator(
 
         :raises: :class:`TemporaryUnavailableError` if the value is not available.
         """
+
         with self._ensure_exception():
-            return self._manager._core.api.exchange \
+            return self._kernel.api.exchange \
                 .get_actuator_value(
-                    self._manager._core.state,
-                    actuator_handle=self._core_handle,
+                    self._kernel.state,
+                    actuator_handle=self._kernel_handle,
                 )
 
     @value.setter
@@ -235,10 +234,11 @@ class Actuator(
 
         :param n: The value to set the actuator to.
         """
-        self._manager._core.api.exchange \
+
+        self._kernel.api.exchange \
             .set_actuator_value(
-                self._manager._core.state,
-                actuator_handle=self._core_handle,
+                self._kernel.state,
+                actuator_handle=self._kernel_handle,
                 actuator_value=float(n),
             )
 
@@ -247,19 +247,17 @@ class Actuator(
         Reset the actuator.
         This transfers the control of the actuator back to attached engine.
 
-        ...seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.reset_actuator
+        .. seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.reset_actuator
         """
-        self._manager._core.api.exchange \
+
+        self._kernel.api.exchange \
             .reset_actuator(
-                self._manager._core.state,
-                actuator_handle=self._core_handle,
+                self._kernel.state,
+                actuator_handle=self._kernel_handle,
             )
 
 
-class InternalVariable(
-    Variable,
-    CoreExceptionableMixin,
-):
+class InternalVariable(Variable):
     r"""
     Internal variable class.
     """
@@ -272,31 +270,28 @@ class InternalVariable(
     ref: Ref
 
     @property
-    def _core_handle(self):
-        res = self._manager._core.api.exchange \
+    def _kernel_handle(self):
+        res = self._kernel.api.exchange \
             .get_internal_variable_handle(
-                self._manager._core.state,
+                self._kernel.state,
                 variable_name=self.ref.type,
                 variable_key=self.ref.key
             )
         if res == -1:
-            raise TemporaryUnavailableError()
+            raise TemporaryUnavailableError(f'{self!r}')
         return res
 
     @property
     def value(self):
         with self._ensure_exception():
-            return self._manager._core.api.exchange \
+            return self._kernel.api.exchange \
                 .get_internal_variable_value(
-                    self._manager._core.state,
-                    variable_handle=self._core_handle
+                    self._kernel.state,
+                    variable_handle=self._kernel_handle
                 )
 
 
-class OutputMeter(
-    Variable,
-    CoreExceptionableMixin,
-):
+class OutputMeter(Variable):
     r"""
     Output meter class.
 
@@ -309,30 +304,27 @@ class OutputMeter(
     ref: Ref
 
     @property
-    def _core_handle(self):
-        res = self._manager._core.api.exchange \
+    def _kernel_handle(self):
+        res = self._kernel.api.exchange \
             .get_meter_handle(
-                self._manager._core.state,
+                self._kernel.state,
                 meter_name=self.ref.type,
             )
         if res == -1:
-            raise TemporaryUnavailableError()
+            raise TemporaryUnavailableError(f'{self!r}')
         return res
 
     @property
     def value(self):
         with self._ensure_exception():
-            return self._manager._core.api.exchange \
+            return self._kernel.api.exchange \
                 .get_meter_value(
-                    self._manager._core.state,
-                    meter_handle=self._core_handle,
+                    self._kernel.state,
+                    meter_handle=self._kernel_handle,
                 )
 
 
-class OutputVariable(
-    Variable,
-    CoreExceptionableMixin,
-):
+class OutputVariable(Variable):
     r"""
     Output variable class.
     """
@@ -347,21 +339,21 @@ class OutputVariable(
     def __attach__(self, engine):
         super().__attach__(manager=engine)
 
-        core = self._manager._core
+        kernel = self._kernel
 
-        @core.hooks['run:pre'].on
+        @kernel.hooks['run:pre'].on
         def request(*args, **kwargs):
-            core.api.exchange \
+            kernel.api.exchange \
                 .request_variable(
-                    core.state,
+                    kernel.state,
                     variable_name=self.ref.type,
                     variable_key=self.ref.key,
                 )
             
         request()
-        if core.running:
+        if kernel.running:
             _warnings_.warn(
-                f'{self} requested while {core} is running; '
+                f'{self!r} requested while {kernel!r} is running; '
                 f'It may not be available until the next run. '
                 f'More info: https://energyplus.readthedocs.io'
                 f'/en/latest/datatransfer.html'
@@ -372,24 +364,24 @@ class OutputVariable(
         return self
     
     @property
-    def _core_handle(self):
-        res = self._manager._core.api.exchange \
+    def _kernel_handle(self):
+        res = self._kernel.api.exchange \
             .get_variable_handle(
-                self._manager._core.state,
+                self._kernel.state,
                 variable_name=self.ref.type,
                 variable_key=self.ref.key,
             )
         if res == -1:
-            raise TemporaryUnavailableError()
+            raise TemporaryUnavailableError(f'{self!r}')
         return res
 
     @property
     def value(self):
         with self._ensure_exception():
-            return self._manager._core.api.exchange \
+            return self._kernel.api.exchange \
                 .get_variable_value(
-                    self._manager._core.state,
-                    variable_handle=self._core_handle,
+                    self._kernel.state,
+                    variable_handle=self._kernel_handle,
                 )
 
 
@@ -403,7 +395,7 @@ class VariableManager(
     BaseComponent[System],
 ):
     r"""
-    Variable manager.
+    Variable manager class.
 
     TODO
     """
@@ -414,8 +406,8 @@ class VariableManager(
         return dict()
 
     @property
-    def _core(self):
-        return self._manager._core
+    def _kernel(self):
+        return self._manager._kernel
     
     _symbols: dict[str, Callable[[], Variable]] = {
         # std
@@ -556,8 +548,8 @@ class VariableManager(
                     }
                     .get(datapoint.what, lambda: None)()
                     for datapoint in (
-                        self._core.api.exchange
-                        .get_api_data(self._core.state)
+                        self._kernel.api.exchange
+                        .get_api_data(self._kernel.state)
                     )
                 )
             ),

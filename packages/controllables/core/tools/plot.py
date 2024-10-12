@@ -19,7 +19,7 @@ from typing import (
 
 from ..callbacks import BaseCallback
 from ..components import BaseComponent
-from ..errors import OptionalModuleNotFoundError
+from ..errors import TemporaryUnavailableError, OptionalModuleNotFoundError
 from ..variables import BaseVariable, BaseVariableManager
 from ..refs import Derefable, deref
 
@@ -252,21 +252,24 @@ class PlotlyBackend(BasePlot):
         def _ensure_data(data: Iterable | Any):
             return list(data) if isinstance(data, Iterable) else data
 
-        self._figure.update({
-            'data': [
-                {
-                    prop: _ensure_data(
-                        _deref(trace_spec.get(ref_prop)).value
-                    )
-                    for prop, ref_prop in [
-                        ('x', 'x'),
-                        ('y', 'y'),
-                        ('z', 'z'),
-                    ]
-                    if ref_prop in trace_spec
-                } for trace_spec in self._spec['traces']
-            ],
-        })
+        try:
+            self._figure.update({
+                'data': [
+                    {
+                        prop: _ensure_data(
+                            _deref(trace_spec.get(ref_prop)).value
+                        )
+                        for prop, ref_prop in [
+                            ('x', 'x'),
+                            ('y', 'y'),
+                            ('z', 'z'),
+                        ]
+                        if ref_prop in trace_spec
+                    } for trace_spec in self._spec['traces']
+                ],
+            })
+        except TemporaryUnavailableError:
+            pass
 
         return self
 

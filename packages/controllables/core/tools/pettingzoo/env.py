@@ -5,7 +5,16 @@ TODO
 
 import functools as _functools_
 import warnings as _warnings_
-from typing import Any, Generic, NamedTuple, Optional, SupportsFloat, TypedDict, Unpack, Literal
+from typing import (
+    Any,
+    Generic,
+    Literal,
+    NamedTuple,
+    Optional,
+    SupportsFloat,
+    TypedDict,
+    Unpack,
+)
 
 from ...errors import OptionalModuleNotFoundError
 try: 
@@ -28,7 +37,7 @@ class _TypedAECEnv(
 
 
 # TODO
-class BaseAECEnv:
+class BaseAECEnv(_TypedAECEnv, BaseAgentManager):
     pass
 
 
@@ -111,9 +120,8 @@ class BaseParallelEnv(_TypedParallelEnv, BaseAgentManager):
         .. seealso: :meth:`BaseParallelEnv.step`
         """
 
-    # TODO name event_sources?
     event_sources: EventSources
-    r"""(IMPLEMENT) TODO"""
+    r"""(IMPLEMENT) TODO Event sources."""
     
     @property
     def observation_spaces(self):

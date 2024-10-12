@@ -1,6 +1,8 @@
 r"""
-TODO
+TODO deprecate
 """
+
+raise DeprecationWarning('!!!! this module has been deprecated!!!! use `controllables.core.tools.rllib` instead!!!')
 
 
 # TODO deps

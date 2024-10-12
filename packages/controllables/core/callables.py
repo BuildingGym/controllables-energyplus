@@ -24,14 +24,14 @@ RetT = TypeVar('RetT')
 
 class ContinueOperation(Exception):
     r"""
-    Signal that the current operation be continued.
+    Exception for signaling that the current operation be continued.
     """
 
     pass
 
 class StopOperation(Exception):
     r"""
-    Signal that the current operation be stopped.
+    Exception for signaling that the current operation be stopped.
     """
 
     pass
@@ -54,24 +54,24 @@ class CallablePipeline(
     def __call__(self, *args: ArgsT.args, **kwargs: ArgsT.kwargs) \
         -> Mapping[Callable[ArgsT, RetT], RetT]:
         r"""
-        Execute the callback pipeline.
-        Arguments are passed to callbacks in the pipeline.
+        Execute the :class:`callable` pipeline.
+        Arguments are passed through to all :class:`callable`s contained.
 
-        If a callback raises:
-            * :class:`ContinueOperation`: 
-                For the current call, the issuing callback is skipped 
-                and its result not recorded in the return value.
-                This is equivalent to a ``continue`` statement in a loop.
-            * :class:`StopOperation`: 
-                For the current call, all callbacks after 
-                the issuing callback are skipped 
-                and the return value contains only the results before
-                the issuing callback.
-                This is equivalent to a ``break`` statement in a loop.
+        If a :class:`callable` raises:
+        * :class:`ContinueOperation`: 
+            For the current call, the issuing :class:`callable` is skipped 
+            and its result not recorded in the return value.
+            This is equivalent to a ``continue`` statement in a loop.
+        * :class:`StopOperation`: 
+            For the current call, all :class:`callable`s after 
+            the issuing :class:`callable` are skipped 
+            and the return value contains only the results before
+            the issuing :class:`callable`.
+            This is equivalent to a ``break`` statement in a loop.
 
         :returns: 
-            The results of each callback, 
-            keyed by the respective callback.
+            The results of each :class:`callable`, 
+            keyed by the respective :class:`callable`.
         """
 
         res = _collections_.OrderedDict()
@@ -89,6 +89,21 @@ piped = CallablePipeline
 r"""
 Shortcut for creating a :class:`CallablePipeline`.
 """
+
+
+class ContextReturn(Exception):
+    r"""
+    Exception for signaling a `return` from :class:`ExecutionContext`.
+    """
+
+    def __init__(self, value):
+        r"""
+        Initialize this exception.
+
+        :param value: The value of this exception.
+        """
+
+        self.__value__ = value
 
 
 class ExecutionContext(NamedTuple):
@@ -159,15 +174,15 @@ class ExecutionContext(NamedTuple):
             r"""
             Set the acknowledgement value.
             In "deferred" mode, this will unblock :meth:`get` 
-            if it is currently invoked.
+            if it is currently in the process of `return`ing.
 
             :param value: The value to set.
             :returns: The value set.
             """
 
-            if self.__done__ is not None:
-                self.__done__.set()
             self.__value__ = value
+            if self.__done__ is not None:
+                self.__done__.set()            
             return self.__value__
         
         def get(self, timeout: float | None = None) -> RetT:
@@ -194,6 +209,8 @@ class ExecutionContext(NamedTuple):
 
             return self.set(value=value)
         
+        # TODO err
+        
     vars: Arguments
     r"""
     The arguments passed to the :class:`callable`.
@@ -206,11 +223,27 @@ class ExecutionContext(NamedTuple):
     Produced by the callee; consumed by the caller.
     """
 
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, traceback):
+        if exc_val is None:
+            self.ack()
+            return
+
+        if isinstance(exc_val, ContextReturn):
+            self.ack(exc_val.__value__)
+            return True
+        
+        # TODO self.ack.err(exc_val)
+        return False
+
 
 __all__ = [
     'ContinueOperation',
     'StopOperation',
     'CallablePipeline',
     'piped',
+    'ContextReturn',
     'ExecutionContext',
 ]

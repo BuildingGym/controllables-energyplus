@@ -12,9 +12,9 @@ from typing import (
 )
 
 from ..callbacks import BaseCallback, CallbackManager
-from ..errors import OptionalModuleNotFoundError
-from ..variables import BaseVariable, BaseVariableManager
 from ..components import BaseComponent
+from ..errors import TemporaryUnavailableError, OptionalModuleNotFoundError
+from ..variables import BaseVariable, BaseVariableManager
 from ..refs import deref, Derefable
 from .plot import PlotConstructor
 
@@ -49,8 +49,13 @@ class VariableRecord(
         if self._manager is None:
             return
         
-        self._data.append(self._manager.value)
-        self.events['change']()
+        try:
+            self._data.append(self._manager.value)
+        # TODO !!!!!
+        except TemporaryUnavailableError:
+            pass
+        else:
+            self.events['change']()
 
         return self
 

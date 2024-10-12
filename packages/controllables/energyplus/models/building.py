@@ -9,7 +9,7 @@ import os as _os_
 import tempfile as _tempfile_
 from typing import Self
 
-from .. import _core as _core_
+from .. import _kernel as _kernel_
 
 
 class BuildingModel(_collections_.UserDict):
@@ -28,7 +28,7 @@ class BuildingModel(_collections_.UserDict):
     def from_file(cls, path: _os_.PathLike):
         return cls().loadf(path)
 
-    Formats = _core_.Formats
+    Formats = _kernel_.InputFormats
 
     def load(self, fp):
         self.data = _json_.load(fp)
@@ -45,14 +45,14 @@ class BuildingModel(_collections_.UserDict):
     ) -> Self:
         format = (
             format if format is not None else 
-            _core_.infer_format_from_path(path)
+            _kernel_.infer_format_from_path(path)
         )
         match format:
             case 'json':
                 path = path
             case 'idf':
                 tempdir_ref = _tempfile_.TemporaryDirectory()
-                path = _core_.convert_idf_to_epjson(
+                path = _kernel_.convert_idf_to_epjson(
                     input_file=path,
                     output_directory=tempdir_ref.name,
                 )
@@ -71,7 +71,7 @@ class BuildingModel(_collections_.UserDict):
     ) -> _os_.PathLike:
         format = (
             format if format is not None else 
-            _core_.infer_format_from_path(path)
+            _kernel_.infer_format_from_path(path)
         )
         match format:
             case 'json':

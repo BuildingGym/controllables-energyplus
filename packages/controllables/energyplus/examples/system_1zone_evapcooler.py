@@ -1,12 +1,23 @@
 r"""
-TODO
+DEPRECATED
 """
+
+
+import warnings as _warnings_
+_warnings_.warn(
+    '!!! This module is deprecated and will be removed in the next release; use `controllables.energyplus.examples` directly!!!', 
+    DeprecationWarning,
+)
 
 
 from types import SimpleNamespace
 from os import PathLike
-# TODO
-from energyplus.dataset.basic import dataset as _epds_
+
+try:
+    from energyplus.dataset.basic import dataset as _epds_
+except ModuleNotFoundError:
+    from controllables.core.errors import OptionalModuleNotFoundError
+    raise OptionalModuleNotFoundError.suggest(['energyplus-dataset'])
 
 from ..systems import System
 

@@ -385,7 +385,6 @@ class CallbackOpsMixin(BaseCallback):
     
     def __or__(self, other: BaseCallback) -> 'Callback':
         # TODO
-
         raise NotImplementedError
     
     def __mod__(self, interval: int) -> 'Callback':

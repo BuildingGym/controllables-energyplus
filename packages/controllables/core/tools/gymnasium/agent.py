@@ -4,6 +4,7 @@ Agent.
 
 
 import abc as _abc_
+import contextlib as _contextlib_
 import functools as _functools_
 import warnings as _warnings_
 from typing import (
@@ -15,6 +16,15 @@ from typing import (
     Unpack,
     Iterable,
 )
+
+try: 
+    from gymnasium.core import (
+        ActType, 
+        ObsType,
+    )
+except ModuleNotFoundError as e:
+    from ...errors import OptionalModuleNotFoundError
+    raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 
 from ...systems import BaseSystem 
 from ...components import BaseComponent
@@ -29,44 +39,27 @@ from ...variables import (
     MutableVariable,
 )
 from ...callbacks import Callback
-from ...refs import Derefable, deref, BaseRefManager
+from ...refs import BaseRefManager, Derefable, bounded_deref
 from .spaces import Space, SpaceVariable, MutableSpaceVariable
-
-from ...errors import OptionalModuleNotFoundError
-try: 
-    import gymnasium as _gymnasium_
-    from gymnasium.core import (
-        ActType, 
-        ObsType,
-    )
-except ModuleNotFoundError as e:
-    raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 
 
 class BaseAgent(
     # TODO necesito?
-    BaseComponent[BaseSystem],
+    BaseComponent['BaseSystem | BaseAgentManager'],
     _abc_.ABC,
 ):
     r"""
-    TODO doc
-    Base class for interfacing between 
-    :class:`BaseSystem`s and :class:`gymnasium.spaces.Space`s. 
+    Agent base class for :class:`BaseSystem`s 
+    and :class:`BaseSystem`-attached :class:`BaseAgentManager`s.
 
     The agent is assumed to be both _controllable_ and _observable_.
 
+    TODO doc
     .. note::
         * Implementations shall have `action_space` and `observation_space` defined.
         * Any `fundamental space <https://gymnasium.farama.org/api/spaces/fundamental/#fundamental-spaces>`_
-            within the defined `action_space` and `observation_space` 
-            must be associated with a variable (i.e. :class:`BaseVariable` and :class:`BaseMutableVariable`) 
-            or a variable reference (TODO link) from an engine.
-
-    .. note:: TODO FIXME
-        This class cannot be used as a `gymnasium.Env` standalone; 
-        rather, it's designed to be integrated with 
-        a Gymnasium-compliant environment (e.g. `gymnasium.Env`) 
-        as a "mixin" to ensure compatibility with :class:`BaseSystem`s.
+        within or of the defined `action_space` and `observation_space` 
+        must be associated with a variable through `bind`ing (TODO link). 
 
     .. seealso::
         * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
@@ -91,7 +84,17 @@ class BaseAgent(
 
     truncation: BaseVariable[bool]
     r"""(IMPLEMENT) Truncation variable."""
-    
+
+    @property
+    def system(self) -> BaseSystem | None:
+        if self.__manager__ is None:
+            return None
+        if isinstance(self.__manager__, BaseSystem):
+            return self.__manager__
+        if isinstance(self.__manager__, BaseAgentManager):
+            return self.__manager__.__manager__
+        raise TypeError(f'Invalid manager type: {type(self.__manager__)}')
+        
     @property
     def action(self) -> MutableSpaceVariable[ActType]:
         r"""
@@ -101,8 +104,8 @@ class BaseAgent(
         """
 
         res = MutableSpaceVariable(self.action_space)
-        if self.__manager__ is not None:
-            res.__attach__(self._manager.variables)
+        if self.system is not None:
+            res.__attach__(self.system.variables)
         return res
         
     @property
@@ -115,8 +118,8 @@ class BaseAgent(
         """
 
         res = SpaceVariable(self.observation_space)
-        if self.__manager__ is not None:
-            res.__attach__(self._manager.variables)
+        if self.system is not None:
+            res.__attach__(self.system.variables)
         return res
     
     # TODO deprecate?
@@ -141,7 +144,44 @@ class BaseAgent(
         :return: An observation from the observation space :attr:`observation_space`.
         """
 
-        return self.observation.value    
+        return self.observation.value
+    
+    @_contextlib_.contextmanager
+    def commit(
+        self, 
+        action: ActType, 
+        event_ref: Callback | Derefable[Callback] | None = None,
+    ):
+        r"""
+        TODO doc
+
+        Commit an action, wait for an event, and finalize when done.
+
+        :param action: The action to commit.
+        :param event_ref: 
+            Reference to an event in the attached
+            :class:`BaseSystem` that corresponds to 
+            a "step" (state transition) for this agent.
+
+            This can be:
+            * A :class:`Callback` object.
+            * A reference to a :class:`Callback` object,
+                valid inside the attached :class:`BaseSystem`.
+            * :class:`None`, indicating no event to wait for.
+        """
+        
+        finalize = None
+        try: 
+            self.action.value = action
+            if event_ref is not None:
+                event = bounded_deref(
+                    self.system.events, event_ref, 
+                    bound=Callback,
+                )
+                finalize = event.wait(deferred=True).ack
+            yield
+        finally: 
+            if finalize is not None: finalize()
 
 
 class BaseAgentManager(
@@ -155,7 +195,7 @@ class BaseAgentManager(
 ):
     r"""
     TODO doc
-    Agent manager base class.
+    Agent manager base class for :class:`BaseSystem`s.
 
     """
 
@@ -238,8 +278,8 @@ class Agent(BaseAgent):
         termination: Optional['Agent._MaybeComputedVariable[bool]']
         truncation: Optional['Agent._MaybeComputedVariable[bool]']
 
-    def __init__(self, config: Config = dict(), **kwds: Unpack[Config]):
-        self.__config__ = self.Config({**config, **kwds})
+    def __init__(self, config: Config = dict(), **config_kwds: Unpack[Config]):
+        self.__config__ = self.Config(config, **config_kwds)
 
     @property
     def action_space(self):
@@ -255,7 +295,9 @@ class Agent(BaseAgent):
             default_var = MutableVariable(0.)
             _warnings_.warn(
                 f'Reward value function not defined: '
-                f'{self} using default {default_var!r}'
+                f'{self!r} using default {default_var!r}. '
+                f'Agent may have a constant reward unless '
+                f'this variable is set manually'
             )
             return default_var
         return self._computed_variable(self.__config__['reward'])
@@ -272,7 +314,9 @@ class Agent(BaseAgent):
             default_var = MutableVariable(False)
             _warnings_.warn(
                 f'Termination value function not defined: '
-                f'{self} using default {default_var!r}'
+                f'{self!r} using default {default_var!r}. '
+                f'Agent may not terminate unless '
+                f'this variable is set manually'
             )
             return default_var
         return self._computed_variable(self.__config__['termination'])
@@ -289,21 +333,42 @@ class AgentManager(
     BaseAgentManager[_RefT, _AgentT],
 ):
     class Config(TypedDict):
-        agents: dict[_RefT, Agent.Config]
+        agents: Optional[dict[_RefT, Agent.Config]]
+        action_spaces: Optional[dict[_RefT, Space[ActType]]]
+        observation_spaces: Optional[dict[_RefT, Space[ObsType]]]
+        rewards: Optional[dict[_RefT, Agent._MaybeComputedVariable[float]]]
 
-    def __init__(self, config: Config = dict(), **kwds: Unpack[Config]):
-        config = self.Config({**config, **kwds})
+    def __init__(self, config: Config = Config(), **config_kwds: Unpack[Config]):
+        config = self.Config({**config, **config_kwds})
 
-        for agent_ref, agent_config in config['agents'].items():
+        for agent_ref in set.union(*[
+            set(config.get(x, dict()).keys())
+            for x in ('agents', 'action_spaces', 'observation_spaces', 'rewards')
+        ]):
+            agent_config = config.get('agents', dict()).get(agent_ref, dict())
             self.add(
                 ref=agent_ref,
-                agent=Agent(agent_config),
+                agent=Agent({
+                    **{
+                        k: config.get(v, dict()).get(agent_ref)
+                        for k, v in [
+                            ('action_space', 'action_spaces'),
+                            ('observation_space', 'observation_spaces'),
+                            ('reward', 'rewards'),
+                        ]
+                    },
+                    **agent_config,
+                }),
             )
 
     @_functools_.cached_property
     def _data(self):
         return dict()
     
+    def __iter__(self):
+        return iter(self._data)
+    
+    # TODO typing not working?????
     def __getitem__(self, ref):
         return self._data[ref]
     
@@ -314,9 +379,8 @@ class AgentManager(
     def refs(self):
         return self._data.keys()
 
-    # TODO
-    def add(self, ref: _RefT, agent: _AgentT):
-        self._data[ref] = agent.__attach__(self._manager)
+    def add(self, ref: _RefT, agent: _AgentT):        
+        self._data[ref] = agent.__attach__(self)
         return self
 
 

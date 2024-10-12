@@ -4,14 +4,13 @@ Specs for reference-related operations.
 
 
 import abc as _abc_
-from typing import Any, Callable, Generic, TypeAlias, TypeVar
+from typing import Any, Callable, Generic, TypeAlias, Type, TypeVar
 
 
 RefT = TypeVar('RefT')
 ValT = TypeVar('ValT')
 
 
-# TODO
 Derefable: TypeAlias = RefT | Any | Callable[['BaseRefManager'], RefT]
 r"""
 Any type that can be dereferenced.
@@ -77,10 +76,30 @@ def deref(manager: BaseRefManager, ref: Derefable[RefT]) -> ValT:
     )
 
 
+def bounded_deref(
+    manager: BaseRefManager, 
+    ref: ValT | Derefable[RefT],
+    bound: Type[ValT] | tuple[Type[ValT], ...],
+) -> ValT:
+    r"""TODO"""
+
+    if isinstance(ref, bound):
+        return ref
+
+    res = deref(manager, ref)
+    if not isinstance(res, bound):
+        raise TypeError(
+            f'Invalid reference value: {res!r}; '
+            f'Expected to be any of: {bound!r}'
+        )
+    return res
+
+
 __all__ = [
     'RefT',
     'ValT',
     'Derefable',
     'BaseRefManager',
     'deref',
+    'bounded_deref',
 ]

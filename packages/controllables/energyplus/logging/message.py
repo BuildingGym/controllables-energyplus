@@ -14,7 +14,7 @@ class MessageLogger(BaseComponent[System]):
     r"""
     A logger that logs messages to a `logging.Logger`.
 
-    ..seealso:: https://docs.python.org/3/library/logging.html
+    .. seealso:: https://docs.python.org/3/library/logging.html
     """
 
     import logging as _logging_

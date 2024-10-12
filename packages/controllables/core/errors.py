@@ -1,5 +1,5 @@
 r"""
-Errors.
+Error definitions.
 """
 
 
@@ -10,6 +10,19 @@ class TemporaryUnavailableError(Exception):
     In the scope of this package, such exception often implies that 
     a variable or an entity does not currently exist but may become
     available in the future, though not guaranteed.
+    """
+
+    def warning(self, *args, **kwargs):
+        r"""
+        Convert this exception to a warning.
+        """
+
+        return TemporaryUnavailableWarning(*self.args, *args, **kwargs)
+
+
+class TemporaryUnavailableWarning(RuntimeWarning):
+    r"""
+    Warning equivalent of :class:`TemporaryUnavailableError`.
     """
 
     pass
@@ -41,6 +54,7 @@ class OptionalModuleNotFoundWarning(RuntimeWarning, OptionalModuleNotFoundError)
 
 __all__ = [
     'TemporaryUnavailableError',
+    'TemporaryUnavailableWarning',
     'OptionalModuleNotFoundError',
     'OptionalModuleNotFoundWarning',
 ]

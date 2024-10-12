@@ -1,7 +1,5 @@
 r"""
 Systems.
-
-Scope: "And-God-said"s, "Let-there-be"s. (Genesis 1)
 """
 
 
@@ -20,94 +18,102 @@ from typing import (
 from controllables.core.systems import BaseSystem, SystemShortcutMixin
 from controllables.core.components import BaseComponent
 
-from ._core import Core
+from ._kernel import Kernel
 from .models.building import BuildingModel
 from .models.weather import WeatherModel
 
 
 class System(SystemShortcutMixin, BaseSystem):
     r"""
-    TODO
+    System class.
     """
 
-    # TODO
     class Config(TypedDict, total=False):
+        r"""System configuration template."""
+        
         building: BuildingModel | _os_.PathLike | None
-        r"""The building model or the path to the building model."""
+        r"""
+        The building model object 
+        or the path to the building model file.
+        """
 
         weather: Optional[WeatherModel | _os_.PathLike | None]
         r"""The weather model or the path to the weather model."""
 
         report: Optional[_os_.PathLike | None]
-        r"""The path to the report to generate."""
+        r"""The path of the report to generate."""
 
         design_day: Optional[bool | None]
         r"""
         Whether to run in design day mode.
 
-        ..seealso:: https://energyplus.readthedocs.io/en/latest/tips_and_tricks/tips_and_tricks.html#design-day-creation
+        .. seealso:: https://energyplus.readthedocs.io/en/latest/tips_and_tricks/tips_and_tricks.html#design-day-creation
         """
 
-        # TODO typing
-        repeat: Optional[bool | float | None]
+        repeat: Optional[bool | int | float | None]
         r"""
-        TODO Whether to run repeatedly.
-        If number-like, the maximum number of runs.
+        Repetition.
+
+        * If boolean, `True` to repeat indefinitely and `False` to run once.
+        * If number-like, the maximum number of repetitions.
+        Floating numbers are treated as integers, except infinity.
         """
         
     def __init__(
         self, 
-        building: BuildingModel | _os_.PathLike = None, 
         config: Config = Config(),
         **config_kwds: Unpack[Config],
     ):
         r"""
-        Initialize a new building.
+        Initialize the system.
 
-        TODO doc!!!
-        :param building: The building model or the path to the building model.
-        :param config: The specifications for the world. 
-        :param **config_kwds: Entries to override in supplied :param:`config`.
+        :param config: The system configuration.
+        :param **config_kwds: Entries in :param:`config` to override.
         """
                 
-        self._config = self.Config({
-            'building': building,
-            **config,
-            **config_kwds,
-        })
+        self._config = self.Config(config, **config_kwds)
+
+    def __repr__(self):
+        return f'{type(self).__name__}({self._config!r})'
+
+    def __getstate__(self) -> Config:
+        return self._config
+    
+    def __setstate__(self, config: Config):
+        self.__init__(config=config)
 
     @_functools_.cached_property
-    def _core(self):
-        return Core()
+    def _kernel(self):
+        return Kernel()
     
     class _CoreThread(_threading_.Thread):
         def __init__(
             self, 
-            core: Core, 
+            kernel: Kernel, 
             cli_args: list[str], 
             iterations: float,
         ):
             super().__init__()
-            self._core = core
+            self._kernel = kernel
             self._cli_args = cli_args
             self._iterations = iterations
 
         def run(self):
             while self._iterations > 0:
                 self._iterations -= 1
-                self._core.reset()
-                self._core.configure(print_output=False)
-                status = self._core.run(args=self._cli_args)
+                self._kernel.reset()
+                self._kernel.configure(print_output=False)
+                status = self._kernel.run(args=self._cli_args)
                 if status != 0:
                     raise RuntimeError(
-                        f'{self!r}: Operation failed with status {status}'
+                        f'{self!r}: Operation failed with status {status!r}'
                     )
 
         def kill(self):
             r"""Signal the thread to stop."""
 
             self._iterations = 0
-            self._core.stop()
+            self._kernel.stop()
 
     @_functools_.cached_property
     def _thread(self):
@@ -117,7 +123,7 @@ class System(SystemShortcutMixin, BaseSystem):
         c = self._config
 
         if c.get('building') is None:
-            raise ValueError(f'Building model is required in {self.Config}')
+            raise ValueError(f'Building model is required in {self.Config!r}')
 
         args = [
             # 0
@@ -159,7 +165,7 @@ class System(SystemShortcutMixin, BaseSystem):
                 iterations = float('inf')
 
         return self._CoreThread(
-            core=self._core,
+            kernel=self._kernel,
             cli_args=args, 
             iterations=iterations,
         )
@@ -212,12 +218,6 @@ class System(SystemShortcutMixin, BaseSystem):
             case _:
                 pass
         return super().add(component)
-
-    def __getstate__(self) -> Config:
-        return self._config
-    
-    def __setstate__(self, config: Config):
-        self.__init__(config=config)
 
 
 __all__ = [

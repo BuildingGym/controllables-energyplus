@@ -31,6 +31,7 @@ from ...callbacks import Callback
 from .TODO_rm_env import _TODO_rm_Agent, _TODO_rm_AgentManager
 
 
+
 # TODO callback interface??
 class BaseEnvEpisodeController(
     BaseComponent[
@@ -141,6 +142,85 @@ class BaseEnvEpisodeController(
             self._episode_id, 
             observation=observation,
         )
+    
+
+class CommonExternalEnvMixin(_rayrl_env_.ExternalEnv, _abc_.ABC):
+    # TODO hooks
+
+    system: BaseSystem | None
+    r"""TODO"""
+
+    # TODO locks
+
+    def run(self):
+    
+        self.system.wait()
+    
+    def join(self, timeout=None):
+        return super().join(timeout=timeout)
+
+    class EpisodeController(
+        BaseEnvEpisodeController,
+        BaseComponent['CommonEnv'],
+    ):
+        _manager: 'CommonEnv'
+
+        def start(self, training_enabled=True):
+            return super().start(
+                training_enabled=training_enabled,
+            )
+
+        def end(self, observation=None):
+            if observation is None:
+                try: observation = self._manager.observation.value
+                # TODO panic?????
+                except TemporaryUnavailableError as e: 
+                    _warnings_.warn(
+                        f'Observation required to end episode {self}; caught {e!r}',
+                        RuntimeWarning,
+                    )
+                    return
+            return super().end(observation=observation)
+
+        def step(self):
+            if not self.started:
+                return
+            try:
+                self.log_returns()
+                if self._manager.action is not None:
+                    self._manager.action.value = self.get_action()
+            except TemporaryUnavailableError as e: 
+                _warnings_.warn(
+                    f'Returns and action required to step episode {self}; caught {e!r}',
+                    RuntimeWarning,
+                )
+
+        def log_returns(self, reward=None, info=None):
+            # TODO try/except
+            if reward is None and self._manager.reward is not None:
+                reward = self._manager.reward.value
+            if info is None and self._manager.info is not None:
+                info = self._manager.info.value
+            return super().log_returns(reward=reward, info=info)
+        
+        def get_action(self, observation=None):
+            if observation is None and self._manager.observation is not None:
+                observation = self._manager.observation.value
+            return super().get_action(observation=observation)
+
+    def make_episode(self):
+        r"""
+        TODO doc
+        """
+
+        return self.EpisodeController().__attach__(self)
+    
+
+
+
+
+
+
 
 
 class CommonEnv(
@@ -335,103 +415,3 @@ class CommonEnv(
             self._manager.stop()
         else: self._thread_locker.set()
         return super().join(timeout=timeout)
-
-
-# TODO !!!!
-class ExternalMultiAgentEnv(
-    CommonEnv,
-    _rayrl_env_.ExternalMultiAgentEnv,
-):
-    class Config(_TODO_rm_AgentManager.Config, CommonEnv.Config):
-        pass
-        
-    # TODO
-    def __init__(self, config: Config):
-        _rayrl_env_.ExternalMultiAgentEnv.__init__(
-            self,
-            action_space=config['action_space'],
-            observation_space=config['observation_space'],
-        )
-        CommonEnv.__init__(self, config=config)
-        self._agents = _TODO_rm_AgentManager(config=config)
-
-    def __attach__(self, manager):
-        CommonEnv.__attach__(self, manager)
-        self._agents.__attach__(self._manager)
-        return self
-    
-    @property
-    def action(self): 
-        return self._agents.actions
-    
-    @property
-    def observation(self): 
-        return self._agents.observations
-    
-    @property
-    def reward(self): 
-        return self._agents.rewards
-    
-    @property
-    def info(self): 
-        return self._agents.infos
-
-
-# TODO
-class ExternalEnv(
-    CommonEnv,
-    _rayrl_env_.ExternalEnv, 
-):
-    r"""
-    A Ray RLlib external environment for interfacing with worlds.
-
-    TODO examples
-
-    .. seealso::
-    * `ray.rllib.ExternalEnv <https://docs.ray.io/en/latest/rllib/package_ref/env/external_env.html#rllib-env-external-env-externalenv>`_
-    """
-
-    class Config(_TODO_rm_Agent.Config, CommonEnv.Config):
-        pass
-        
-    # TODO
-    def __init__(self, config: Config):
-        _rayrl_env_.ExternalEnv.__init__(
-            self,
-            action_space=config['action_space'],
-            observation_space=config['observation_space'],
-        )
-        CommonEnv.__init__(self, config=config)
-        self._agents = _TODO_rm_AgentManager(_TODO_rm_AgentManager.Config(
-            action_space={None: config['action_space']},
-            observation_space={None: config['observation_space']},
-            reward_function={None: config.get('reward_function')},
-            info_function={None: config.get('info_function')},
-        ))
-
-    def __attach__(self, manager):
-        CommonEnv.__attach__(self, manager)
-        self._agents.__attach__(self._manager)
-        return self
-    
-    @property
-    def action(self): 
-        return self._agents[None].action
-    
-    @property
-    def observation(self): 
-        return self._agents[None].observation
-    
-    @property
-    def reward(self): 
-        return self._agents[None].reward
-    
-    @property
-    def info(self): 
-        return self._agents[None].info
-
-
-__all__ = [
-    'ExternalMultiAgentEnv',
-    'ExternalEnv',
-]

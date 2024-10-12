@@ -9,6 +9,8 @@ from .errors import (
     OptionalModuleNotFoundWarning,
 )
 from .variables import (
+    BaseVariable,
+    BaseMutableVariable,
     Variable,
     MutableVariable,
     CompositeVariable,
@@ -21,6 +23,8 @@ __all__ = [
     'TemporaryUnavailableError',
     'OptionalModuleNotFoundError',
     'OptionalModuleNotFoundWarning',
+    'BaseVariable',
+    'BaseMutableVariable',
     'Variable',
     'MutableVariable',
     'CompositeVariable',

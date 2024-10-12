@@ -1,4 +1,6 @@
-r"""TODO"""
+r"""
+Model classes.
+"""
 
 
 from .building import BuildingModel
