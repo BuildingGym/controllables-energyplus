@@ -4,128 +4,100 @@ TODO
 Scope: Abstract classes for component and component managers.
 """
 
+
 import abc as _abc_
-import typing as _typing_
-import functools as _functools_ 
-
-#from . import workflows as _workflows_
+from typing import Any, Generic, Self, TypeVar
 
 
-class BaseComponentManager(_abc_.ABC):
-    pass
-
-_BaseComponentManagerT = _typing_.TypeVar(
+ComponentParentT = TypeVar(
     '_BaseComponentManagerT', 
-    #bound=BaseComponentManager,
 )
+
+
+class BaseComponent(
+    _abc_.ABC,
+    Generic[ComponentParentT],
+):
+    @property
+    def parent(self) -> ComponentParentT:
+        r"""
+        The parent of this component.
+
+        :raises ValueError: If the component does not have a parent attached.
+        """
+
+        ...
+
+    @_abc_.abstractmethod
+    def __attach__(self, parent: ComponentParentT) -> Any:
+        r"""
+        Attach this component to a parent.
+
+        :param parent: The parent to attach to.
+        """
+
+        ...
+
+    @_abc_.abstractmethod
+    def __detach__(self, parent: ComponentParentT | None = None) -> Any:
+        r"""
+        Detach this component from a parent.
+
+        :param parent: The parent to detach from, optional.
+        """
+
+        ...
+
 
 # TODO multiple managers
 # TODO multi class component manager
-class BaseComponent(
-    _abc_.ABC, 
-    _typing_.Generic[_BaseComponentManagerT],
+class Component(
+    BaseComponent[ComponentParentT], 
+    Generic[ComponentParentT],
 ):
     r"""
     TODO
     """
 
-    '''
-    # TODO !!!!!!!!!!!!!!!!!!!
-    class Workflow(_abc_.ABC):
-        def __init__(
-            self, 
-            ref: _typing_.Any | None = None, 
-            target: 'BaseComponent.WorkflowManager | None' = None,
-        ):
-            self.ref = ref
-            self.target = target
+    __parent__: ComponentParentT | None = None
 
-    class WorkflowManager(
-        _utils_.callbacks.CallbackManager[
-            _typing_.Literal['attach', 'detach'],
-            _utils_.callbacks.Callback[
-                [Workflow], _typing_.Any,
-            ],
-        ], 
-        _abc_.ABC,
-    ):
-        pass
-
-    # TODO solve conflict!!!!!!!!
-    @_functools_.cached_property
-    def _TODO_workflows(self):
-        return self.WorkflowManager()
-    # TODO
-    '''
-
-    __manager__: _BaseComponentManagerT | None = None
     @property
-    def _manager(self) -> _BaseComponentManagerT:
-        # TODO err if not attached???
-        return self.__manager__
+    def parent(self):
+        if self.__parent__ is None:
+            raise ValueError('Component does not have a parent attached')
+        return self.__parent__
     
-    @_functools_.cached_property
-    def __manager_callbacks__(self):
-        from .callbacks import CallbackManager
+    # TODO !!!
+    #@_contextlib_.contextmanager
+    def _TODO_attach(self, parent):
+        return ...
 
-        callbacks = CallbackManager()
-
-        @callbacks['attach'].on
-        def _(manager: _BaseComponentManagerT):
-            if getattr(self, '__manager__', None) is not None:
-                if manager == self.__manager__:
-                    return self
-                raise ValueError(
-                    f'Component already has manager attached: {self.__manager__}'
-                )
-            
-            setattr(self, '__manager__', manager)
-
-        @callbacks['detach'].on
-        def _(manager: _BaseComponentManagerT):
-            raise NotImplementedError
-            if self.__engine is None:
-                raise ValueError('Component does not have Engine attached.')
-            self.__engine = None
-
-        return callbacks
-        
-
-    # TODO !!!!!!
-    #@_workflows_.observable
-    def __attach__(self, manager: _BaseComponentManagerT) -> _typing_.Self:
-        if getattr(self, '__manager__', None) is not None:
-            if manager == self.__manager__:
+    def __attach__(self, parent):
+        if self.__parent__ is not None:
+            if parent == self.__parent__:
                 return self
             raise ValueError(
-                f'Component already has manager attached: {self.__manager__}'
+                f'Component already has a parent attached: {self.__parent__}'
             )
         
-        setattr(self, '__manager__', manager)
+        self.__parent__ = parent
+    
+    # TODO __detach__ when __del__!!!!
+    def __detach__(self, parent=None):
+        if self.__parent__ is None:
+            raise ValueError('Component does not have a parent attached.')
+        self.__parent__ = None
 
-        # TODO
-        '''
-        self._TODO_workflows.emit(
-            'attach',
-            self.Workflow(
-                ref='attach', target=self,
-            ),
-        )
-        '''
-
+    def attach(self, parent) -> Self:
+        self.__attach__(parent)
         return self
     
-    #@_workflows_.observable
-    # TODO __detach__ when __del__!!!!
-    def __detach__(self, manager: _BaseComponentManagerT) -> _typing_.Self:
-        raise NotImplementedError
-        if self.__engine is None:
-            raise ValueError('Component does not have Engine attached.')
-        self.__engine = None
+    def detach(self, parent=None) -> Self:
+        self.__detach__(parent)
         return self
+    
 
 
 __all__ = [ 
-    'BaseComponent',
-    'BaseComponentManager',
+    'Component',
 ]

@@ -22,14 +22,14 @@ ArgsT = ParamSpec('ArgsT')
 RetT = TypeVar('RetT')
 
 
-class ContinueOperation(Exception):
+class CancelledError(Exception):
     r"""
     Exception for signaling that the current operation be continued.
     """
 
     pass
 
-class StopOperation(Exception):
+class AbortedError(Exception):
     r"""
     Exception for signaling that the current operation be stopped.
     """
@@ -37,7 +37,7 @@ class StopOperation(Exception):
     pass
 
 
-class CallablePipeline(
+class CallableSequence(
     OrderedSet[Callable[ArgsT, RetT]],
     Callable[ArgsT, RetT],
     Generic[ArgsT, RetT],
@@ -45,9 +45,17 @@ class CallablePipeline(
     """
     A "multiplexing" callable for executing a sequence of callables.
 
-    Examples:
+    .. doctest::
 
-    TODO
+        >>> f = CallableSequence([
+        ...     lambda x: f'i am {x}',
+        ...     lambda x: f'this is {x}',
+        ... ])
+        >>> f('a string') # doctest: +ELLIPSIS
+        OrderedDict([(<function ...>, 'i am a string'), (<function ...>, 'this is a string')])
+
+        >>> # TODO control flow examples
+
     """
 
     # TODO check ret Exception?
@@ -58,7 +66,7 @@ class CallablePipeline(
         Arguments are passed through to all :class:`callable`s contained.
 
         If a :class:`callable` raises:
-        * :class:`ContinueOperation`: 
+        * :class:`CancelledError`: 
             For the current call, the issuing :class:`callable` is skipped 
             and its result not recorded in the return value.
             This is equivalent to a ``continue`` statement in a loop.
@@ -69,27 +77,21 @@ class CallablePipeline(
             the issuing :class:`callable`.
             This is equivalent to a ``break`` statement in a loop.
 
-        :returns: 
+        :return: 
             The results of each :class:`callable`, 
             keyed by the respective :class:`callable`.
         """
 
         res = _collections_.OrderedDict()
 
-        for f in self:
+        for f in list(self):
             try: 
                 res[f] = f(*args, **kwargs)
-            except ContinueOperation: continue
-            except StopOperation: break
+            except CancelledError: continue
+            except AbortedError: break
 
         return res
     
-
-piped = CallablePipeline
-r"""
-Shortcut for creating a :class:`CallablePipeline`.
-"""
-
 
 class ContextReturn(Exception):
     r"""
@@ -157,6 +159,9 @@ class ExecutionContext(NamedTuple):
         Acknowledgement class.
         This represents an acknowledgement mechanism, 
         similar to `return` values in functions.
+
+        .. seealso::
+        Similar implementation: :class:`concurrent.futures.Future`
         """
 
         def __init__(self, deferred: bool = False):
@@ -168,16 +173,17 @@ class ExecutionContext(NamedTuple):
             """
 
             self.__value__: RetT | None = None
+            self.__exc__: Exception | None = None
             self.__done__ = _threading_.Event() if deferred else None
 
         def set(self, value: RetT | None) -> RetT:
             r"""
             Set the acknowledgement value.
             In "deferred" mode, this will unblock :meth:`get` 
-            if it is currently in the process of `return`ing.
+            if it is currently in the process of ``return``ing.
 
             :param value: The value to set.
-            :returns: The value set.
+            :return: The value set.
             """
 
             self.__value__ = value
@@ -185,21 +191,38 @@ class ExecutionContext(NamedTuple):
                 self.__done__.set()            
             return self.__value__
         
+        def err(self, exc: Exception) -> None:
+            r"""
+            Set the exception and terminate.
+            
+            :param exc: The exception to set.
+            """
+
+            self.__exc__ = exc
+            if self.__done__ is not None:
+                self.__done__.set()
+            return
+
         def get(self, timeout: float | None = None) -> RetT:
             r"""
             Get the acknowledgement value.
-            In "deferred" mode, this will block until 
+            In ``deferred`` mode, this will block until 
             :meth:`set` is called.
             
             :param timeout: The timeout in seconds.
-            :returns: The value set.
+            :return: The value set.
+            :raises: The exception set via :meth:`err`, if exists.
             """
 
             if self.__done__ is not None:
                 self.__done__.wait(timeout=timeout)
                 self.__done__.clear()
+
+            if self.__exc__ is not None:
+                raise self.__exc__
+
             return self.__value__
-        
+
         def __call__(self, value: RetT | None = None) -> RetT:
             r"""
             Shortcut for :meth:`set`.
@@ -208,9 +231,7 @@ class ExecutionContext(NamedTuple):
             """
 
             return self.set(value=value)
-        
-        # TODO err
-        
+
     vars: Arguments
     r"""
     The arguments passed to the :class:`callable`.
@@ -226,7 +247,7 @@ class ExecutionContext(NamedTuple):
     def __enter__(self):
         return self
     
-    def __exit__(self, exc_type, exc_val, traceback):
+    def __exit__(self, exc_type, exc_val: Exception, traceback):
         if exc_val is None:
             self.ack()
             return
@@ -235,15 +256,14 @@ class ExecutionContext(NamedTuple):
             self.ack(exc_val.__value__)
             return True
         
-        # TODO self.ack.err(exc_val)
+        self.ack.err(exc_val.with_traceback(traceback))
         return False
 
 
 __all__ = [
-    'ContinueOperation',
-    'StopOperation',
-    'CallablePipeline',
-    'piped',
+    'CancelledError',
+    'AbortedError',
+    'CallableSequence',
     'ContextReturn',
     'ExecutionContext',
 ]

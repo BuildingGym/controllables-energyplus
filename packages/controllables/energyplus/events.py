@@ -12,7 +12,7 @@ from typing import Any, Callable, NamedTuple, TypeAlias
 from controllables.core.callbacks import (
     Callback,
     CallbackManager,
-    BaseComponent,
+    Component,
 )
 
 from .systems import System
@@ -49,7 +49,7 @@ class ProgressContext(Context):
 
 class Event(
     Callback[[Context], Any],
-    BaseComponent['EventManager'],
+    Component['EventManager'],
 ):
     r"""
     A generic event.
@@ -91,13 +91,8 @@ class Event(
     def __call__(self, context: Context):
         if self.ref is not None:
             if not self.ref.include_warmup:
-                if self._manager is None:
-                    raise RuntimeError(
-                        f'"include_warmup" specified in {self.ref} '
-                        f'without an {EventManager} {self.__attach__}-ed'
-                    )
-                if self._manager._core.api \
-                    .exchange.warmup_flag(self._manager._core.state):
+                if self.parent._core.api \
+                    .exchange.warmup_flag(self.parent._core.state):
                     return None
 
         return super().__call__(context)
@@ -105,18 +100,18 @@ class Event(
 
 class EventManager(
     CallbackManager[Event.RefT, Event],
-    BaseComponent[System],
+    Component[System],
 ):
     r"""
     Event manager.
 
-    TODOs:
-        * TODO child subeventmanager
+    .. seealso::
+    <https://bigladdersoftware.com/epx/docs/24-1/ems-application-guide/ems-calling-points.html>
     """
 
     @property
     def _core(self):
-        return self._manager._kernel
+        return self.parent._kernel
 
     _CallbackSetters: TypeAlias = dict[str, Callable[[Event], None]]
     
@@ -136,7 +131,7 @@ class EventManager(
                     @self._core.hooks['run:post'].on
                     def _raise_exc(*args, __exc__=e, **kwargs):
                         self._core.hooks['run:post'].off(_raise_exc)
-                        raise Exception from __exc__
+                        raise __exc__
                     self._core.stop()
             return cb_
 
@@ -244,7 +239,7 @@ class EventManager(
     def __contains__(self, ref):
         # TODO accept Event.Refs!!!!!
         name = Event.Ref.copyof(ref).name
-        return name in set(self.available_keys()) | set(['begin', 'end', 'timestep'])
+        return name in set(self.available_keys()) | set(['begin', 'step', 'end', 'timestep'])
     
     def __missing__(self, ref):
         r"""
@@ -254,7 +249,7 @@ class EventManager(
         """
         
         match ref:
-            case 'timestep':
+            case 'step' | 'timestep':
                 return self['begin_zone_timestep_after_init_heat_balance']
             
         event = Event(ref=Event.Ref.copyof(ref))
@@ -271,7 +266,7 @@ class EventManager(
         else:
             raise KeyError(f'Unknown event: {event.ref.name}')
         
-        self._callbacks[ref] = event.__attach__(self)
+        self._callbacks[ref] = event.attach(self)
         return self._callbacks[ref]
     
     def __getitem__(self, ref):

@@ -12,24 +12,23 @@ import abc as _abc_
 import dataclasses as _dataclasses_
 import itertools as _itertools_
 import contextlib as _contextlib_
+import functools as _functools_
 import warnings as _warnings_
 from typing import Callable, Generic, TypeVar
 
-from controllables.core import (
-    # TODO rm dep
-    utils as _utils_,
-)
+# TODO rm dep
+from controllables.core.utils.mappings import GroupableIterator
 from controllables.core.errors import (
     TemporaryUnavailableError,
 )
 from controllables.core.components import (
-    BaseComponent,
+    Component,
 )
 from controllables.core.variables import (
     BaseVariable,
     BaseMutableVariable,
     BaseVariableManager,
-    VariableNumOpsMixin,
+    MutableVariable,
 )
 
 from .systems import System
@@ -38,11 +37,10 @@ from .systems import System
 _ValT = TypeVar('_ValT')
 
 
-class Variable(
+class CommonVariable(
     Generic[_ValT],
-    VariableNumOpsMixin,
     BaseVariable[_ValT], 
-    BaseComponent['VariableManager'],
+    Component['VariableManager'],
 ):
     r"""
     Common class for all variables in this module.
@@ -75,7 +73,7 @@ class Variable(
     
     @property
     def _kernel(self):
-        return self._manager._kernel
+        return self.parent._kernel
     
     @_contextlib_.contextmanager
     def _ensure_exception(self):
@@ -100,11 +98,11 @@ class Variable(
                 )
 
 
-class MutableVariable(
+class CommonMutableVariable(
     Generic[_ValT],
-    Variable[_ValT],
+    CommonVariable[_ValT],
     BaseMutableVariable, 
-    BaseComponent['VariableManager'],
+    Component['VariableManager'],
 ):
     r"""
     Base mutable variable for all mutable variables in this module.
@@ -113,13 +111,42 @@ class MutableVariable(
     pass
 
 
+# TODO make readonly
+class RunIndicator(
+    CommonVariable[bool],
+    MutableVariable[bool], 
+    Component['VariableManager'],
+):
+    r"""
+    Run indicator variable class.
+    """
+
+    def __init__(self):
+        super().__init__(ref=None)
+
+    def __attach__(self, parent):
+        super().__attach__(parent)
+
+        self.value = False
+
+        @self._kernel.hooks['run:pre'].on
+        def _(*args, **kwargs):
+            self.value = True
+
+        @self._kernel.hooks['run:post'].on
+        def _(*args, **kwargs):
+            self.value = False
+
+        return self
+
+
 import datetime as _datetime_
 
-class WallClock(Variable[_datetime_.datetime]):
+class WallClock(CommonVariable[_datetime_.datetime]):
     r"""Wall clock variable class."""
 
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(Variable.Ref):
+    class Ref(CommonVariable.Ref):
         r"""
         Reference to a wall clock.
         
@@ -149,6 +176,7 @@ class WallClock(Variable[_datetime_.datetime]):
                         if self.ref.calendar else 
                         exchange.year(state)
                     ),
+                    tzinfo=_datetime_.timezone(offset=_datetime_.timedelta(0)),
                 ) + _datetime_.timedelta(
                     days=exchange.day_of_year(state) - 1,
                     hours=exchange.current_time(state),
@@ -157,31 +185,19 @@ class WallClock(Variable[_datetime_.datetime]):
                 raise TemporaryUnavailableError(f'{self!r}') from e
 
 
-class Actuator(MutableVariable):
+class Actuator(CommonMutableVariable):
     r"""
     Actuator variable class.
     """
 
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(MutableVariable.Ref):
+    class Ref(CommonMutableVariable.Ref):
         r"""
         Reference to an actuator.
 
         :param type: The type of the actuator.
         :param control_type: The control type of the actuator.
         :param key: The key of the actuator.
-
-        Examples:
-        
-        .. code-block:: python
-
-            Actuator.Ref(
-                type='Weather Data', 
-                control_type='Outdoor Dew Point', 
-                key='Environment',
-            )
-        
-        .. seealso:: TODO link
         """
 
         type: str
@@ -190,7 +206,7 @@ class Actuator(MutableVariable):
 
     ref: Ref
 
-    @property
+    @_functools_.cached_property
     def _kernel_handle(self):
         r"""
         Get the internal handle of the actuator.
@@ -198,18 +214,26 @@ class Actuator(MutableVariable):
         :raises: :class:`TemporaryUnavailableError` if the handle is not available.
 
         .. seealso:: 
-            * https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.get_actuator_handle
+        * https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.get_actuator_handle
         """
 
-        res = self._kernel.api.exchange \
+        kernel = self._kernel
+
+        res = kernel.api.exchange \
             .get_actuator_handle(
-                self._kernel.state,
+                kernel.state,
                 component_type=self.ref.type,
                 control_type=self.ref.control_type,
                 actuator_key=self.ref.key,
             )
         if res == -1:
             raise TemporaryUnavailableError(f'{self!r}') 
+        
+        @kernel.hooks['reset:post'].on
+        def _cleanup(*args, **kwargs):
+            kernel.hooks['reset:post'].off(_cleanup)
+            del self._kernel_handle
+
         return res
 
     @property
@@ -228,7 +252,7 @@ class Actuator(MutableVariable):
                 )
 
     @value.setter
-    def value(self, n: float):
+    def value(self, n):
         r"""
         Set the value of the actuator.
 
@@ -247,7 +271,8 @@ class Actuator(MutableVariable):
         Reset the actuator.
         This transfers the control of the actuator back to attached engine.
 
-        .. seealso:: https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.reset_actuator
+        .. seealso:: 
+        <https://energyplus.readthedocs.io/en/latest/datatransfer.html#datatransfer.DataExchange.reset_actuator>
         """
 
         self._kernel.api.exchange \
@@ -257,28 +282,36 @@ class Actuator(MutableVariable):
             )
 
 
-class InternalVariable(Variable):
+class InternalVariable(CommonVariable):
     r"""
     Internal variable class.
     """
 
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(Variable.Ref):
+    class Ref(CommonVariable.Ref):
         type: str
         key: str
 
     ref: Ref
 
-    @property
+    @_functools_.cached_property
     def _kernel_handle(self):
-        res = self._kernel.api.exchange \
+        kernel = self._kernel
+
+        res = kernel.api.exchange \
             .get_internal_variable_handle(
-                self._kernel.state,
-                variable_name=self.ref.type,
+                kernel.state,
+                variable_type=self.ref.type,
                 variable_key=self.ref.key
             )
         if res == -1:
             raise TemporaryUnavailableError(f'{self!r}')
+
+        @kernel.hooks['reset:post'].on
+        def _cleanup(*args, **kwargs):
+            kernel.hooks['reset:post'].off(_cleanup)
+            del self._kernel_handle
+
         return res
 
     @property
@@ -291,27 +324,35 @@ class InternalVariable(Variable):
                 )
 
 
-class OutputMeter(Variable):
+class OutputMeter(CommonVariable):
     r"""
     Output meter class.
 
     """
 
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(Variable.Ref):
+    class Ref(CommonVariable.Ref):
         type: str
         
     ref: Ref
 
-    @property
+    @_functools_.cached_property
     def _kernel_handle(self):
-        res = self._kernel.api.exchange \
+        kernel = self._kernel
+
+        res = kernel.api.exchange \
             .get_meter_handle(
-                self._kernel.state,
+                kernel.state,
                 meter_name=self.ref.type,
             )
         if res == -1:
             raise TemporaryUnavailableError(f'{self!r}')
+
+        @kernel.hooks['reset:post'].on
+        def _cleanup(*args, **kwargs):
+            kernel.hooks['reset:post'].off(_cleanup)
+            del self._kernel_handle
+
         return res
 
     @property
@@ -324,20 +365,20 @@ class OutputMeter(Variable):
                 )
 
 
-class OutputVariable(Variable):
+class OutputVariable(CommonVariable):
     r"""
     Output variable class.
     """
 
     @_dataclasses_.dataclass(frozen=True)
-    class Ref(Variable.Ref):
+    class Ref(CommonVariable.Ref):
         type: str
         key: str
 
     ref: Ref
 
     def __attach__(self, engine):
-        super().__attach__(manager=engine)
+        super().__attach__(parent=engine)
 
         kernel = self._kernel
 
@@ -363,16 +404,24 @@ class OutputVariable(Variable):
             
         return self
     
-    @property
+    @_functools_.cached_property
     def _kernel_handle(self):
-        res = self._kernel.api.exchange \
+        kernel = self._kernel
+
+        res = kernel.api.exchange \
             .get_variable_handle(
-                self._kernel.state,
+                kernel.state,
                 variable_name=self.ref.type,
                 variable_key=self.ref.key,
             )
         if res == -1:
             raise TemporaryUnavailableError(f'{self!r}')
+        
+        @kernel.hooks['reset:post'].on
+        def _cleanup(*args, **kwargs):
+            kernel.hooks['reset:post'].off(_cleanup)
+            del self._kernel_handle
+
         return res
 
     @property
@@ -391,8 +440,8 @@ import functools as _functools_
 
 class VariableManager(
     #dict[str | Variable.Ref, Variable],
-    BaseVariableManager[str | Variable.Ref, Variable], 
-    BaseComponent[System],
+    BaseVariableManager[str | CommonVariable.Ref, CommonVariable], 
+    Component[System],
 ):
     r"""
     Variable manager class.
@@ -407,17 +456,18 @@ class VariableManager(
 
     @property
     def _kernel(self):
-        return self._manager._kernel
+        return self.parent._kernel
     
-    _symbols: dict[str, Callable[[], Variable]] = {
+    _symbols: dict[str, Callable[[], CommonVariable]] = {
         # std
+        'running': lambda: RunIndicator(),
         'time': lambda: WallClock(WallClock.Ref(calendar=True)),
         # ...
         'wallclock': lambda: WallClock(WallClock.Ref()),
         'wallclock:calendar': lambda: WallClock(WallClock.Ref(calendar=True)),
     }
 
-    _constructors: dict[Variable.Ref, Variable] = {
+    _constructors: dict[CommonVariable.Ref, CommonVariable] = {
         WallClock.Ref: WallClock,
         Actuator.Ref: Actuator,
         InternalVariable.Ref: InternalVariable,
@@ -426,8 +476,8 @@ class VariableManager(
     }
                 
     # TODO
-    def __getitem__(self, ref):
-        def build(ref: str | Variable.Ref) -> Variable:
+    def __getitem__(self, ref) -> CommonVariable:
+        def build(ref: str | CommonVariable.Ref) -> CommonVariable:
             if ref in self._symbols:
                 return self._symbols[ref]()            
             
@@ -443,7 +493,7 @@ class VariableManager(
         if ref in self._variables:
             return self._variables[ref]
 
-        self._variables[ref] = build(ref).__attach__(self)
+        self._variables[ref] = build(ref).attach(self)
         return self._variables[ref]
     
     def __contains__(self, ref):
@@ -459,7 +509,7 @@ class VariableManager(
     def __repr__(self):
         return object.__repr__(self)
 
-    class KeysView(_utils_.mappings.GroupableIterator):
+    class KeysView(GroupableIterator):
         r"""TODO"""
 
         def dataframes(self, **pandas_kwds):

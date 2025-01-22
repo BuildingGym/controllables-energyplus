@@ -16,7 +16,7 @@ from typing import (
 )
 
 from controllables.core.systems import BaseSystem, SystemShortcutMixin
-from controllables.core.components import BaseComponent
+from controllables.core.components import Component
 
 from ._kernel import Kernel
 from .models.building import BuildingModel
@@ -68,10 +68,14 @@ class System(SystemShortcutMixin, BaseSystem):
         Initialize the system.
 
         :param config: The system configuration.
-        :param **config_kwds: Entries in :param:`config` to override.
+        :param **config_kwds: Entries in `config` to override.
         """
                 
         self._config = self.Config(config, **config_kwds)
+
+    @property
+    def config(self) -> Config:
+        return self._config
 
     def __repr__(self):
         return f'{type(self).__name__}({self._config!r})'
@@ -196,16 +200,20 @@ class System(SystemShortcutMixin, BaseSystem):
     @_functools_.cached_property
     def events(self):
         from .events import EventManager
-        return EventManager().__attach__(self)
+        events = EventManager()
+        events.attach(self)
+        return events
 
     @_functools_.cached_property
     def variables(self):
         from .variables import VariableManager
-        return VariableManager().__attach__(self)
+        variables = VariableManager()
+        variables.attach(self)
+        return variables
     
     def add(
         self, 
-        component: BaseComponent[Self] 
+        component: Component[Self] 
             | Literal['logging:message', 'logging:progress']
     ):
         match component:

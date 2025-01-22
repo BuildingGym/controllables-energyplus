@@ -12,7 +12,7 @@ from typing import (
 )
 
 from ..callbacks import BaseCallback, CallbackManager
-from ..components import BaseComponent
+from ..components import Component
 from ..errors import TemporaryUnavailableError, OptionalModuleNotFoundError
 from ..variables import BaseVariable, BaseVariableManager
 from ..refs import deref, Derefable
@@ -22,7 +22,7 @@ from .plot import PlotConstructor
 # TODO
 class VariableRecord(
     BaseVariable, 
-    BaseComponent[BaseVariable],
+    Component[BaseVariable],
 ):
     r"""TODO"""
 
@@ -46,11 +46,11 @@ class VariableRecord(
     
     def poll(self):
         # TODO raise?
-        if self._manager is None:
+        if self.parent is None:
             return
         
         try:
-            self._data.append(self._manager.value)
+            self._data.append(self.parent.value)
         # TODO !!!!!
         except TemporaryUnavailableError:
             pass
@@ -64,7 +64,7 @@ class VariableRecord(
         event = (
             event
             if isinstance(event, BaseCallback) else 
-            deref(self._manager.events, event)
+            deref(self.parent.events, event)
         )
 
         @event.on
@@ -116,9 +116,9 @@ class VariableRecords(
         See :class:`Plot` for more information.
         """
 
-        return PlotConstructor().__attach__(self)
+        return PlotConstructor().attach(self)
 
-    class DataFrameConstructor(BaseComponent['VariableRecords']):
+    class DataFrameConstructor(Component['VariableRecords']):
         r"""
         The :class:`pandas.DataFrame` constructor.
 
@@ -133,7 +133,7 @@ class VariableRecords(
             # TODO unequal lengths
             return DataFrame({
                 key: Series(record.value)
-                for key, record in self._manager.items()
+                for key, record in self.parent.items()
             }, **kwargs)
         
     @_functools_.cached_property
@@ -143,7 +143,7 @@ class VariableRecords(
         TODO autoupdate
         """
 
-        return self.DataFrameConstructor().__attach__(self)
+        return self.DataFrameConstructor().attach(self)
 
 
 # TODO use VariableTable and row orientation!!!!

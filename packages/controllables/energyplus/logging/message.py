@@ -5,12 +5,12 @@ Scope: Logging and presenting messages.
 """
 
 
-from controllables.core.components import BaseComponent
+from controllables.core.components import Component
 
 from ..systems import System
 
 
-class MessageLogger(BaseComponent[System]):
+class MessageLogger(Component[System]):
     r"""
     A logger that logs messages to a `logging.Logger`.
 
@@ -23,8 +23,10 @@ class MessageLogger(BaseComponent[System]):
         r"""
         Initialize a new instance of :class:`MessageLogger`.
 
-        :param logger_ref: The logger or the name of the logger to log messages to.
-            If not provided or `None`, a new logger with the name of the attached engine will be created.
+        :param logger_ref: 
+            The logger or the name of the logger to log messages to.
+            If not provided or ``None``, a new logger with the name 
+            of the attached engine will be created.
         """
 
         super().__init__()
@@ -35,11 +37,11 @@ class MessageLogger(BaseComponent[System]):
         #super().__attach__.on('call:post', ...)
 
     def __attach__(self, engine):
-        super().__attach__(manager=engine)
+        super().__attach__(parent=engine)
 
         # TODO
         #self._events.__attach__(engine=self._engine)
-        self._events = self._manager.events
+        self._events = self.parent.events
 
         def setup():
             nonlocal self

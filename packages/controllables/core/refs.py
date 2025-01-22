@@ -4,14 +4,13 @@ Specs for reference-related operations.
 
 
 import abc as _abc_
-from typing import Any, Callable, Generic, TypeAlias, Type, TypeVar
+from typing import Container, Callable, Generic, Mapping, TypeAlias, Type, TypeVar
 
 
 RefT = TypeVar('RefT')
 ValT = TypeVar('ValT')
 
-
-Derefable: TypeAlias = RefT | Any | Callable[['BaseRefManager'], RefT]
+Derefable: TypeAlias = Callable[['ProtoRefManager'], RefT] | RefT
 r"""
 Any type that can be dereferenced.
 
@@ -19,8 +18,9 @@ Any type that can be dereferenced.
 """
 
 
-class BaseRefManager(
+class ProtoRefManager(
     _abc_.ABC, 
+    #Mapping[RefT, ValT],
     Generic[RefT, ValT],
 ):
     r"""
@@ -50,19 +50,36 @@ class BaseRefManager(
         ...
 
 
-def deref(manager: BaseRefManager, ref: Derefable[RefT]) -> ValT:
+# TODO
+class BaseRefManager(
+    ProtoRefManager[RefT, ValT],
+    _abc_.ABC, 
+    Generic[RefT, ValT],
+):
+    __ref_slots__: Container | None = None
+
+    def __contains__(self, ref):
+        if self.__ref_slots__ is None:
+            return False
+        return ref in self.__ref_slots__
+
+
+def deref(
+    manager: ProtoRefManager[RefT, ValT] | None, 
+    ref: Derefable[RefT],
+) -> ValT:
     r"""
     Dereference a reference using the provided reference manager.
 
     :param manager: The reference manager.
     :param ref: The reference.
     :return: The dereferenced value.
-    :raises TypeError: If any of the below occur:
-        * reference NOT exists in the manager provided,
-        * reference NOT as specified in :var:`Derefable`.
+    :raises TypeError: 
+        If reference NOT exists in the manager provided,
+        -OR- :class:`callable` as specified in :var:`Derefable`.
     """
 
-    if ref in manager:
+    if manager is not None and ref in manager:
         return manager[ref]
     
     if isinstance(ref, Callable):
@@ -77,11 +94,24 @@ def deref(manager: BaseRefManager, ref: Derefable[RefT]) -> ValT:
 
 
 def bounded_deref(
-    manager: BaseRefManager, 
+    manager: ProtoRefManager[RefT, ValT] | None, 
     ref: ValT | Derefable[RefT],
     bound: Type[ValT] | tuple[Type[ValT], ...],
 ) -> ValT:
-    r"""TODO"""
+    r"""
+    Dereference a reference using the provided reference manager 
+    -AND- ensure it is of a specific type.
+    If the reference is already of the specified type, it is returned as is.
+
+    :param manager: The reference manager.
+    :param ref: The reference.
+    :param bound: The expected type(s) of the reference, 
+        the format follows the `classinfo` argument of :func:`isinstance`.
+    :return: The dereferenced value.
+    :raises TypeError: 
+        If reference NOT exists in the manager provided,
+        -OR- the dereferenced value is NOT an instance of the specified type.
+    """
 
     if isinstance(ref, bound):
         return ref
@@ -99,7 +129,7 @@ __all__ = [
     'RefT',
     'ValT',
     'Derefable',
-    'BaseRefManager',
+    'ProtoRefManager',
     'deref',
     'bounded_deref',
 ]

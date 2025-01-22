@@ -8,6 +8,7 @@ import contextlib as _contextlib_
 import functools as _functools_
 import warnings as _warnings_
 from typing import (
+    Any,
     Callable,
     Generic, 
     Optional,
@@ -27,10 +28,10 @@ except ModuleNotFoundError as e:
     raise OptionalModuleNotFoundError.suggest(['gymnasium']) from e
 
 from ...systems import BaseSystem 
-from ...components import BaseComponent
+from ...components import Component
 from ...variables import (
     # TODO
-    _ValT,
+    ValT,
     BaseVariable, 
     BaseMutableVariable,
     CompositeVariable, 
@@ -39,13 +40,14 @@ from ...variables import (
     MutableVariable,
 )
 from ...callbacks import Callback
-from ...refs import BaseRefManager, Derefable, bounded_deref
+from ...refs import ProtoRefManager, Derefable, bounded_deref
 from .spaces import Space, SpaceVariable, MutableSpaceVariable
 
 
 class BaseAgent(
     # TODO necesito?
-    BaseComponent['BaseSystem | BaseAgentManager'],
+    ProtoRefManager[Any, BaseVariable],
+    Component['BaseSystem | BaseAgentManager'],
     _abc_.ABC,
 ):
     r"""
@@ -61,17 +63,31 @@ class BaseAgent(
         within or of the defined `action_space` and `observation_space` 
         must be associated with a variable through `bind`ing (TODO link). 
 
-    .. seealso::
-        * `gymnasium.spaces.Space <https://gymnasium.farama.org/api/spaces/#gymnasium.spaces.Space>`_
-        * `gymnasium.Env.action_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.action_space>`_
-        * `gymnasium.Env.observation_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.observation_space>`_
     """
 
+    participation: BaseVariable[bool]
+    r"""
+    (IMPLEMENT) Participation.
+    Controls agent participation in the environment;
+    useful for dynamic multi-agent systems where agents 
+    may only be active at certain times.
+    """    
+
     action_space: Space[ActType]
-    r"""(IMPLEMENT) All possible actions."""
+    r"""
+    (IMPLEMENT) All possible actions.
+
+    .. seealso::
+        * `gymnasium.Env.action_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.action_space>`_
+    """
 
     observation_space: Space[ObsType]
-    r"""(IMPLEMENT) All possible observations."""
+    r"""
+    (IMPLEMENT) All possible observations.
+
+    .. seealso::
+        * `gymnasium.Env.observation_space <https://gymnasium.farama.org/api/env/#gymnasium.Env.observation_space>`_
+    """
 
     reward: BaseVariable[float]
     r"""(IMPLEMENT) Reward variable."""
@@ -87,13 +103,19 @@ class BaseAgent(
 
     @property
     def system(self) -> BaseSystem | None:
-        if self.__manager__ is None:
+        if self.__parent__ is None:
             return None
-        if isinstance(self.__manager__, BaseSystem):
-            return self.__manager__
-        if isinstance(self.__manager__, BaseAgentManager):
-            return self.__manager__.__manager__
-        raise TypeError(f'Invalid manager type: {type(self.__manager__)}')
+        if isinstance(self.__parent__, BaseSystem):
+            return self.__parent__
+        if isinstance(self.__parent__, BaseAgentManager):
+            return self.__parent__.__parent__
+        raise TypeError(f'Invalid manager type: {type(self.__parent__)}')
+    
+    def __getitem__(self, ref):
+        return self.system.__getitem__(ref)
+    
+    def __contains__(self, ref):
+        return self.system.__contains__(ref)
         
     @property
     def action(self) -> MutableSpaceVariable[ActType]:
@@ -104,8 +126,10 @@ class BaseAgent(
         """
 
         res = MutableSpaceVariable(self.action_space)
+        # TODO attach to self
         if self.system is not None:
-            res.__attach__(self.system.variables)
+            #res.__attach__(self.system.variables)
+            res.__attach__(self)
         return res
         
     @property
@@ -118,8 +142,10 @@ class BaseAgent(
         """
 
         res = SpaceVariable(self.observation_space)
+        # TODO attach to self
         if self.system is not None:
-            res.__attach__(self.system.variables)
+            #res.__attach__(self.system.variables)
+            res.__attach__(self)
         return res
     
     # TODO deprecate?
@@ -167,7 +193,7 @@ class BaseAgent(
             * A :class:`Callback` object.
             * A reference to a :class:`Callback` object,
                 valid inside the attached :class:`BaseSystem`.
-            * :class:`None`, indicating no event to wait for.
+            * ```None```, indicating no event to wait for.
         """
         
         finalize = None
@@ -184,84 +210,105 @@ class BaseAgent(
             if finalize is not None: finalize()
 
 
+_RefT = TypeVar('_RefT')
+_AgentT = TypeVar('_AgentT', bound=BaseAgent)
+
+
 class BaseAgentManager(
-    Generic[
-        _RefT := TypeVar('_RefT'), 
-        _AgentT := TypeVar('_AgentT', bound=BaseAgent),
-    ],
-    BaseRefManager[_RefT, _AgentT],
-    BaseComponent[BaseSystem],
+    Generic[_RefT, _AgentT],
+    ProtoRefManager[_RefT, _AgentT],
+    Component[BaseSystem],
     _abc_.ABC,
 ):
     r"""
     TODO doc
     Agent manager base class for :class:`BaseSystem`s.
 
+    .. seealso::
+        * :class:`BaseAgent`
     """
 
     refs: Iterable[_RefT]
     r"""(IMPLEMENT) All agent references."""
 
-    # TODO !!!!! RefManager has NO ITER!!!@!!!!!!!!!
+    @property
+    def active_refs(self):
+        r"""
+        List of references to all participating agents.
+        """
+        
+        return tuple(
+            agent_ref
+            for agent_ref in self.refs
+            if self[agent_ref].participation.value
+        )
+
+    @property
+    def participations(self):        
+        return MutableCompositeVariable({
+            agent_ref: self[agent_ref].participation
+            for agent_ref in self.active_refs
+        })
+    
     @property
     def action_spaces(self):
         return {
             agent_ref: self[agent_ref].action_space
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         }
 
     @property
     def observation_spaces(self):
         return {
             agent_ref: self[agent_ref].observation_space
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         }
     
     @property
     def actions(self) -> BaseMutableVariable[dict[_RefT, ActType]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].action
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
     
     @property
     def observations(self) -> BaseMutableVariable[dict[_RefT, ObsType]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].observation
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
 
     @property
     def rewards(self) -> BaseMutableVariable[dict[_RefT, float]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].reward
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
 
     @property
     def infos(self) -> BaseMutableVariable[dict[_RefT, dict]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].info
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
     
     @property
     def terminations(self) -> BaseMutableVariable[dict[_RefT, bool]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].termination
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
     
     @property
     def truncations(self) -> BaseMutableVariable[dict[_RefT, bool]]:
         return MutableCompositeVariable({
             agent_ref: self[agent_ref].truncation
-            for agent_ref in self.refs
+            for agent_ref in self.active_refs
         })
     
 
 class Agent(BaseAgent):
-    _MaybeComputedVariable = BaseVariable[_ValT] | Callable[['Agent'], _ValT]
+    _MaybeComputedVariable = BaseVariable[ValT] | Callable[['Agent'], ValT]
 
     def _computed_variable(self, var: _MaybeComputedVariable):
         return (
@@ -271,6 +318,7 @@ class Agent(BaseAgent):
         )
 
     class Config(TypedDict):
+        participation: Optional['Agent._MaybeComputedVariable[bool]']
         action_space: Space[ActType]
         observation_space: Space[ObsType]
         reward: Optional['Agent._MaybeComputedVariable[float]']
@@ -281,6 +329,12 @@ class Agent(BaseAgent):
     def __init__(self, config: Config = dict(), **config_kwds: Unpack[Config]):
         self.__config__ = self.Config(config, **config_kwds)
 
+    @_functools_.cached_property
+    def participation(self) -> BaseVariable[bool]:
+        if self.__config__.get('participation') is None:
+            return MutableVariable(True)
+        return self._computed_variable(self.__config__['participation'])
+        
     @property
     def action_space(self):
         return self.__config__['action_space']
@@ -307,7 +361,7 @@ class Agent(BaseAgent):
         if self.__config__.get('info') is None:
             return MutableVariable(dict())
         return self._computed_variable(self.__config__['info'])
-        
+    
     @_functools_.cached_property
     def termination(self) -> BaseVariable[bool]:
         if self.__config__.get('termination') is None:
@@ -329,8 +383,8 @@ class Agent(BaseAgent):
 
 
 class AgentManager(
-    Generic[_RefT, _AgentT],
     BaseAgentManager[_RefT, _AgentT],
+    Generic[_RefT, _AgentT],
 ):
     class Config(TypedDict):
         agents: Optional[dict[_RefT, Agent.Config]]
@@ -380,7 +434,7 @@ class AgentManager(
         return self._data.keys()
 
     def add(self, ref: _RefT, agent: _AgentT):        
-        self._data[ref] = agent.__attach__(self)
+        self._data[ref] = agent.attach(self)
         return self
 
 

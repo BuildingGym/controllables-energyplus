@@ -14,6 +14,14 @@ readme = 'README.md'
 license = {file = 'LICENSE.txt'}
 dependencies = [
     'energyplus-core==0.1.0a0',
+
+    'tqdm',
+    'plotly',
+
+    'numpy',
+    'ray[rllib]==2.38.0',
+    'gymnasium',
+    'pettingzoo',
 ]
 
 [project.optional-dependencies]

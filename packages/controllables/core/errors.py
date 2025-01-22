@@ -52,9 +52,25 @@ class OptionalModuleNotFoundWarning(RuntimeWarning, OptionalModuleNotFoundError)
     pass
 
 
+import abc as _abc_
+
+class ExceptionableMixin(_abc_.ABC):
+    __exc__: BaseException | None = None
+
+    def err(self, exc: BaseException):
+        self.__exc__ = exc
+
+    def throw(self):
+        if self.__exc__ is not None:
+            exc = self.__exc__
+            self.__exc__ = None
+            raise exc
+
+
 __all__ = [
     'TemporaryUnavailableError',
     'TemporaryUnavailableWarning',
     'OptionalModuleNotFoundError',
     'OptionalModuleNotFoundWarning',
+    'ExceptionableMixin'
 ]

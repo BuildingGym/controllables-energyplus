@@ -94,7 +94,7 @@ class Kernel:
         Run the simulation.
 
         :param args: The command-line arguments to pass to the kernel.
-        :returns: The exit status code of the kernel.
+        :return: The exit status code of the kernel.
         """
 
         # TODO pass args to hooks

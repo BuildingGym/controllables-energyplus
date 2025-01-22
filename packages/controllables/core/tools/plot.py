@@ -18,7 +18,7 @@ from typing import (
 )
 
 from ..callbacks import BaseCallback
-from ..components import BaseComponent
+from ..components import Component
 from ..errors import TemporaryUnavailableError, OptionalModuleNotFoundError
 from ..variables import BaseVariable, BaseVariableManager
 from ..refs import Derefable, deref
@@ -77,7 +77,7 @@ class PlotSpec(TypedDict, total=False):
 
 # TODO support for snapshots
 class BasePlot(
-    BaseComponent[BaseVariableManager], 
+    Component[BaseVariableManager], 
     _abc_.ABC,
 ):
     r"""
@@ -102,7 +102,7 @@ class BasePlot(
         Implementation shall update the figure with 
         the latest data from the references.
 
-        :returns: This plot.
+        :return: This plot.
         """
 
         ...
@@ -161,7 +161,7 @@ class Plot(BasePlot):
 
     def __attach__(self, manager) -> Self:
         super().__attach__(manager)
-        self._base.__attach__(self._manager)
+        self._base.__attach__(self.parent)
         return self
 
     def poll(self):
@@ -182,13 +182,13 @@ class Plot(BasePlot):
 
 
 # TODO
-class PlotConstructor(BaseComponent[BaseVariableManager]):
+class PlotConstructor(Component[BaseVariableManager]):
     # TODO !!!!!!
     def __watch__(self, event: BaseCallback):
         pass
     
     def __call__(self, spec):
-        return Plot(spec=spec).__attach__(self._manager).poll()
+        return Plot(spec=spec).attach(self.parent).poll()
     
     # TODO !!!!!
     def scatter(self, **trace_spec: Unpack[PlotSpec.Trace]):
@@ -246,7 +246,7 @@ class PlotlyBackend(BasePlot):
             return (
                 ref 
                 if isinstance(ref, BaseVariable) else 
-                deref(self._manager, ref)
+                deref(self.parent, ref)
             )
 
         def _ensure_data(data: Iterable | Any):
@@ -312,7 +312,7 @@ class MatplotlibBackend(BasePlot):
         
         raise NotImplementedError
     
-        _deref = lambda x: deref(self._manager, x)
+        _deref = lambda x: deref(self.parent, x)
 
         for trace_spec in self._spec.get('traces', []):
             if trace_spec.get('kind') == 'scatter':

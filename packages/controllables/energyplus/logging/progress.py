@@ -5,12 +5,12 @@ Scope: Logging and presenting progress messages and values.
 """
 
 
-from controllables.core.components import BaseComponent
+from controllables.core.components import Component
 
 from ..systems import System
 
 
-class ProgressLogger(BaseComponent[System]):
+class ProgressLogger(Component[System]):
     r"""
     A logger that logs message and progress to a `tqdm.tqdm` progress bar.
 
@@ -29,7 +29,7 @@ class ProgressLogger(BaseComponent[System]):
         Initialize a new instance of :class:`ProgressLogger`.
 
         :param progbar_ref: Optional. The progress bar to log progress to.
-            If not provided or `None`, a new `tqdm.auto.tqdm` progress bar will be created.
+            If not provided or ``None``, a new `tqdm.auto.tqdm` progress bar will be created.
         """
 
         super().__init__()
@@ -45,11 +45,11 @@ class ProgressLogger(BaseComponent[System]):
         raise NotImplementedError
 
     def __attach__(self, manager):
-        super().__attach__(manager=manager)
+        super().__attach__(parent=manager)
 
         # TODO
         #self._events.__attach__(engine=self._engine)
-        _events = self._manager.events
+        _events = self.parent.events
         
         def setup():
             nonlocal self, _events
@@ -58,7 +58,7 @@ class ProgressLogger(BaseComponent[System]):
             progbar = (
                 self._progbar_ref 
                 if isinstance(self._progbar_ref, self._tqdm_.tqdm) else
-                self._tqdm_auto_.tqdm(total=100)
+                self._tqdm_auto_.tqdm(total=100.)
             )
             _events[Event.Ref('message', include_warmup=True)].on(
                 lambda ctx, progbar=progbar: 
