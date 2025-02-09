@@ -143,23 +143,39 @@ class MappingMapper(BaseMapper[Mapping, Dict]):
     def maps(self, *objs):
         return all(isinstance(obj, (dict, Mapping)) for obj in objs)
 
-    def __call__(self, *objs):
-        self._ensure_maps(*objs)
-        return dict(
+    def __call__(self, dst, *srcs):
+        self._ensure_maps(dst, *srcs)
+
+        constructor = dict
+        match dst:
+            case dict():
+                constructor = dict
+
+        return constructor(
             (index, self.next_mapper(*subobjs))
-            for index, subobjs in zip_mapping(*objs)
+            for index, subobjs in zip_mapping(dst, *srcs)
         )
 
 
 class IterableMapper(BaseMapper[Iterable, Iterator]):
     def maps(self, *objs):
-        return all(isinstance(obj, (Iterator, Iterable)) for obj in objs)
+        return all(isinstance(obj, Iterable) for obj in objs)
     
-    def __call__(self, *objs):
-        self._ensure_maps(*objs)
-        return iter(
+    def __call__(self, dst, *srcs):
+        self._ensure_maps(dst, *srcs)
+
+        constructor = iter
+        match dst:
+            case list():
+                constructor = list
+            case tuple():
+                constructor = tuple
+            case set():
+                constructor = set
+
+        return constructor(
             self.next_mapper(*subobjs)
-            for subobjs in zip_iterable(*objs)
+            for subobjs in zip_iterable(dst, *srcs)
         )
     
 
@@ -225,10 +241,12 @@ class CollectionMapper(CompositeMapper):
     def __init__(self, next_mapper: BaseMapper | None = None):
         super().__init__(next_mapper=next_mapper)
         self.add(
-            DictMapper(self),
-            TupleMapper(self),
-            ListMapper(self),
-            SetMapper(self),
+            # DictMapper(self),
+            # TupleMapper(self),
+            # ListMapper(self),
+            # SetMapper(self),
+            MappingMapper(self),
+            IterableMapper(self),
         )
 
 

@@ -15,7 +15,7 @@ from typing import (
     Unpack,
 )
 
-from controllables.core.systems import BaseSystem, SystemShortcutMixin
+from controllables.core.systems import BaseSystem
 from controllables.core.components import Component
 
 from ._kernel import Kernel
@@ -23,7 +23,7 @@ from .models.building import BuildingModel
 from .models.weather import WeatherModel
 
 
-class System(SystemShortcutMixin, BaseSystem):
+class System(BaseSystem):
     r"""
     System class.
     """

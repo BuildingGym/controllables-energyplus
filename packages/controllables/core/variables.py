@@ -138,15 +138,18 @@ class ProtoMutableVariable(
     Mutable variable protocol class.
     """
 
-    @ProtoVariable.value.setter
+    @property
     @_abc_.abstractmethod
-    def value(self, val: ValT | Nil):
+    def value(self) -> ValT | Nil:
         r"""
-        Set the value of this variable.
-
-        :param val: The value to set.
+        Get or set the value of this variable.
         """
 
+        ...
+
+    @value.setter
+    @_abc_.abstractmethod
+    def value(self, val: ValT | Nil):
         ...
 
 
@@ -409,7 +412,7 @@ class BaseMutableCompositeVariable(
         @self.__mapper__
         def setter(var, val):
             if not isinstance(var, ProtoVariable):
-                raise TypeError(f'Expected {ProtoVariable}, got {var!r}')
+                raise TypeError(f'Expected {ProtoVariable}, got {var!r} (assigned from {val!r})')
             var.value = val
             return val
         return setter(self.__variables__, o)
@@ -625,12 +628,21 @@ class Variable(
 
     @property
     def value(self):
+        r"""
+        Get the value of the variable.
+
+        :raises TemporaryUnavailableError: If the value is :obj:`Nil`.
+        """
+
+        if self.__value__ is Nil:
+            raise TemporaryUnavailableError()
         return self.__value__
 
 
 class MutableVariable(
     Generic[ValT],
     Variable[ValT],
+    ProtoMutableVariable[ValT],
     _abc_.ABC,
 ):
     r"""

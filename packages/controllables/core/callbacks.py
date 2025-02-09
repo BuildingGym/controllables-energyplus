@@ -163,7 +163,6 @@ class BaseFutureHandler(
         self._cancel()
 
 
-
 # TODO
 class ConcurrentFutureHandler(BaseFutureHandler):
     def __init__(self, deferred: bool = False):
@@ -365,6 +364,7 @@ _CallbackT = TypeVar(
     bound=ProtoCallback,
 )
 
+# TODO necesito?
 class BaseCallbackManager(
     ProtoRefManager[_RefT, _CallbackT],
     _abc_.ABC,

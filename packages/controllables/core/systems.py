@@ -286,13 +286,6 @@ class BaseSystem(_abc_.ABC):
     * `'timestep'`: Emitted at each timestep (clock tick) of the system.
     * `'end'`: Emitted when the system ends.
     """
-    
-
-#class SystemShortcutMixin(BaseSystem):
-    r"""
-    Opt-in mixin for :class:`BaseSystem` shortcuts.
-    Useful for user-facing classes and the impatient.
-    """
 
     def add(self, component: Component[Self]):
         r"""
@@ -386,12 +379,6 @@ class BaseSystem(_abc_.ABC):
         return self.variables.__contains__(var_ref)
 
 
-# TODO deprecate rm
-class SystemShortcutMixin(BaseSystem):
-    ...
-
-
 __all__ = [
     'BaseSystem',
-    #'SystemShortcutMixin',
 ]

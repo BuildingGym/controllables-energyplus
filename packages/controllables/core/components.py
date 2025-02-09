@@ -6,12 +6,10 @@ Scope: Abstract classes for component and component managers.
 
 
 import abc as _abc_
-from typing import Any, Generic, Self, TypeVar
+from typing import Any, Generic, Self, TypeVar, TypeAlias
 
 
-ComponentParentT = TypeVar(
-    '_BaseComponentManagerT', 
-)
+ComponentParentT = TypeVar('ComponentParentT')
 
 
 class BaseComponent(
@@ -97,7 +95,42 @@ class Component(
         return self
     
 
-
 __all__ = [ 
     'Component',
 ]
+
+
+import contextlib as _contextlib_
+import functools as _functools_
+
+
+ComponentParentT: TypeAlias = TypeVar('ComponentParentT')
+
+
+class TODONext_ProtoComponent(_abc_.ABC, Generic[ComponentParentT]):
+    @_abc_.abstractmethod
+    def attach_to(self, parent: ComponentParentT) -> \
+        _contextlib_.AbstractContextManager \
+        | _contextlib_.AbstractAsyncContextManager:
+        ...
+
+ComponentT = TypeVar('ComponentT', bound=TODONext_ProtoComponent)
+
+class TODONext_ProtoComponentManager(_abc_.ABC, Generic[ComponentT]):
+    @_abc_.abstractmethod
+    def attach(self, component: TODONext_ProtoComponent) -> Self:
+        ...
+    
+
+class TODONext_ComponentManager(TODONext_ProtoComponentManager):
+    @_functools_.cached_property
+    def _attachments(self):
+        return _contextlib_.ExitStack()
+
+    def attach(self, component):
+        self._attachments.enter_context(component.attach_to(self))
+        return self
+
+
+# TODO
+__all__

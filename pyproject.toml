@@ -15,6 +15,8 @@ license = {file = 'LICENSE.txt'}
 dependencies = [
     'energyplus-core==0.1.0a0',
 
+    'energyplus-datasets',
+
     'tqdm',
     'plotly',
 
