@@ -15,8 +15,6 @@ license = {file = 'LICENSE.txt'}
 dependencies = [
     'energyplus-core==0.1.0a0',
 
-    'energyplus-datasets @ git+https://github.com/SGHVAIC/EnergyPlus-Datasets',
-
     'tqdm',
     'plotly',
 
@@ -28,12 +26,12 @@ dependencies = [
 
 [project.optional-dependencies]
 examples = [
-    'energyplus-datasets',
+    'energyplus-datasets @ git+https://github.com/SGHVAIC/EnergyPlus-Datasets',
 ]
 test = [
     'pytest', 
     'pytest-asyncio',
-    'energyplus-datasets',
+    'energyplus-datasets @ git+https://github.com/SGHVAIC/EnergyPlus-Datasets',
 ]
 docs = [
     'jupyter-book', 
